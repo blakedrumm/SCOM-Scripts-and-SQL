@@ -1,4 +1,15 @@
-﻿Function Clear-SCOMCache
+param
+(
+	[Parameter(Position = 1)]
+	[Array]$Servers
+)
+
+Write-Host '===================================================================' -ForegroundColor DarkYellow
+Write-Host '==========================  Start of Script =======================' -ForegroundColor DarkYellow
+Write-Host '===================================================================' -ForegroundColor DarkYellow
+
+
+Function Clear-SCOMCache
 {
 <#
 	.SYNOPSIS
@@ -40,46 +51,79 @@
 					write-host "$TimeStamp - " -NoNewline
 				}
 				Time-Stamp
-				Write-Host "Starting Script Execution on $currentserv"
+				Write-Host "Starting Script Execution on: " -NoNewline
+				Write-Host "$currentserv" -ForegroundColor Cyan
 				$omsdk = (Get-WmiObject win32_service | ?{ $_.Name -like 'omsdk' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
 				$cshost = (Get-WmiObject win32_service | ?{ $_.Name -like 'cshost' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
 				$healthservice = (Get-WmiObject win32_service | ?{ $_.Name -like 'healthservice' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
 				if ($omsdk)
 				{
-					Time-Stamp
-					Write-Host "Stopping `'omsdk`' Service"
-					net stop omsdk
+					$omsdkStatus = (Get-Service -Name omsdk).Status
+					if ($omsdkStatus -eq "Running")
+					{
+						Time-Stamp
+						Write-Host "Stopping `'omsdk`' Service"
+						Stop-Service omsdk
+					}
+					else
+					{
+						Time-Stamp
+						Write-Host "[Warning] :: Status of `'omsdk`' Service - " -NoNewline
+						Write-Host "$omsdkStatus" -ForegroundColor Yellow
+					}
+					
 				}
-				elseif ($cshost)
+				if ($cshost)
 				{
-					Time-Stamp
-					Write-Host "Stopping `'cshost`' Service"
-					net stop cshost
+					$cshostStatus = (Get-Service -Name cshost).Status
+					if ($cshostStatus -eq "Running")
+					{
+						Time-Stamp
+						Write-Host "Stopping `'cshost`' Service"
+						Stop-Service cshost
+					}
+					else
+					{
+						Time-Stamp
+						Write-Host "[Warning] :: Status of `'cshost`' Service - " -NoNewline
+						Write-Host "$cshostStatus" -ForegroundColor Yellow
+					}
 				}
-				elseif ($healthservice)
+				if ($healthservice)
 				{
-					Time-Stamp
-					Write-Host "Stopping `'healthservice`' Service"
-					net stop healthservice
+					$healthserviceStatus = (Get-Service -Name healthservice).Status
+					if ($healthserviceStatus -eq "Running")
+					{
+						Time-Stamp
+						Write-Host "Stopping `'healthservice`' Service"
+						Stop-Service healthservice
+					}
+					else
+					{
+						Time-Stamp
+						Write-Host "[Warning] :: Status of `'healthservice`' Service - " -NoNewline
+						Write-Host "$healthserviceStatus" -ForegroundColor Yellow
+					}
 					try
 					{
 						Time-Stamp
-						Write-Host "Attempting to Move Folder from: `"$healthservice`\Health Service State`" to `"$healthservice\Health Service State.old`""
+						Write-Host "Attempting to Move Folder from: `"$healthservice`\Health Service State`" to `"$healthservice\Health Service State.old`" "
 						Move-Item "$healthservice\Health Service State" "$healthservice\Health Service State.old" -ErrorAction Stop
 						Time-Stamp
-						Write-Host "Moved Folder Successfully"
+						Write-Host "Moved Folder Successfully" -ForegroundColor Green
 					}
 					catch
 					{
-						$time = Time-Stamp
-						Write-Warning "$time$_"
 						Time-Stamp
-						Write-Host "Attempting to Delete Folder: `"$healthservice`\Health Service State`""
+						Write-Host "[Warning] :: " -NoNewline
+						Write-Host "$_" -ForegroundColor Yellow
+						Time-Stamp
+						Write-Host "Attempting to Delete Folder: `"$healthservice`\Health Service State`" "
 						try
 						{
-							rd "$healthservice\Health Service State" /s /q
+							rd "$healthservice\Health Service State" -Recurse -ErrorAction Stop
 							Time-Stamp
-							Write-Host "Deleted Folder Successfully"
+							Write-Host "Deleted Folder Successfully" -ForegroundColor Green
 						}
 						catch
 						{
@@ -88,7 +132,7 @@
 					}
 					
 				}
-				elseif ($null -eq $omsdk -and $cshost -and $healthservice)
+				if ($null -eq $omsdk -and $cshost -and $healthservice)
 				{
 					Time-Stamp
 					try
@@ -97,50 +141,56 @@
 						try
 						{
 							Time-Stamp
-							Write-Host "Attempting to Move Folder from: `"$installdir`\Health Service State`" to `"$installdir\Health Service State.old`""
+							Write-Host "Attempting to Move Folder from: `"$installdir`\Health Service State`" to `"$installdir\Health Service State.old`" "
 							Move-Item "$installdir\Health Service State" "$installdir\Health Service State.old" -ErrorAction Stop
 							Time-Stamp
-							Write-Host "Moved Folder Successfully"
+							Write-Host "Moved Folder Successfully" -ForegroundColor Green
 						}
 						catch
 						{
-							$time = Time-Stamp
-							Write-Warning "$time$_"
 							Time-Stamp
-							Write-Host "Attempting to Delete Folder: `"$installdir`\Health Service State`""
+							Write-Host "[Warning] :: " -NoNewline
+							Write-Host "$_" -ForegroundColor Yellow
+							Time-Stamp
+							Write-Host "Attempting to Delete Folder: `"$installdir`\Health Service State`" "
 							try
 							{
-								rd "$installdir\Health Service State" /s /q
+								rd "$installdir\Health Service State" -Recurse -ErrorAction Stop
 								Time-Stamp
-								Write-Host "Deleted Folder Successfully"
+								Write-Host "Deleted Folder Successfully" -ForegroundColor Green
 							}
 							catch
 							{
-								$time = Time-Stamp
-								Write-Warning $time$_
+								Write-Warning $_
 							}
 						}
 					}
 					catch
 					{
 						Write-Warning "Unable to locate the Install Directory`nHKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Setup"
-						exit 1
+						break
 					}
 				}
 				Time-Stamp
-				Write-Host "Flushing DNS: IPConfig /FlushDNS"
+				Write-Host "Flushing DNS: " -NoNewline
+				Write-Host "IPConfig /FlushDNS" -ForegroundColor Cyan
 				Start-Process "IPConfig" "/FlushDNS"
 				Time-Stamp
-				Write-Host "Purging Kerberos Tickets: KList purge"
-				Start-Process "KList" "purge"
+				Write-Host "Purging Kerberos Tickets: " -NoNewline
+				Write-Host 'KList -li 0x3e7 purge' -ForegroundColor Cyan
+				Start-Process "KList" "-li 0x3e7 purge"
 				Time-Stamp
-				Write-Host "Resetting NetBIOS over TCPIP Statistics: NBTStat -R"
+				Write-Host "Resetting NetBIOS over TCPIP Statistics: " -NoNewline
+				Write-Host 'NBTStat -R' -ForegroundColor Cyan
 				Start-Process "NBTStat" "-R"
 				Time-Stamp
-				Write-Host "Resetting Winsock catalog: ​netsh winsock reset"
+				Write-Host "Resetting Winsock catalog: " -NoNewline
+				Write-Host '​netsh winsock reset' -ForegroundColor Cyan
 				Start-Process "netsh" "winsock reset"
 				sleep 2
-				Write-Host "Restarting: $currentserv"
+				Time-Stamp
+				Write-Host "Restarting: " -NoNewLine
+				Write-Host "$env:COMPUTERNAME" -ForegroundColor Green
 				Shutdown /r /t 15
 			}
 			Write-Host "----------------------------------------------------------`n"
@@ -154,45 +204,77 @@
 			}
 			Time-Stamp
 			Write-Host "Starting Script Execution on Local Computer"
-			sleep 2
 			$omsdk = (Get-WmiObject win32_service | ?{ $_.Name -like 'omsdk' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
 			$cshost = (Get-WmiObject win32_service | ?{ $_.Name -like 'cshost' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
 			$healthservice = (Get-WmiObject win32_service | ?{ $_.Name -like 'healthservice' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
 			if ($omsdk)
 			{
-				Time-Stamp
-				Write-Host "Stopping `'omsdk`' Service"
-				net stop omsdk
+				$omsdkStatus = (Get-Service -Name omsdk).Status
+				if ($omsdkStatus -eq "Running")
+				{
+					Time-Stamp
+					Write-Host "Stopping `'omsdk`' Service"
+					Stop-Service omsdk
+				}
+				else
+				{
+					Time-Stamp
+					Write-Host "[Warning] :: Status of `'omsdk`' Service - " -NoNewline
+					Write-Host "$omsdkStatus" -ForegroundColor Yellow
+				}
+				
 			}
-			elseif ($cshost)
+			if ($cshost)
 			{
-				Time-Stamp
-				Write-Host "Stopping `'cshost`' Service"
-				net stop cshost
+				$cshostStatus = (Get-Service -Name cshost).Status
+				if ($cshostStatus -eq "Running")
+				{
+					Time-Stamp
+					Write-Host "Stopping `'cshost`' Service"
+					Stop-Service cshost
+				}
+				else
+				{
+					Time-Stamp
+					Write-Host "[Warning] :: Status of `'cshost`' Service - " -NoNewline
+					Write-Host "$cshostStatus" -ForegroundColor Yellow
+				}
 			}
-			elseif ($healthservice)
+			if ($healthservice)
 			{
-				Time-Stamp
-				Write-Host "Stopping `'healthservice`' Service"
-				net stop healthservice
+				$healthserviceStatus = (Get-Service -Name healthservice).Status
+				if ($healthserviceStatus -eq "Running")
+				{
+					Time-Stamp
+					Write-Host "Stopping `'healthservice`' Service"
+					Stop-Service healthservice
+				}
+				else
+				{
+					Time-Stamp
+					Write-Host "[Warning] :: Status of `'healthservice`' Service - " -NoNewline
+					Write-Host "$healthserviceStatus" -ForegroundColor Yellow
+				}
 				try
 				{
 					Time-Stamp
-					Write-Host "Attempting to Move Folder from: `"$healthservice`\Health Service State`" to `"$healthservice\Health Service State.old`""
+					Write-Host "Attempting to Move Folder from: `"$healthservice`\Health Service State`" to `"$healthservice\Health Service State.old`" "
 					Move-Item "$healthservice\Health Service State" "$healthservice\Health Service State.old" -ErrorAction Stop
 					Time-Stamp
-					Write-Host "Moved Folder Successfully"
+					Write-Host "Moved Folder Successfully" -ForegroundColor Green
 				}
 				catch
 				{
-					$time = Time-Stamp
-					Write-Warning "$time$_"
 					Time-Stamp
-					Write-Host "Attempting to Delete Folder: `"$healthservice`\Health Service State`""
+					Write-Host "[Warning] :: " -NoNewline
+					Write-Host "$_" -ForegroundColor Yellow
+					Time-Stamp
+					Write-Host "Attempting to Delete Folder: `"$healthservice`\Health Service State`" "
 					try
 					{
-						rd "$healthservice\Health Service State" /s /q
-						Write-Host "Deleted Folder Successfully"
+						rd "$healthservice\Health Service State" -Recurse -ErrorAction Stop
+						Time-Stamp
+						Write-Host "Deleted Folder Successfully" -ForegroundColor Green
 					}
 					catch
 					{
@@ -201,7 +283,7 @@
 				}
 				
 			}
-			elseif ($null -eq $omsdk -and $cshost -and $healthservice)
+			if ($null -eq $omsdk -and $cshost -and $healthservice)
 			{
 				Time-Stamp
 				try
@@ -210,49 +292,58 @@
 					try
 					{
 						Time-Stamp
-						Write-Host "Attempting to Move Folder from: `"$installdir`\Health Service State`" to `"$installdir\Health Service State.old`""
+						Write-Host "Attempting to Move Folder from: `"$installdir`\Health Service State`" to `"$installdir\Health Service State.old`" "
 						Move-Item "$installdir\Health Service State" "$installdir\Health Service State.old" -ErrorAction Stop
 						Time-Stamp
-						Write-Host "Moved Folder Successfully"
+						Write-Host "Moved Folder Successfully" -ForegroundColor Green
 					}
 					catch
 					{
-						$time = Time-Stamp
-						Write-Warning "$time$_"
 						Time-Stamp
-						Write-Host "Attempting to Delete Folder: `"$installdir`\Health Service State`""
+						Write-Host "[Warning] :: " -NoNewline
+						Write-Host "$_" -ForegroundColor Yellow
+						Time-Stamp
+						Write-Host "Attempting to Delete Folder: `"$installdir`\Health Service State`" "
 						try
 						{
-							rd "$installdir\Health Service State" /s /q
+							rd "$installdir\Health Service State" -Recurse -ErrorAction Stop
 							Time-Stamp
-							Write-Host "Deleted Folder Successfully"
+							Write-Host "Deleted Folder Successfully" -ForegroundColor Green
 						}
 						catch
 						{
+							Time-Stamp
 							Write-Warning $_
 						}
 					}
 				}
 				catch
 				{
+					Time-Stamp
 					Write-Warning "Unable to locate the Install Directory`nHKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Setup"
-					exit 1
+					break
 				}
 			}
 			Time-Stamp
-			Write-Host "Flushing DNS: IPConfig /FlushDNS"
+			Write-Host "Flushing DNS: " -NoNewline
+			Write-Host "IPConfig /FlushDNS" -ForegroundColor Cyan
 			Start-Process "IPConfig" "/FlushDNS"
 			Time-Stamp
-			Write-Host "Purging Kerberos Tickets: KList purge"
-			Start-Process "KList" "purge"
+			Write-Host "Purging Kerberos Tickets: " -NoNewline
+			Write-Host 'KList -li 0x3e7 purge' -ForegroundColor Cyan
+			Start-Process "KList" "-li 0x3e7 purge"
 			Time-Stamp
-			Write-Host "Resetting NetBIOS over TCPIP Statistics: NBTStat -R"
+			Write-Host "Resetting NetBIOS over TCPIP Statistics: " -NoNewline
+			Write-Host 'NBTStat -R' -ForegroundColor Cyan
 			Start-Process "NBTStat" "-R"
 			Time-Stamp
-			Write-Host "Resetting Winsock catalog: ​netsh winsock reset"
+			Write-Host "Resetting Winsock catalog: " -NoNewline
+			Write-Host '​netsh winsock reset' -ForegroundColor Cyan
 			Start-Process "netsh" "winsock reset"
 			sleep 2
-			Write-Host "Restarting: $env:COMPUTERNAME"
+			Time-Stamp
+			Write-Host "Restarting: " -NoNewLine
+			Write-Host "$env:COMPUTERNAME" -ForegroundColor Green
 			Shutdown /r /t 15
 		}
 	}
@@ -264,46 +355,80 @@
 			write-host "$TimeStamp - " -NoNewline
 		}
 		Time-Stamp
-		Write-Host "Starting Script Execution on Local Computer`nPausing for 20 seconds to give you time to verify this is what you want to do."
+		Write-Host "Starting Script Execution on: " -NoNewline
+		Write-Host "$env:ComputerName (Local Computer)" -ForegroundColor Cyan
 		sleep 20
 		$omsdk = (Get-WmiObject win32_service | ?{ $_.Name -like 'omsdk' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
 		$cshost = (Get-WmiObject win32_service | ?{ $_.Name -like 'cshost' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
 		$healthservice = (Get-WmiObject win32_service | ?{ $_.Name -like 'healthservice' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
 		if ($omsdk)
 		{
-			Time-Stamp
-			Write-Host "Stopping `'omsdk`' Service"
-			net stop omsdk
+			$omsdkStatus = (Get-Service -Name omsdk).Status
+			if ($omsdkStatus -eq "Running")
+			{
+				Time-Stamp
+				Write-Host "Stopping `'omsdk`' Service"
+				Stop-Service omsdk
+			}
+			else
+			{
+				Time-Stamp
+				Write-Host "[Warning] :: Status of `'omsdk`' Service - " -NoNewline
+				Write-Host "$omsdkStatus" -ForegroundColor Yellow
+			}
+			
 		}
-		elseif ($cshost)
+		if ($cshost)
 		{
-			Time-Stamp
-			Write-Host "Stopping `'cshost`' Service"
-			net stop cshost
+			$cshostStatus = (Get-Service -Name cshost).Status
+			if ($cshostStatus -eq "Running")
+			{
+				Time-Stamp
+				Write-Host "Stopping `'cshost`' Service"
+				Stop-Service cshost
+			}
+			else
+			{
+				Time-Stamp
+				Write-Host "[Warning] :: Status of `'cshost`' Service - " -NoNewline
+				Write-Host "$cshostStatus" -ForegroundColor Yellow
+			}
 		}
-		elseif ($healthservice)
+		if ($healthservice)
 		{
-			Time-Stamp
-			Write-Host "Stopping `'healthservice`' Service"
-			net stop healthservice
+			$healthserviceStatus = (Get-Service -Name healthservice).Status
+			if ($healthserviceStatus -eq "Running")
+			{
+				Time-Stamp
+				Write-Host "Stopping `'healthservice`' Service"
+				Stop-Service healthservice
+			}
+			else
+			{
+				Time-Stamp
+				Write-Host "[Warning] :: Status of `'healthservice`' Service - " -NoNewline
+				Write-Host "$healthserviceStatus" -ForegroundColor Yellow
+			}
 			try
 			{
 				Time-Stamp
-				Write-Host "Attempting to Move Folder from: `"$healthservice`\Health Service State`" to `"$healthservice\Health Service State.old`""
+				Write-Host "Attempting to Move Folder from: `"$healthservice`\Health Service State`" to `"$healthservice\Health Service State.old`" "
 				Move-Item "$healthservice\Health Service State" "$healthservice\Health Service State.old" -ErrorAction Stop
 				Time-Stamp
-				Write-Host "Moved Folder Successfully"
+				Write-Host "Moved Folder Successfully" -ForegroundColor Green
 			}
 			catch
 			{
-				$time = Time-Stamp
-				Write-Warning "$time$_"
 				Time-Stamp
-				Write-Host "Attempting to Delete Folder: `"$healthservice`\Health Service State`""
+				Write-Host "[Warning] :: " -NoNewline
+				Write-Host "$_" -ForegroundColor Yellow
+				Time-Stamp
+				Write-Host "Attempting to Delete Folder: `"$healthservice`\Health Service State`" "
 				try
 				{
-					rd "$healthservice\Health Service State" /s /q
-					Write-Host "Deleted Folder Successfully"
+					rd "$healthservice\Health Service State" -Recurse -ErrorAction Stop
+					Time-Stamp
+					Write-Host "Deleted Folder Successfully" -ForegroundColor Green
 				}
 				catch
 				{
@@ -312,7 +437,7 @@
 			}
 			
 		}
-		elseif ($null -eq $omsdk -and $cshost -and $healthservice)
+		if ($null -eq $omsdk -and $cshost -and $healthservice)
 		{
 			Time-Stamp
 			try
@@ -321,22 +446,23 @@
 				try
 				{
 					Time-Stamp
-					Write-Host "Attempting to Move Folder from: `"$installdir`\Health Service State`" to `"$installdir\Health Service State.old`""
+					Write-Host "Attempting to Move Folder from: `"$installdir`\Health Service State`" to `"$installdir\Health Service State.old`" "
 					Move-Item "$installdir\Health Service State" "$installdir\Health Service State.old" -ErrorAction Stop
 					Time-Stamp
-					Write-Host "Moved Folder Successfully"
+					Write-Host "Moved Folder Successfully" -ForegroundColor Green
 				}
 				catch
 				{
-					$time = Time-Stamp
-					Write-Warning "$time$_"
 					Time-Stamp
-					Write-Host "Attempting to Delete Folder: `"$installdir`\Health Service State`""
+					Write-Host "[Warning] :: " -NoNewline
+					Write-Host "$_" -ForegroundColor Yellow
+					Time-Stamp
+					Write-Host "Attempting to Delete Folder: `"$installdir`\Health Service State`" "
 					try
 					{
-						rd "$installdir\Health Service State" /s /q
+						rd "$installdir\Health Service State" -Recurse -ErrorAction Stop
 						Time-Stamp
-						Write-Host "Deleted Folder Successfully"
+						Write-Host "Deleted Folder Successfully" -ForegroundColor Green
 					}
 					catch
 					{
@@ -347,24 +473,37 @@
 			catch
 			{
 				Write-Warning "Unable to locate the Install Directory`nHKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Setup"
-				exit 1
+				break
 			}
 		}
 		Time-Stamp
-		Write-Host "Flushing DNS: IPConfig /FlushDNS"
+		Write-Host "Flushing DNS: " -NoNewline
+		Write-Host "IPConfig /FlushDNS" -ForegroundColor Cyan
 		Start-Process "IPConfig" "/FlushDNS"
 		Time-Stamp
-		Write-Host "Purging Kerberos Tickets: KList purge"
-		Start-Process "KList" "purge"
+		Write-Host "Purging Kerberos Tickets: " -NoNewline
+		Write-Host 'KList -li 0x3e7 purge' -ForegroundColor Cyan
+		Start-Process "KList" "-li 0x3e7 purge"
 		Time-Stamp
-		Write-Host "Resetting NetBIOS over TCPIP Statistics: NBTStat -R"
+		Write-Host "Resetting NetBIOS over TCPIP Statistics: " -NoNewline
+		Write-Host 'NBTStat -R' -ForegroundColor Cyan
 		Start-Process "NBTStat" "-R"
 		Time-Stamp
-		Write-Host "Resetting Winsock catalog: ​netsh winsock reset"
+		Write-Host "Resetting Winsock catalog: " -NoNewline
+		Write-Host '​netsh winsock reset' -ForegroundColor Cyan
 		Start-Process "netsh" "winsock reset"
 		sleep 2
-		Write-Host "Restarting: $env:COMPUTERNAME"
+		Time-Stamp
+		Write-Host "Restarting: " -NoNewLine
+		Write-Host "$env:COMPUTERNAME" -ForegroundColor Green
 		Shutdown /r /t 15
 	}
 }
-Clear-SCOMCache -Servers MS1.contoso.com, MS2.contoso.com, Agent1.contoso.com, Agent2.contoso.com
+if ($Servers)
+{
+	Clear-SCOMCache -Servers:$Servers
+}
+else
+{
+	Clear-SCOMCache
+}
