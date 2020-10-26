@@ -1,9 +1,3 @@
-#SCOM 2019 [![Build Status](https://dev.azure.com/scemsupport/SupportScripts/_apis/build/status/SCOM-DataCollector-2019?branchName=master)](https://dev.azure.com/scemsupport/SupportScripts/_build/latest?definitionId=3&branchName=master)
-
-#SCOM 2016 [![Build Status](https://dev.azure.com/scemsupport/SupportScripts/_apis/build/status/SCOM-DataCollector-2016?branchName=master)](https://dev.azure.com/scemsupport/SupportScripts/_build/latest?definitionId=4&branchName=master)
-
-![Data Collector](/media/git-guidance/projects/data-collector.png)
-
 #Instructions
 
 Extract tool to a directory (ex. C:\Data Collector)
