@@ -1,0 +1,8 @@
+SELECT *
+FROM (SELECT ManagementGroupName AS 'MG_Name' FROM __MOMManagementGroupInfo__) AS MG_Name, 
+(SELECT COUNT(*) AS 'MS_Count' FROM MTV_HealthService WHERE IsManagementServer = 1 AND IsGateway = 0) AS MS_Count,
+(SELECT COUNT(*) AS 'GW_Count' FROM MTV_HealthService WHERE IsManagementServer = 1 AND IsGateway = 1) AS GW_Count,
+(SELECT COUNT(*) AS 'Agent_Count' FROM MTV_HealthService WHERE IsManagementServer = 0 AND IsGateway = 0) AS Agent_Count,
+(SELECT COUNT(*) AS 'Agent_Pending' FROM AgentPendingAction) AS Agent_Pending,
+(SELECT COUNT(*) AS 'Unix_Count' FROM MTV_Microsoft$Unix$Computer) AS Unix_Count,
+(SELECT Count(*) AS 'NetworkDevice_Count' FROM MTV_System$NetworkManagement$Node) AS NetworkDevice_Count

@@ -1,0 +1,1 @@
+select * from __MOMManagementGroupInfo__
