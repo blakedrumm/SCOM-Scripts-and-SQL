@@ -1,4 +1,4 @@
-#Instructions
+# Instructions
 
 Extract tool to a directory (ex. C:\Data Collector)
 
@@ -25,16 +25,16 @@ This script has the ability to gather the following information:
 
 ----
 
-#Examples
+# Examples
 
-#####Note: If you know you have Query rights against the DB(s) run any Switch (-Command) with -AssumeYes
-######Note #2: If you would like to run without setting the switches manually at Runtime, you can edit the switches right below the line that says '# Enter Switches here that you want to run if no switches are specified during runtime.'
+##### Note: If you know you have Query rights against the DB(s) run any Switch (-Command) with -AssumeYes
+###### Note #2: If you would like to run without setting the switches manually at Runtime, you can edit the switches right below the line that says '# Enter Switches here that you want to run if no switches are specified during runtime.'
  
 
 
 
 
-##Certificates
+## Certificates
 
 To Check the Certificate(s) Installed on the Management Server(s) in the Management Group, and an Server:
 
@@ -48,7 +48,7 @@ To Check the Certificate(s) Installed on the Management Server(s) in the Managem
 
 
 
-##Event Logs
+## Event Logs
 
 To gather Event Logs from 3 Agents and the Management Server(s) in the Current Management Group:
 
@@ -62,7 +62,7 @@ To just gather the Event Logs from the Management Server(s) in the Management Gr
 
 
 
-##Management Packs
+## Management Packs
 
 To Export Installed Management Packs:
 
@@ -72,14 +72,14 @@ To Export Installed Management Packs:
 
 
 
-##RunAs Accounts
+## RunAs Accounts
 
 To Export RunAs Accounts from the Management Server(s) in the Management Group:
 
     .\DataCollector.ps1 -GetRunAsAccounts
 
 
-##Check TLS Settings
+## Check TLS Settings
 
 To Check the TLS Settings on every Management Server in the Management Group:
 
