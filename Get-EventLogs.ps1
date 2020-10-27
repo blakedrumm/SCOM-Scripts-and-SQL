@@ -1,6 +1,6 @@
 <#
 	.SYNOPSIS
-		Get-SCOMEventLogs
+		Get-EventLogs
 	
 	.DESCRIPTION
 		This Script Collects Event Log data from Remote Servers and the Local Machine if defined. It will collect all of these and finally zip the files up into a easy to transport zip file. 
@@ -13,7 +13,7 @@
 		A description of the CaseNumber parameter.
 	
 	.EXAMPLE
-				PS C:\> .\Get-SCOMEventLogs.ps1 -Servers Agent1.contoso.com, Agent2.contoso.com
+				PS C:\> .\Get-EventLogs.ps1 -Servers Agent1.contoso.com, Agent2.contoso.com
 	
 	.NOTES
 		Additional information about the file.
@@ -32,10 +32,12 @@ param
 # --------------------------------------------------------------------
 
 #Modify this if you need more logs
-[String[]]$Logs = "Application", "System", "Operations Manager"
+[String[]]$Logs = 'Application', 'System', 'Security', 'Operations Manager', 'Microsoft-Windows-PowerShell/Operational'
+
+$DefinedServers = $null
 
 #Add FQDN of Servers here (Comment this line to run against the local machine):
-$DefinedServers = @("Agent2.contoso.com", "Agent1.contoso.com", "MS1.contoso.com", "MS2.contoso.com", "Exch1.contoso.com")
+#$DefinedServers = @("Agent2.contoso.com", "Agent1.contoso.com", "MS1.contoso.com", "MS2.contoso.com", "Exch1.contoso.com")
 
 # --------------------------------------------------------------------
 # --------------------------------------------------------------------
@@ -79,7 +81,10 @@ function Get-SCOMEventLogs
 	IF (!(Test-Path $OutputPath))
 	{
 		Time-Stamp
-		Write-Host "Output folder not found.  Creating folder: $OutputPath" -ForegroundColor Gray
+		Write-Host "Output folder not found." -ForegroundColor Gray
+        Time-Stamp
+        Write-Host "Creating folder: " -ForegroundColor DarkYellow -NoNewline
+        Write-Host "$OutputPath" -ForegroundColor DarkCyan
 		md $OutputPath | Out-Null
 	}
 	if ($servers)
@@ -104,44 +109,50 @@ function Get-SCOMEventLogs
 			{
 				try
 				{
+                    if($log -like '*/*')
+                    {$logname = $log.split('/')[0]}
+                    else{$logname = $log}
 					Invoke-Command -ComputerName $server {
-						$fileCheck = test-path "c:\windows\Temp\$using:server.$using:log.evtx"
+						$fileCheck = test-path "c:\windows\Temp\$using:server`.$using:logname.evtx"
 						if ($fileCheck -eq $true)
 						{
-							Remove-Item "c:\windows\Temp\$using:server.$using:log.evtx" -Force
+							Remove-Item "c:\windows\Temp\$using:server`.$using:logname.evtx" -Force
 						}
-						wevtutil epl $using:log "c:\windows\Temp\$using:server.$using:log.evtx"
-						wevtutil al "c:\windows\Temp\$using:server.$using:log.evtx"
+						wevtutil epl $using:log "c:\windows\Temp\$using:server.$using:logname.evtx"
+						wevtutil al "c:\windows\Temp\$using:server`.$using:logname.evtx"
 					} -ErrorAction Stop
 					$fileCheck2 = test-path "$OutputPath\$server" -ErrorAction Stop
 					if (!($fileCheck2))
 					{
 						New-Item -ItemType directory -Path "$OutputPath" -Name "$server" -ErrorAction Stop | Out-Null
 						New-Item -ItemType directory -Path "$OutputPath\$server" -Name "localemetadata" -ErrorAction Stop | Out-Null
-					}
-					Copy-Item "\\$server\c$\windows\temp\$server.$log.evtx" "$OutputPath\$server" -force -ErrorAction Stop
+					}                
+					Move-Item "\\$server\c$\windows\temp\$server.$logname.evtx" "$OutputPath\$server" -force -ErrorAction Stop
 					#"Get-ChildItem \\$server\c$\windows\temp\localemetadata\"
 					Get-ChildItem "\\$server\c$\windows\temp\localemetadata\" -ErrorAction Stop |
-					where { $_.name -like "*$server*" -and $_.name -like "*$log*" } |
-					Copy-Item -Destination "$OutputPath\$server\localemetadata\" -recurse -force -ErrorAction Stop
+					where { $_.name -like "*$server*" -and $_.name -like "*$logname*" } |
+					Move-Item -Destination "$OutputPath\$server\localemetadata\" -force -ErrorAction Stop
 				}
 				catch
 				{
 					Time-Stamp
-					Write-Warning "  Unable to access $server remotely"
+					Write-Warning "$_"
 					break
 				}
 				
 			}
 			else
 			{
-				$fileCheck = test-path "c:\windows\Temp\$server.$log.evtx"
+                if($log -like '*/*')
+                {$logname = $log.split('/')[0]}
+                else{$logname = $log}
+				$fileCheck = test-path "c:\windows\Temp\$server.$logname.evtx"
 				if ($fileCheck -eq $true)
 				{
-					Remove-Item "c:\windows\Temp\$server.$log.evtx" -Force | Out-Null
+					Remove-Item "c:\windows\Temp\$server.$logname.evtx" -Force | Out-Null
 				}
-				wevtutil epl $log "c:\windows\Temp\$server.$log.evtx"
-				wevtutil al "c:\windows\Temp\$server.$log.evtx"
+				wevtutil epl $log "c:\windows\Temp\$server.$logname.evtx"
+				wevtutil al "c:\windows\Temp\$server.$logname.evtx"
 				
 				$fileCheck2 = test-path "$OutputPath\$server"
 				if (!($fileCheck2))
@@ -149,11 +160,11 @@ function Get-SCOMEventLogs
 					New-Item -ItemType directory -Path "$OutputPath" -Name "$server" | Out-Null
 					New-Item -ItemType directory -Path "$OutputPath\$server" -Name "localemetadata" | Out-Null
 				}
-				Copy-Item "C:\windows\temp\$server.$log.evtx" "$OutputPath\$server" -force
+				Move-Item "C:\windows\temp\$server.$logname.evtx" "$OutputPath\$server" -force
 				#"Get-ChildItem \\$server\c$\windows\temp\localemetadata\"
 				Get-ChildItem "C:\windows\temp\localemetadata\" |
-				where { $_.name -like "*$server*" -and $_.name -like "*$log*" } |
-				Copy-Item -Destination "$OutputPath\$server\localemetadata\" -recurse -force
+				where { $_.name -like "*$server*" -and $_.name -like "*$logname*" } |
+				Move-Item -Destination "$OutputPath\$server\localemetadata\" -force
 			}
 		}
 		
