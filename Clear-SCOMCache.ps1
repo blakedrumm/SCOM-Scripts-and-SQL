@@ -501,7 +501,7 @@ Function Clear-SCOMCache
 }
 if ($Servers)
 {
-	Clear-SCOMCache -Servers:$Servers
+	Clear-SCOMCache -Servers $Servers
 }
 else
 {
