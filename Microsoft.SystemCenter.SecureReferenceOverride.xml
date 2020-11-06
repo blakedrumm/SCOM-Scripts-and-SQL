@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?><ManagementPack ContentReadable="true" SchemaVersion="2.0" OriginalSchemaVersion="1.1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <Manifest>
+    <Identity>
+      <ID>Microsoft.SystemCenter.SecureReferenceOverride</ID>
+      <Version>10.19.10050.0</Version>
+    </Identity>
+    <Name>Microsoft SystemCenter SecureReferenceOverride Library</Name>
+    <References>
+      <Reference Alias="Exchange">
+        <ID>Microsoft.Exchange.15</ID>
+        <Version>15.0.669.22</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SystemCenter">
+        <ID>Microsoft.SystemCenter.DataWarehouse.Internal</ID>
+        <Version>10.19.10050.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SystemCenter4">
+        <ID>Microsoft.SystemCenter.Notifications.Library</ID>
+        <Version>10.19.10050.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SystemCenter1">
+        <ID>Microsoft.SystemCenter.DataWarehouse.Library</ID>
+        <Version>10.19.10050.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SQLServer2">
+        <ID>Microsoft.SQLServer.2012.ReportingServices.Discovery</ID>
+        <Version>7.0.17.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SystemCenter3">
+        <ID>Microsoft.SystemCenter.Apm.Infrastructure</ID>
+        <Version>10.19.10050.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SQLServer">
+        <ID>Microsoft.SQLServer.Core.Library</ID>
+        <Version>7.0.20.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SQLServer3">
+        <ID>Microsoft.SQLServer.2016.Discovery</ID>
+        <Version>7.0.15.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SQLServer1">
+        <ID>Microsoft.SQLServer.Library</ID>
+        <Version>7.0.15.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SQLServer4">
+        <ID>Microsoft.SQLServer.Generic.Presentation</ID>
+        <Version>7.0.17.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="System">
+        <ID>System.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SystemCenter2">
+        <ID>Microsoft.SystemCenter.Library</ID>
+        <Version>7.0.8443.6</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+    </References>
+  </Manifest>
+  <Monitoring>
+    <Overrides>
+      <SecureReferenceOverride ID="SecureOverride9fb3c33b_4452_668f_2814_fc41cf5d6d28" Context="SystemCenter!Microsoft.SystemCenter.DataWarehouseSynchronizationService" Enforced="false" SecureReference="SystemCenter1!Microsoft.SystemCenter.DataWarehouse.ReportDeploymentActionAccount">
+        <Value>004DC3243271B23CAEF5FDF7531B8D4FD9CF9BC9F600000000000000000000000000000000000000</Value>
+      </SecureReferenceOverride>
+      <SecureReferenceOverride ID="SecureOverridec20c2879_5866_44a8_5a13_3738f14ea2bf" Context="SystemCenter2!Microsoft.SystemCenter.CollectionManagementServer" Enforced="false" SecureReference="SystemCenter1!Microsoft.SystemCenter.DataWarehouse.ReportDeploymentActionAccount">
+        <Value>004DC3243271B23CAEF5FDF7531B8D4FD9CF9BC9F600000000000000000000000000000000000000</Value>
+      </SecureReferenceOverride>
+      <SecureReferenceOverride ID="SecureOverridef5259cfe_1469_5b69_84a6_c35c1dc9b3ab" Context="SystemCenter!Microsoft.SystemCenter.DataWarehouseSynchronizationService" Enforced="false" SecureReference="SystemCenter1!Microsoft.SystemCenter.DataWarehouse.ActionAccount">
+        <Value>0039BA721288E4A9ABA6188D1B09D37B8E9A9ECAB700000000000000000000000000000000000000</Value>
+      </SecureReferenceOverride>
+      <SecureReferenceOverride ID="SecureOverride7a159741_2aa0_470e_c41b_dbc258d47655" Context="SystemCenter1!Microsoft.SystemCenter.DataWarehouse.DataSet" Enforced="false" SecureReference="SystemCenter1!Microsoft.SystemCenter.DataWarehouse.ActionAccount">
+        <Value>0039BA721288E4A9ABA6188D1B09D37B8E9A9ECAB700000000000000000000000000000000000000</Value>
+      </SecureReferenceOverride>
+      <SecureReferenceOverride ID="SecureOverride97309c51_1946_eed8_1c6a_3be8493bb656" Context="SystemCenter2!Microsoft.SystemCenter.CollectionManagementServer" Enforced="false" SecureReference="SystemCenter1!Microsoft.SystemCenter.DataWarehouse.ActionAccount">
+        <Value>0039BA721288E4A9ABA6188D1B09D37B8E9A9ECAB700000000000000000000000000000000000000</Value>
+      </SecureReferenceOverride>
+      <SecureReferenceOverride ID="SecureOverride156b338d_a116_9e6d_71a3_391adc03149d" Context="SystemCenter3!Microsoft.SystemCenter.Apm.DataTransferService" Enforced="false" SecureReference="SystemCenter1!Microsoft.SystemCenter.DataWarehouse.ActionAccount">
+        <Value>0039BA721288E4A9ABA6188D1B09D37B8E9A9ECAB700000000000000000000000000000000000000</Value>
+      </SecureReferenceOverride>
+      <SecureReferenceOverride ID="SecureOverride28e5c30e_492a_3927_ba0c_e3d0ab0851ef" Context="System!System.Entity" ContextInstance="31cb259c-a32b-9147-f7aa-4da0e489a25f" Enforced="false" SecureReference="SQLServer!Microsoft.SQLServer.Core.RunAs.Monitoring">
+        <Value>007096C8C5EDC19952AEC21D05386D75784F06800300000000000000000000000000000000000000</Value>
+      </SecureReferenceOverride>
+    </Overrides>
+  </Monitoring>
+</ManagementPack>
