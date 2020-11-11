@@ -1,6 +1,0 @@
-SELECT CASE WHEN(GROUPING(CONVERT(VARCHAR(20), TimeGenerated, 102)) = 1) 
-THEN 'All Days' ELSE CONVERT(VARCHAR(20), TimeGenerated, 102) 
-END AS DayGenerated, COUNT(*) AS StateChangesPerDay 
-FROM StateChangeEvent WITH (NOLOCK) 
-GROUP BY CONVERT(VARCHAR(20), TimeGenerated, 102) WITH ROLLUP 
-ORDER BY DayGenerated DESC

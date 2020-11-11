@@ -1,1 +1,0 @@
-select max(UTCEVENTDATE) AS "Last Updated Time", GETUTCDATE() AS "Current UTC Time" FROM APM.EVENT(NOLOCK)

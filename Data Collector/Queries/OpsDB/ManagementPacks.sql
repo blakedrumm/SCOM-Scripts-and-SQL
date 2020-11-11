@@ -1,1 +1,0 @@
-select Id, Name, FriendlyName, Version, DisplayName, Sealed, LastModified, TimeCreated, Description, LanguageCode AS 'Language' from ManagementPackView order by Name
