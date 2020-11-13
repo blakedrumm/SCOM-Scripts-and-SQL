@@ -21,7 +21,7 @@
 	Original Publish Date 1/2009
 	    (Lincoln Atkinson?, https://blogs.technet.microsoft.com/momteam/author/latkin/ )
 	 Update 11/2020 (Blake Drumm, https://github.com/v-bldrum/ )
-	    
+	    Shows Subject Name instead of Issuer for each Certificate Checked.
 	 Update 08/2020 (Blake Drumm, https://github.com/v-bldrum/ )
 	    Fixed formatting in output.
 	 Update 06/2020 (Blake Drumm, https://github.com/v-bldrum/ )
