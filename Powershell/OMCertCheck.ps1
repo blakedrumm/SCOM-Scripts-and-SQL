@@ -20,7 +20,8 @@
 	.NOTES
 	Original Publish Date 1/2009
 	    (Lincoln Atkinson?, https://blogs.technet.microsoft.com/momteam/author/latkin/ )
-
+	 Update 11/2020 (Blake Drumm, https://github.com/v-bldrum/ )
+	    
 	 Update 08/2020 (Blake Drumm, https://github.com/v-bldrum/ )
 	    Fixed formatting in output.
 	 Update 06/2020 (Blake Drumm, https://github.com/v-bldrum/ )
@@ -130,7 +131,7 @@ $time : Starting Script
 			{
 				$text4 = @"
 
-Examining Certificate - Subject: $($cert.Issuer -replace "CN=", $null) - Serial Number $($cert.SerialNumber)
+Examining Certificate - Subject: $($cert.Subject -replace "CN=", $null) - Serial Number $($cert.SerialNumber)
 =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 "@
 				Write-Host $text4
