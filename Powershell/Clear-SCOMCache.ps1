@@ -18,10 +18,12 @@ Write-Host $checkingpermission -ForegroundColor Gray
 if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(`
 [Security.Principal.WindowsBuiltInRole] "Administrator"))
 {
+	$currentPath = $myinvocation.mycommand.definition
 	$nopermission = "Insufficient permissions to run this script. Attempting to open the PowerShell script ($currentPath) as administrator."
 	$scriptout += $nopermission
 	Write-Warning $nopermission
 	# We are not running "as Administrator" - so relaunch as administrator
+	# ($MyInvocation.Line -split '\.ps1[\s\''\"]\s*', 2)[-1]
 	Start-Process powershell.exe "-File", ('"{0}"' -f $MyInvocation.MyCommand.Path) -Verb RunAs
 	break
 }
@@ -77,11 +79,11 @@ Function Clear-SCOMCache
 					Write-Host "Starting Script Execution on: " -NoNewline
 					Write-Host "$currentserv" -ForegroundColor Cyan
 					sleep 10
-					$omsdk = (Get-WmiObject win32_service | ?{ $_.Name -like 'omsdk' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-					$cshost = (Get-WmiObject win32_service | ?{ $_.Name -like 'cshost' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-					$healthservice = (Get-WmiObject win32_service | ?{ $_.Name -like 'healthservice' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-					$apm = (Get-WmiObject win32_service | ?{ $_.Name -like 'System Center Management APM' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-					$auditforwarding = (Get-WmiObject win32_service -ErrorAction SilentlyContinue | ?{ $_.Name -like 'AdtAgent' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path -ErrorAction SilentlyContinue
+					$omsdk = (Get-WmiObject win32_service | ?{ $_.Name -eq 'omsdk' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+					$cshost = (Get-WmiObject win32_service | ?{ $_.Name -eq 'cshost' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+					$healthservice = (Get-WmiObject win32_service | ?{ $_.Name -eq 'healthservice' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+					$apm = (Get-WmiObject win32_service | ?{ $_.Name -eq 'System Center Management APM' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+					$auditforwarding = (Get-WmiObject win32_service -ErrorAction SilentlyContinue | ?{ $_.Name -eq 'AdtAgent' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path -ErrorAction SilentlyContinue
 					if ($omsdk)
 					{
 						$omsdkStatus = (Get-Service -Name omsdk).Status
@@ -276,11 +278,11 @@ Function Clear-SCOMCache
 					Write-Host "Starting Script Execution on: " -NoNewline
 					Write-Host "$currentserv" -ForegroundColor Cyan
 					sleep 10
-					$omsdk = (Get-WmiObject win32_service | ?{ $_.Name -like 'omsdk' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-					$cshost = (Get-WmiObject win32_service | ?{ $_.Name -like 'cshost' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-					$healthservice = (Get-WmiObject win32_service | ?{ $_.Name -like 'healthservice' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-					$apm = (Get-WmiObject win32_service | ?{ $_.Name -like 'System Center Management APM' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-					$auditforwarding = (Get-WmiObject win32_service -ErrorAction SilentlyContinue | ?{ $_.Name -like 'AdtAgent' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path -ErrorAction SilentlyContinue
+					$omsdk = (Get-WmiObject win32_service | ?{ $_.Name -eq 'omsdk' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+					$cshost = (Get-WmiObject win32_service | ?{ $_.Name -eq 'cshost' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+					$healthservice = (Get-WmiObject win32_service | ?{ $_.Name -eq 'healthservice' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+					$apm = (Get-WmiObject win32_service | ?{ $_.Name -eq 'System Center Management APM' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+					$auditforwarding = (Get-WmiObject win32_service -ErrorAction SilentlyContinue | ?{ $_.Name -eq 'AdtAgent' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path -ErrorAction SilentlyContinue
 					if ($omsdk)
 					{
 						$omsdkStatus = (Get-Service -Name omsdk).Status
@@ -444,10 +446,6 @@ Function Clear-SCOMCache
 					Write-Host "IPConfig /FlushDNS" -ForegroundColor Cyan
 					Start-Process "IPConfig" "/FlushDNS"
 					Time-Stamp
-					Write-Host "Purging Kerberos Tickets: " -NoNewline
-					Write-Host 'KList -li 0x3e7 purge' -ForegroundColor Cyan
-					Start-Process "KList" "-li 0x3e7 purge"
-					Time-Stamp
 					Write-Host "Resetting NetBIOS over TCPIP Statistics: " -NoNewline
 					Write-Host 'NBTStat -R' -ForegroundColor Cyan
 					Start-Process "NBTStat" "-R"
@@ -498,11 +496,11 @@ Function Clear-SCOMCache
 				Write-Host "Starting Script Execution on: " -NoNewline
 				Write-Host "$env:ComputerName (Local Computer)" -ForegroundColor Cyan
 				sleep 10
-				$omsdk = (Get-WmiObject win32_service | ?{ $_.Name -like 'omsdk' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-				$cshost = (Get-WmiObject win32_service | ?{ $_.Name -like 'cshost' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-				$healthservice = (Get-WmiObject win32_service | ?{ $_.Name -like 'healthservice' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-				$apm = (Get-WmiObject win32_service | ?{ $_.Name -like 'System Center Management APM' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-				$auditforwarding = (Get-WmiObject win32_service -ErrorAction SilentlyContinue | ?{ $_.Name -like 'AdtAgent' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path -ErrorAction SilentlyContinue
+				$omsdk = (Get-WmiObject win32_service | ?{ $_.Name -eq 'omsdk' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+				$cshost = (Get-WmiObject win32_service | ?{ $_.Name -eq 'cshost' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+				$healthservice = (Get-WmiObject win32_service | ?{ $_.Name -eq 'healthservice' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+				$apm = (Get-WmiObject win32_service | ?{ $_.Name -eq 'System Center Management APM' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+				$auditforwarding = (Get-WmiObject win32_service -ErrorAction SilentlyContinue | ?{ $_.Name -eq 'AdtAgent' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path -ErrorAction SilentlyContinue
 				if ($omsdk)
 				{
 					$omsdkStatus = (Get-Service -Name omsdk).Status
@@ -694,11 +692,11 @@ Function Clear-SCOMCache
 				Write-Host "Starting Script Execution on: " -NoNewline
 				Write-Host "$env:ComputerName (Local Computer)" -ForegroundColor Cyan
 				sleep 10
-				$omsdk = (Get-WmiObject win32_service | ?{ $_.Name -like 'omsdk' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-				$cshost = (Get-WmiObject win32_service | ?{ $_.Name -like 'cshost' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-				$healthservice = (Get-WmiObject win32_service | ?{ $_.Name -like 'healthservice' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-				$apm = (Get-WmiObject win32_service | ?{ $_.Name -like 'System Center Management APM' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-				$auditforwarding = (Get-WmiObject win32_service -ErrorAction SilentlyContinue | ?{ $_.Name -like 'AdtAgent' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path -ErrorAction SilentlyContinue
+				$omsdk = (Get-WmiObject win32_service | ?{ $_.Name -eq 'omsdk' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+				$cshost = (Get-WmiObject win32_service | ?{ $_.Name -eq 'cshost' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+				$healthservice = (Get-WmiObject win32_service | ?{ $_.Name -eq 'healthservice' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+				$apm = (Get-WmiObject win32_service | ?{ $_.Name -eq 'System Center Management APM' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+				$auditforwarding = (Get-WmiObject win32_service -ErrorAction SilentlyContinue | ?{ $_.Name -eq 'AdtAgent' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path -ErrorAction SilentlyContinue
 				if ($omsdk)
 				{
 					$omsdkStatus = (Get-Service -Name omsdk).Status
@@ -862,10 +860,6 @@ Function Clear-SCOMCache
 				Write-Host "IPConfig /FlushDNS" -ForegroundColor Cyan
 				Start-Process "IPConfig" "/FlushDNS"
 				Time-Stamp
-				Write-Host "Purging Kerberos Tickets: " -NoNewline
-				Write-Host 'KList -li 0x3e7 purge' -ForegroundColor Cyan
-				Start-Process "KList" "-li 0x3e7 purge"
-				Time-Stamp
 				Write-Host "Resetting NetBIOS over TCPIP Statistics: " -NoNewline
 				Write-Host 'NBTStat -R' -ForegroundColor Cyan
 				Start-Process "NBTStat" "-R"
@@ -921,11 +915,11 @@ Function Clear-SCOMCache
 			Write-Host "Starting Script Execution on: " -NoNewline
 			Write-Host "$env:ComputerName (Local Computer)" -ForegroundColor Cyan
 			sleep 10
-			$omsdk = (Get-WmiObject win32_service | ?{ $_.Name -like 'omsdk' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-			$cshost = (Get-WmiObject win32_service | ?{ $_.Name -like 'cshost' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-			$healthservice = (Get-WmiObject win32_service | ?{ $_.Name -like 'healthservice' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-			$apm = (Get-WmiObject win32_service | ?{ $_.Name -like 'System Center Management APM' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-			$auditforwarding = (Get-WmiObject win32_service -ErrorAction SilentlyContinue | ?{ $_.Name -like 'AdtAgent' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path -ErrorAction SilentlyContinue
+			$omsdk = (Get-WmiObject win32_service | ?{ $_.Name -eq 'omsdk' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+			$cshost = (Get-WmiObject win32_service | ?{ $_.Name -eq 'cshost' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+			$healthservice = (Get-WmiObject win32_service | ?{ $_.Name -eq 'healthservice' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+			$apm = (Get-WmiObject win32_service | ?{ $_.Name -eq 'System Center Management APM' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+			$auditforwarding = (Get-WmiObject win32_service -ErrorAction SilentlyContinue | ?{ $_.Name -eq 'AdtAgent' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path -ErrorAction SilentlyContinue
 			if ($omsdk)
 			{
 				$omsdkStatus = (Get-Service -Name omsdk).Status
@@ -1115,11 +1109,11 @@ Function Clear-SCOMCache
 			Write-Host "Starting Script Execution on: " -NoNewline
 			Write-Host "$env:ComputerName (Local Computer)" -ForegroundColor Cyan
 			sleep 10
-			$omsdk = (Get-WmiObject win32_service | ?{ $_.Name -like 'omsdk' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-			$cshost = (Get-WmiObject win32_service | ?{ $_.Name -like 'cshost' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-			$healthservice = (Get-WmiObject win32_service | ?{ $_.Name -like 'healthservice' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-			$apm = (Get-WmiObject win32_service | ?{ $_.Name -like 'System Center Management APM' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
-			$auditforwarding = (Get-WmiObject win32_service -ErrorAction SilentlyContinue | ?{ $_.Name -like 'AdtAgent' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path -ErrorAction SilentlyContinue
+			$omsdk = (Get-WmiObject win32_service | ?{ $_.Name -eq 'omsdk' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+			$cshost = (Get-WmiObject win32_service | ?{ $_.Name -eq 'cshost' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+			$healthservice = (Get-WmiObject win32_service | ?{ $_.Name -eq 'healthservice' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+			$apm = (Get-WmiObject win32_service | ?{ $_.Name -eq 'System Center Management APM' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
+			$auditforwarding = (Get-WmiObject win32_service -ErrorAction SilentlyContinue | ?{ $_.Name -eq 'AdtAgent' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path -ErrorAction SilentlyContinue
 			if ($omsdk)
 			{
 				$omsdkStatus = (Get-Service -Name omsdk).Status
@@ -1282,10 +1276,6 @@ Function Clear-SCOMCache
 			Write-Host "Flushing DNS: " -NoNewline
 			Write-Host "IPConfig /FlushDNS" -ForegroundColor Cyan
 			Start-Process "IPConfig" "/FlushDNS"
-			Time-Stamp
-			Write-Host "Purging Kerberos Tickets: " -NoNewline
-			Write-Host 'KList -li 0x3e7 purge' -ForegroundColor Cyan
-			Start-Process "KList" "-li 0x3e7 purge"
 			Time-Stamp
 			Write-Host "Resetting NetBIOS over TCPIP Statistics: " -NoNewline
 			Write-Host 'NBTStat -R' -ForegroundColor Cyan
