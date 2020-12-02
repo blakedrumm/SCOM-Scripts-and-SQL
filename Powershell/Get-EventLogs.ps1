@@ -54,7 +54,7 @@ Function Time-Stamp
 }
 Time-Stamp
 Write-Host "Starting Script to Gather Event Logs" -ForegroundColor Cyan
-function Get-SCOMEventLogs
+function Get-EventLogs
 {
 	[CmdletBinding()]
 	param
@@ -202,9 +202,9 @@ function Get-SCOMEventLogs
 
 if ($DefinedServers)
 {
-	Get-SCOMEventLogs -Servers $DefinedServers
+	Get-EventLogs -Servers $DefinedServers
 }
 else
 {
-	Get-SCOMEventLogs
+	Get-EventLogs
 }
