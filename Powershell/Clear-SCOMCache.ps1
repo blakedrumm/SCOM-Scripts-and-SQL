@@ -1316,7 +1316,7 @@ Function Clear-SCOMCache
 }
 if ($Servers -or $Reboot)
 {
-	Clear-SCOMCache -Servers $Servers -Reboot:$Reboot
+	Clear-SCOMCache -Servers $Servers -Reboot $Reboot
 }
 else
 {
