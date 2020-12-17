@@ -916,6 +916,7 @@ Enhanced Key Usage Extension
 				
 				
 				if ($pass) { $text49 = "***This certificate is properly configured and imported for System Center Operations Manager.***"; $out += $text49; Write-Host $text49 -ForegroundColor Green }
+				$out += " " # This is so there is white space between each Cert. Makes it less of a jumbled mess.
 			}
 			if ($Output)
 			{
@@ -933,4 +934,4 @@ $time : Script Completed
 	}
 }
 if ($null -eq $Servers) { SCOM-CertCheck }
-else { SCOM-CertCheck -Servers $Servers }
+else { SCOM-CertCheck -Servers $Servers -Output $Output }
