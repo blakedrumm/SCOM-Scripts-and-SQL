@@ -68,7 +68,6 @@ Function Clear-SCOMCache
 		{
 			if ($Reboot)
 			{
-				Invoke-Command -ComputerName $server -ScriptBlock {
 					$currentserv = $using:server
 					Function Time-Stamp
 					{
@@ -1311,8 +1310,6 @@ Function Clear-SCOMCache
 				Start-Service 'AdtAgent'
 			}
 		}
-		
-	}
 }
 if ($Servers -or $Reboot)
 {
