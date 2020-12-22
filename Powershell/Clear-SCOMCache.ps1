@@ -9,9 +9,11 @@ param
 	[Switch]$Reboot
 )
 
-if ($Servers -contains 'Health State')
+#$Servers
+
+if ($Servers -match 'Microsoft.EnterpriseManagement.Administration.ManagementServer')
 {
-	$Servers = $Servers.DisplayName
+	$Servers = ($Servers).DisplayName
 }
 
 
