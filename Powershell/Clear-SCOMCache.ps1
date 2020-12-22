@@ -1,12 +1,19 @@
 param
 (
 	[Parameter(Mandatory = $false,
-			   Position = 1)]
+			   Position = 1,
+			   ValueFromPipeline)]
 	[Array]$Servers,
 	[Parameter(Mandatory = $false,
 			   Position = 2)]
 	[Switch]$Reboot
 )
+
+if ($Servers -contains 'Health State')
+{
+	$Servers = $Servers.DisplayName
+}
+
 
 Write-Host '===================================================================' -ForegroundColor DarkYellow
 Write-Host '==========================  Start of Script =======================' -ForegroundColor DarkYellow
@@ -68,6 +75,7 @@ Function Clear-SCOMCache
 		{
 			if ($Reboot)
 			{
+				Invoke-Command -ComputerName $server -ScriptBlock {
 					$currentserv = $using:server
 					Function Time-Stamp
 					{
@@ -240,6 +248,10 @@ Function Clear-SCOMCache
 							break
 						}
 					}
+					# Clear Console Cache
+					try { Time-Stamp; Write-Host "Clearing Operations Manager Console Cache."; Get-ChildItem "$env:SystemDrive\Users\*\AppData\Local\Microsoft\Microsoft.EnterpriseManagement.Monitoring.Console\momcache.mdb" | % { Remove-Item $_ -Force -ErrorAction Stop } }
+					catch { Write-Warning $_ }
+					
 					Time-Stamp
 					Write-Host "Flushing DNS: " -NoNewline
 					Write-Host "IPConfig /FlushDNS" -ForegroundColor Cyan
@@ -439,6 +451,9 @@ Function Clear-SCOMCache
 							break
 						}
 					}
+					# Clear Console Cache
+					try { Time-Stamp; Write-Host "Clearing Operations Manager Console Cache."; Get-ChildItem "$env:SystemDrive\Users\*\AppData\Local\Microsoft\Microsoft.EnterpriseManagement.Monitoring.Console\momcache.mdb" | % { Remove-Item $_ -Force -ErrorAction Stop } }
+					catch { Write-Warning $_ }
 					
 					Time-Stamp
 					Write-Host "Flushing DNS: " -NoNewline
@@ -853,6 +868,9 @@ Function Clear-SCOMCache
 						break
 					}
 				}
+				# Clear Console Cache
+				try { Time-Stamp; Write-Host "Clearing Operations Manager Console Cache."; Get-ChildItem "$env:SystemDrive\Users\*\AppData\Local\Microsoft\Microsoft.EnterpriseManagement.Monitoring.Console\momcache.mdb" | % { Remove-Item $_ -Force -ErrorAction Stop } }
+				catch { Write-Warning $_ }
 				
 				Time-Stamp
 				Write-Host "Flushing DNS: " -NoNewline
@@ -1270,7 +1288,9 @@ Function Clear-SCOMCache
 					break
 				}
 			}
-			
+			# Clear Console Cache
+			try { Time-Stamp; Write-Host "Clearing Operations Manager Console Cache."; Get-ChildItem "$env:SystemDrive\Users\*\AppData\Local\Microsoft\Microsoft.EnterpriseManagement.Monitoring.Console\momcache.mdb" | % { Remove-Item $_ -Force -ErrorAction Stop } }
+			catch { Write-Warning $_ }
 			Time-Stamp
 			Write-Host "Flushing DNS: " -NoNewline
 			Write-Host "IPConfig /FlushDNS" -ForegroundColor Cyan
@@ -1310,10 +1330,12 @@ Function Clear-SCOMCache
 				Start-Service 'AdtAgent'
 			}
 		}
+		
+	}
 }
 if ($Servers -or $Reboot)
 {
-	Clear-SCOMCache -Servers $Servers -Reboot $Reboot
+	Clear-SCOMCache -Servers $Servers -Reboot:$Reboot
 }
 else
 {
