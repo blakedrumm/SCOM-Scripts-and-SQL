@@ -1,3 +1,23 @@
+<#
+	.SYNOPSIS
+		Clear-SCOMCache
+	
+	.DESCRIPTION
+		The script reboots the server(s) if requested after clearing the SCOM cache, Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics, and Resetting Winsock catalog
+	
+	.PARAMETER Servers
+		A description of the Servers parameter.
+	
+	.EXAMPLE
+	Clear SCOM cache and reboot the 2 Servers specified.
+		PS C:\> .\Clear-SCOMCache.ps1 -Servers MS1.contoso.com, MS2.contoso.com -Reboot
+
+	Clear SCOM cache on every Management Server in Management Group.
+		PS C:\> Get-SCOMManagementServer | %{.\Clear-SCOMCache.ps1 -Servers $_}
+		
+	Clear SCOM cache on every Agent in the in Management Group.
+		PS C:\> Get-SCOMAgent | %{.\Clear-SCOMCache.ps1 -Servers $_}
+#>
 param
 (
 	[Parameter(Mandatory = $false,
@@ -9,11 +29,13 @@ param
 	[Switch]$Reboot
 )
 
-#$Servers
-
 if ($Servers -match 'Microsoft.EnterpriseManagement.Administration.ManagementServer')
 {
-	$Servers = ($Servers).DisplayName
+	$Servers = $Servers.DisplayName
+}
+elseif ($Servers -match 'Microsoft.EnterpriseManagement.Administration.AgentManagedComputer')
+{
+    $Servers = $Servers.DisplayName
 }
 
 
@@ -44,19 +66,6 @@ else
 
 Function Clear-SCOMCache
 {
-<#
-	.SYNOPSIS
-		Clear-SCOMCache
-	
-	.DESCRIPTION
-		The script reboots the server(s) if requested after clearing the SCOM cache, Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics, and Resetting Winsock catalog
-	
-	.PARAMETER Servers
-		A description of the Servers parameter.
-	
-	.EXAMPLE
-		PS C:\> .\Clear-SCOMCache.ps1 -Servers MS1.contoso.com, MS2.contoso.com -Reboot
-#>
 	param
 	(
 		[Parameter(Mandatory = $false,
