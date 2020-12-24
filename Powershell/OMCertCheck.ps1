@@ -126,8 +126,8 @@ $time : Starting Script
 					$out += $text2
 					exit
 				}
-				
-				$text3 = "Verifying each cert..."
+				"Found: " + ($certs | Measure-Object) + " Certs." | Write-Host
+				$text3 = "Verifying each certificate..."
 				$out += $text3
 				Write-Host $text3
 				foreach ($cert in $certs)
@@ -157,7 +157,7 @@ Examining Certificate - Subject: $($cert.Subject -replace "CN=", $null) - Serial
 						
 						if (!($cert.SubjectName.Name -match $fqdnRegexPattern))
 						{
-							$text5 = "Certificate Subjectname"
+							$text5 = "Certificate Subjectname Mismatch"
 							$out += $text5
 							Write-Host $text5 -BackgroundColor Red -ForegroundColor Black
 							
@@ -170,14 +170,14 @@ Examining Certificate - Subject: $($cert.Subject -replace "CN=", $null) - Serial
 							Write-Host $text6
 							$false
 						}
-						else { $true; $text7 = "Certificate Subjectname"; $out += $text7; Write-Host $text7 -BackgroundColor Green -ForegroundColor Black }
+						else { $true; $text7 = "Certificate Subjectname is Good"; $out += $text7; Write-Host $text7 -BackgroundColor Green -ForegroundColor Black }
 					}
 					
 					# Verify private key
 					
 					if (!($cert.HasPrivateKey))
 					{
-						$text8 = "Private Key"
+						$text8 = "Private Key Missing"
 						$out += $text8
 						Write-Host $text8 -BackgroundColor Red -ForegroundColor Black
 						$text9 = @"
@@ -190,7 +190,7 @@ Examining Certificate - Subject: $($cert.Subject -replace "CN=", $null) - Serial
 					}
 					elseif (!($cert.PrivateKey.CspKeyContainerInfo.MachineKeyStore))
 					{
-						$text10 = "Private Key"
+						$text10 = "Private Key not issued to Machine Account"
 						$out += $text10
 						Write-Host $text10 -BackgroundColor Red -ForegroundColor Black
 						$text11 = @"
@@ -205,13 +205,13 @@ Examining Certificate - Subject: $($cert.Subject -replace "CN=", $null) - Serial
 						Write-Host $text11
 						$pass = $false
 					}
-					else { $text12 = "Private Key"; $out += $text12; Write-Host $text12 -BackgroundColor Green -ForegroundColor Black }
+					else { $text12 = "Private Key is Good"; $out += $text12; Write-Host $text12 -BackgroundColor Green -ForegroundColor Black }
 					
 					# Check expiration dates
 					
 					if (($cert.NotBefore -gt [DateTime]::Now) -or ($cert.NotAfter -lt [DateTime]::Now))
 					{
-						$text13 = "Expiration"
+						$text13 = "Expiration Out-of-Date"
 						$out += $text13
 						Write-Host $text13 -BackgroundColor Red -ForegroundColor Black
 						$text14 = @"
@@ -238,7 +238,7 @@ Expiration
 					$enhancedKeyUsageExtension = $cert.Extensions | ? { $_.ToString() -match "X509EnhancedKeyUsageExtension" }
 					if ($enhancedKeyUsageExtension -eq $null)
 					{
-						$text16 = "Enhanced Key Usage Extension"
+						$text16 = "Enhanced Key Usage Extension Missing"
 						$out += $text16
 						Write-Host $text16 -BackgroundColor Red -ForegroundColor Black
 						$text17 = "No enhanced key usage extension found."
@@ -251,7 +251,7 @@ Expiration
 						$usages = $enhancedKeyUsageExtension.EnhancedKeyUsages
 						if ($usages -eq $null)
 						{
-							$text18 = "Enhanced Key Usage Extension"
+							$text18 = "Enhanced Key Usage Extension Missing"
 							$out += $text18
 							Write-Host $text18 -BackgroundColor Red -ForegroundColor Black
 							$text19 = "    No enhanced key usages found."
@@ -269,7 +269,7 @@ Expiration
 							}
 							if ((!$srvAuth) -or (!$cliAuth))
 							{
-								$text20 = "Enhanced Key Usage Extension"
+								$text20 = "Enhanced Key Usage Extension Issue"
 								$out += $text20
 								Write-Host $text20 -BackgroundColor Red -ForegroundColor Black
 								$text21 = @"
@@ -284,8 +284,7 @@ Expiration
 							else
 							{
 								$text23 = @"
-Enhanced Key Usage Extension
-    Meets Requirements
+Enhanced Key Usage Extension is Good
 "@;
 								$out += $text23; Write-Host $text23 -BackgroundColor Green -ForegroundColor Black
 							}
@@ -297,7 +296,7 @@ Enhanced Key Usage Extension
 					$keyUsageExtension = $cert.Extensions | ? { $_.ToString() -match "X509KeyUsageExtension" }
 					if ($keyUsageExtension -eq $null)
 					{
-						$text24 = "Key Usage Extensions"
+						$text24 = "Key Usage Extensions Missing"
 						$out += $text24
 						Write-Host $text24 -BackgroundColor Red -ForegroundColor Black
 						$text25 = @"
@@ -314,7 +313,7 @@ Enhanced Key Usage Extension
 						$usages = $keyUsageExtension.KeyUsages
 						if ($usages -eq $null)
 						{
-							$text26 = "Key Usage Extensions"
+							$text26 = "Key Usage Extensions Missing"
 							$out += $text26
 							Write-Host $text26 -BackgroundColor Red -ForegroundColor Black
 							$text27 = @"
@@ -330,7 +329,7 @@ Enhanced Key Usage Extension
 						{
 							if (($usages.value__ -band 0xA0) -ne 0xA0)
 							{
-								$text28 = "Key Usage Extensions"
+								$text28 = "Key Usage Extensions Issue"
 								$out += $text28
 								Write-Host $text28 -BackgroundColor Red -ForegroundColor Black
 								$text29 = @"
@@ -344,7 +343,7 @@ Enhanced Key Usage Extension
 								Write-Host $text29
 								$pass = $false
 							}
-							else { $text30 = "Key Usage Extensions"; $out += $text30; Write-Host $text30 -BackgroundColor Green -ForegroundColor Black }
+							else { $text30 = "Key Usage Extensions are Good"; $out += $text30; Write-Host $text30 -BackgroundColor Green -ForegroundColor Black }
 						}
 					}
 					
@@ -353,7 +352,7 @@ Enhanced Key Usage Extension
 					$keySpec = $cert.PrivateKey.CspKeyContainerInfo.KeyNumber
 					if ($keySpec -eq $null)
 					{
-						$text31 = "KeySpec"
+						$text31 = "KeySpec Missing / Not Found"
 						$out += $text31
 						Write-Host $text31 -BackgroundColor Red -ForegroundColor Black
 						$text32 = "    Keyspec not found.  A KeySpec of 1 is required"
@@ -363,7 +362,7 @@ Enhanced Key Usage Extension
 					}
 					elseif ($keySpec.value__ -ne 1)
 					{
-						$text33 = "KeySpec"
+						$text33 = "KeySpec Incorrect"
 						$out += $text33
 						Write-Host $text33 -BackgroundColor Red -ForegroundColor Black
 						$text34 = @"
@@ -375,7 +374,7 @@ Enhanced Key Usage Extension
 						Write-Host $text34
 						$pass = $false
 					}
-					else { $text35 = "KeySpec"; $out += $text35; Write-Host $text35 -BackgroundColor Green -ForegroundColor Black }
+					else { $text35 = "KeySpec is Good"; $out += $text35; Write-Host $text35 -BackgroundColor Green -ForegroundColor Black }
 					
 					
 					# Check that serial is written to proper reg
@@ -386,7 +385,7 @@ Enhanced Key Usage Extension
 					
 					if (! (Test-Path "HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Machine Settings"))
 					{
-						$text36 = "Serial Number written to registry"
+						$text36 = "Serial Number is not written to registry"
 						$out += $text36
 						Write-Host $text36 -BackgroundColor Red -ForegroundColor Black
 						$text37 = @"
@@ -402,7 +401,7 @@ Enhanced Key Usage Extension
 						$regKeys = get-itemproperty -path "HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Machine Settings"
 						if ($regKeys.ChannelCertificateSerialNumber -eq $null)
 						{
-							$text38 = "Serial Number written to registry"
+							$text38 = "Serial Number is not written to registry"
 							$out += $text38
 							Write-Host $text38 -BackgroundColor Red -ForegroundColor Black
 							$text39 = @"
@@ -420,7 +419,7 @@ Enhanced Key Usage Extension
 							if ($regSerial -eq "" -or $null) { $regSerial = "`{Empty`}" }
 							if ($regSerial -ne $certSerialReversed)
 							{
-								$text40 = "Serial Number written to registry"
+								$text40 = "Serial Number (mismatch) written to registry"
 								$out += $text40
 								Write-Host $text40 -BackgroundColor Red -ForegroundColor Black
 								$text41 = @"
@@ -445,7 +444,7 @@ Enhanced Key Usage Extension
 					$chain.ChainPolicy.RevocationMode = 0
 					if ($chain.Build($cert) -eq $false)
 					{
-						$text43 = "Certification Chain"
+						$text43 = "Certification Chain Issue"
 						$out += $text43
 						Write-Host $text43 -BackgroundColor Yellow -ForegroundColor Black
 						$text44 = @"
@@ -466,7 +465,7 @@ Enhanced Key Usage Extension
 						$localMachineRootCert = dir cert:\LocalMachine\Root | ? { $_ -eq $rootCaCert.Certificate }
 						if ($localMachineRootCert -eq $null)
 						{
-							$text45 = "Certification Chain"
+							$text45 = "Certification Chain Root CA Missing"
 							$out += $text45
 							Write-Host $text45 -BackgroundColor Yellow -ForegroundColor Black
 							$text46 = @"
@@ -481,7 +480,7 @@ Enhanced Key Usage Extension
 						}
 						else
 						{
-							$text47 = "Certification Chain"
+							$text47 = "Certification Chain looks Good"
 							$out += $text47
 							Write-Host $text47 -BackgroundColor Green -ForegroundColor Black
 							$text48 = @"
@@ -498,6 +497,7 @@ Enhanced Key Usage Extension
 					
 					
 					if ($pass) { $text49 = "***This certificate is properly configured and imported for System Center Operations Manager.***"; $out += $text49; Write-Host $text49 -ForegroundColor Green }
+					$out += " " # This is so there is white space between each Cert. Makes it less of a jumbled mess.
 				}
 				if ($Output)
 				{
@@ -508,9 +508,6 @@ $time : Script Completed
 "@
 					$out | Out-File $Output
 				}
-				start C:\Windows\explorer.exe -ArgumentList "/select, $Output"
-				#return $out
-				exit 0
 			}
 		}
 		else
@@ -544,8 +541,8 @@ $time : Starting Script
 				$out += $text2
 				exit
 			}
-			
-			$text3 = "Verifying each cert..."
+			"Found: " + ($certs | Measure-Object) + " Certs." | Write-Host
+			$text3 = "Verifying each certificate..."
 			$out += $text3
 			Write-Host $text3
 			foreach ($cert in $certs)
@@ -575,7 +572,7 @@ Examining Certificate - Subject: $($cert.Subject -replace "CN=", $null) - Serial
 					
 					if (!($cert.SubjectName.Name -match $fqdnRegexPattern))
 					{
-						$text5 = "Certificate Subjectname"
+						$text5 = "Certificate Subjectname Mismatch"
 						$out += $text5
 						Write-Host $text5 -BackgroundColor Red -ForegroundColor Black
 						
@@ -588,14 +585,14 @@ Examining Certificate - Subject: $($cert.Subject -replace "CN=", $null) - Serial
 						Write-Host $text6
 						$false
 					}
-					else { $true; $text7 = "Certificate Subjectname"; $out += $text7; Write-Host $text7 -BackgroundColor Green -ForegroundColor Black }
+					else { $true; $text7 = "Certificate Subjectname is Good"; $out += $text7; Write-Host $text7 -BackgroundColor Green -ForegroundColor Black }
 				}
 				
 				# Verify private key
 				
 				if (!($cert.HasPrivateKey))
 				{
-					$text8 = "Private Key"
+					$text8 = "Private Key Missing"
 					$out += $text8
 					Write-Host $text8 -BackgroundColor Red -ForegroundColor Black
 					$text9 = @"
@@ -608,7 +605,7 @@ Examining Certificate - Subject: $($cert.Subject -replace "CN=", $null) - Serial
 				}
 				elseif (!($cert.PrivateKey.CspKeyContainerInfo.MachineKeyStore))
 				{
-					$text10 = "Private Key"
+					$text10 = "Private Key not issued to Machine Account"
 					$out += $text10
 					Write-Host $text10 -BackgroundColor Red -ForegroundColor Black
 					$text11 = @"
@@ -623,13 +620,13 @@ Examining Certificate - Subject: $($cert.Subject -replace "CN=", $null) - Serial
 					Write-Host $text11
 					$pass = $false
 				}
-				else { $text12 = "Private Key"; $out += $text12; Write-Host $text12 -BackgroundColor Green -ForegroundColor Black }
+				else { $text12 = "Private Key is Good"; $out += $text12; Write-Host $text12 -BackgroundColor Green -ForegroundColor Black }
 				
 				# Check expiration dates
 				
 				if (($cert.NotBefore -gt [DateTime]::Now) -or ($cert.NotAfter -lt [DateTime]::Now))
 				{
-					$text13 = "Expiration"
+					$text13 = "Expiration Out-of-Date"
 					$out += $text13
 					Write-Host $text13 -BackgroundColor Red -ForegroundColor Black
 					$text14 = @"
@@ -656,7 +653,7 @@ Expiration
 				$enhancedKeyUsageExtension = $cert.Extensions | ? { $_.ToString() -match "X509EnhancedKeyUsageExtension" }
 				if ($enhancedKeyUsageExtension -eq $null)
 				{
-					$text16 = "Enhanced Key Usage Extension"
+					$text16 = "Enhanced Key Usage Extension Missing"
 					$out += $text16
 					Write-Host $text16 -BackgroundColor Red -ForegroundColor Black
 					$text17 = "No enhanced key usage extension found."
@@ -669,7 +666,7 @@ Expiration
 					$usages = $enhancedKeyUsageExtension.EnhancedKeyUsages
 					if ($usages -eq $null)
 					{
-						$text18 = "Enhanced Key Usage Extension"
+						$text18 = "Enhanced Key Usage Extension Missing"
 						$out += $text18
 						Write-Host $text18 -BackgroundColor Red -ForegroundColor Black
 						$text19 = "    No enhanced key usages found."
@@ -687,7 +684,7 @@ Expiration
 						}
 						if ((!$srvAuth) -or (!$cliAuth))
 						{
-							$text20 = "Enhanced Key Usage Extension"
+							$text20 = "Enhanced Key Usage Extension Issue"
 							$out += $text20
 							Write-Host $text20 -BackgroundColor Red -ForegroundColor Black
 							$text21 = @"
@@ -702,8 +699,7 @@ Expiration
 						else
 						{
 							$text23 = @"
-Enhanced Key Usage Extension
-    Meets Requirements
+Enhanced Key Usage Extension is Good
 "@;
 							$out += $text23; Write-Host $text23 -BackgroundColor Green -ForegroundColor Black
 						}
@@ -715,7 +711,7 @@ Enhanced Key Usage Extension
 				$keyUsageExtension = $cert.Extensions | ? { $_.ToString() -match "X509KeyUsageExtension" }
 				if ($keyUsageExtension -eq $null)
 				{
-					$text24 = "Key Usage Extensions"
+					$text24 = "Key Usage Extensions Missing"
 					$out += $text24
 					Write-Host $text24 -BackgroundColor Red -ForegroundColor Black
 					$text25 = @"
@@ -732,7 +728,7 @@ Enhanced Key Usage Extension
 					$usages = $keyUsageExtension.KeyUsages
 					if ($usages -eq $null)
 					{
-						$text26 = "Key Usage Extensions"
+						$text26 = "Key Usage Extensions Missing"
 						$out += $text26
 						Write-Host $text26 -BackgroundColor Red -ForegroundColor Black
 						$text27 = @"
@@ -748,7 +744,7 @@ Enhanced Key Usage Extension
 					{
 						if (($usages.value__ -band 0xA0) -ne 0xA0)
 						{
-							$text28 = "Key Usage Extensions"
+							$text28 = "Key Usage Extensions Issue"
 							$out += $text28
 							Write-Host $text28 -BackgroundColor Red -ForegroundColor Black
 							$text29 = @"
@@ -762,7 +758,7 @@ Enhanced Key Usage Extension
 							Write-Host $text29
 							$pass = $false
 						}
-						else { $text30 = "Key Usage Extensions"; $out += $text30; Write-Host $text30 -BackgroundColor Green -ForegroundColor Black }
+						else { $text30 = "Key Usage Extensions are Good"; $out += $text30; Write-Host $text30 -BackgroundColor Green -ForegroundColor Black }
 					}
 				}
 				
@@ -771,7 +767,7 @@ Enhanced Key Usage Extension
 				$keySpec = $cert.PrivateKey.CspKeyContainerInfo.KeyNumber
 				if ($keySpec -eq $null)
 				{
-					$text31 = "KeySpec"
+					$text31 = "KeySpec Missing / Not Found"
 					$out += $text31
 					Write-Host $text31 -BackgroundColor Red -ForegroundColor Black
 					$text32 = "    Keyspec not found.  A KeySpec of 1 is required"
@@ -781,7 +777,7 @@ Enhanced Key Usage Extension
 				}
 				elseif ($keySpec.value__ -ne 1)
 				{
-					$text33 = "KeySpec"
+					$text33 = "KeySpec Incorrect"
 					$out += $text33
 					Write-Host $text33 -BackgroundColor Red -ForegroundColor Black
 					$text34 = @"
@@ -793,7 +789,7 @@ Enhanced Key Usage Extension
 					Write-Host $text34
 					$pass = $false
 				}
-				else { $text35 = "KeySpec"; $out += $text35; Write-Host $text35 -BackgroundColor Green -ForegroundColor Black }
+				else { $text35 = "KeySpec is Good"; $out += $text35; Write-Host $text35 -BackgroundColor Green -ForegroundColor Black }
 				
 				
 				# Check that serial is written to proper reg
@@ -804,7 +800,7 @@ Enhanced Key Usage Extension
 				
 				if (! (Test-Path "HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Machine Settings"))
 				{
-					$text36 = "Serial Number written to registry"
+					$text36 = "Serial Number is not written to registry"
 					$out += $text36
 					Write-Host $text36 -BackgroundColor Red -ForegroundColor Black
 					$text37 = @"
@@ -820,7 +816,7 @@ Enhanced Key Usage Extension
 					$regKeys = get-itemproperty -path "HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Machine Settings"
 					if ($regKeys.ChannelCertificateSerialNumber -eq $null)
 					{
-						$text38 = "Serial Number written to registry"
+						$text38 = "Serial Number is not written to registry"
 						$out += $text38
 						Write-Host $text38 -BackgroundColor Red -ForegroundColor Black
 						$text39 = @"
@@ -838,7 +834,7 @@ Enhanced Key Usage Extension
 						if ($regSerial -eq "" -or $null) { $regSerial = "`{Empty`}" }
 						if ($regSerial -ne $certSerialReversed)
 						{
-							$text40 = "Serial Number written to registry"
+							$text40 = "Serial Number (mismatch) written to registry"
 							$out += $text40
 							Write-Host $text40 -BackgroundColor Red -ForegroundColor Black
 							$text41 = @"
@@ -863,7 +859,7 @@ Enhanced Key Usage Extension
 				$chain.ChainPolicy.RevocationMode = 0
 				if ($chain.Build($cert) -eq $false)
 				{
-					$text43 = "Certification Chain"
+					$text43 = "Certification Chain Issue"
 					$out += $text43
 					Write-Host $text43 -BackgroundColor Yellow -ForegroundColor Black
 					$text44 = @"
@@ -884,7 +880,7 @@ Enhanced Key Usage Extension
 					$localMachineRootCert = dir cert:\LocalMachine\Root | ? { $_ -eq $rootCaCert.Certificate }
 					if ($localMachineRootCert -eq $null)
 					{
-						$text45 = "Certification Chain"
+						$text45 = "Certification Chain Root CA Missing"
 						$out += $text45
 						Write-Host $text45 -BackgroundColor Yellow -ForegroundColor Black
 						$text46 = @"
@@ -899,7 +895,7 @@ Enhanced Key Usage Extension
 					}
 					else
 					{
-						$text47 = "Certification Chain"
+						$text47 = "Certification Chain looks Good"
 						$out += $text47
 						Write-Host $text47 -BackgroundColor Green -ForegroundColor Black
 						$text48 = @"
@@ -927,11 +923,11 @@ $time : Script Completed
 "@
 				$out | Out-File $Output
 			}
-			start C:\Windows\explorer.exe -ArgumentList "/select, $Output"
-			#return $out
-			exit 0
 		}
 	}
+	start C:\Windows\explorer.exe -ArgumentList "/select, $Output"
+	#return $out
+	break
 }
 if ($null -eq $Servers) { SCOM-CertCheck }
 else { SCOM-CertCheck -Servers $Servers -Output $Output }
