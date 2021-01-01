@@ -60,7 +60,7 @@ if ($ManagementServer -or $Discovery)
 }
 else
 {
-	#Enter the Discovery you want to discover here.
+	#Enter the Discovery you want to run here.
 	# ex. Start-SCOMDiscovery -Discovery 'Azure SQL*'
 	Start-SCOMDiscovery 
 }
