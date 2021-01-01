@@ -41,3 +41,4 @@ catch
 	Write-Warning $_
 	Write-Host "Unable to trigger the discovery" -ForegroundColor Red
 }
+break
