@@ -15,7 +15,7 @@ try
 	}
 	if (!$Discovery)
 	{
-		return Write-Host "Missing the Display Name of the Discovery. (ex. Azure SQL*). Run this script like this:`n.\Start-Discovery.ps1 -Discovery 'Azure SQL*'" -ForegroundColor Red
+		return Write-Host "Missing the Display Name of the Discovery. (ex. Azure SQL*). Run this script like this:`n.\Start-SCOMDiscovery.ps1 -Discovery 'Azure SQL*'" -ForegroundColor Red
 	}
 	Import-Module OperationsManager
 	$Task = Get-SCOMTask -Name Microsoft.SystemCenter.TriggerOnDemandDiscovery
