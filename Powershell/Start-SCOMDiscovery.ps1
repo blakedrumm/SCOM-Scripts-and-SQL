@@ -8,7 +8,7 @@ param
 	[String]$DiscoveryDisplayName,
 	[Parameter(Mandatory = $false,
 			   Position = 3)]
-	[String]$DiscoveryName,
+	[String[]]$DiscoveryName,
 	[Parameter(Mandatory = $false,
 			   Position = 4)]
 	[String]$DiscoveryId,
@@ -29,7 +29,7 @@ function Start-SCOMDiscovery
 		[String]$DiscoveryDisplayName,
 		[Parameter(Mandatory = $false,
 				   Position = 3)]
-		[String]$DiscoveryName,
+		[String[]]$DiscoveryName,
 		[Parameter(Mandatory = $false,
 				   Position = 4)]
 		[String]$DiscoveryId,
