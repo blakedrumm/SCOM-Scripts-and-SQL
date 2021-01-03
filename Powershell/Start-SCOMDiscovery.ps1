@@ -5,13 +5,13 @@ param
 	[String]$ManagementServer,
 	[Parameter(Mandatory = $false,
 			   Position = 2)]
-	[String]$DiscoveryDisplayName,
+	[String]$DisplayName,
 	[Parameter(Mandatory = $false,
 			   Position = 3)]
-	[String[]]$DiscoveryName,
+	[String[]]$Name,
 	[Parameter(Mandatory = $false,
 			   Position = 4)]
-	[String]$DiscoveryId,
+	[String]$Id,
 	[Parameter(Mandatory = $false,
 			   Position = 5)]
 	[Switch]$Wait,
@@ -19,29 +19,33 @@ param
 			   Position = 6)]
 	[String]$Output
 )
+$DiscoveryDisplayName = $DisplayName
+$DiscoveryName = $Name
+$Id = $DiscoveryId
+
 function Start-SCOMDiscovery
 {
 	[CmdletBinding()]
 	param
 	(
-		[Parameter(Mandatory = $false,
-				   Position = 1)]
-		[String]$ManagementServer,
-		[Parameter(Mandatory = $false,
-				   Position = 2)]
-		[String]$DiscoveryDisplayName,
-		[Parameter(Mandatory = $false,
-				   Position = 3)]
-		[String[]]$DiscoveryName,
-		[Parameter(Mandatory = $false,
-				   Position = 4)]
-		[String]$DiscoveryId,
-		[Parameter(Mandatory = $false,
-				   Position = 5)]
-		[Switch]$Wait,
-		[Parameter(Mandatory = $false,
-				   Position = 6)]
-		[String]$Output
+	[Parameter(Mandatory = $false,
+			   Position = 1)]
+	[String]$ManagementServer,
+	[Parameter(Mandatory = $false,
+			   Position = 2)]
+	[String]$DisplayName,
+	[Parameter(Mandatory = $false,
+			   Position = 3)]
+	[String[]]$Name,
+	[Parameter(Mandatory = $false,
+			   Position = 4)]
+	[String]$Id,
+	[Parameter(Mandatory = $false,
+			   Position = 5)]
+	[Switch]$Wait,
+	[Parameter(Mandatory = $false,
+			   Position = 6)]
+	[String]$Output
 	)
 	try
 	{
@@ -89,10 +93,10 @@ function Start-SCOMDiscovery
 		{
 			$i = $i
 			$i++
-            if($Output)
-            {
-                '(' + $i + '/' + $Discoveries.Count + ') ---------------------------------------' | Out-File -Append -FilePath $Output
-            }
+			if ($Output)
+			{
+				'(' + $i + '/' + $Discoveries.Count + ') ---------------------------------------' | Out-File -Append -FilePath $Output
+			}
 			'(' + $i + '/' + $Discoveries.Count + ') ---------------------------------------' | Write-Host
 			$currentoutput = @()
 			$Override = @{ DiscoveryId = $Discov.Id.ToString(); TargetInstanceId = $Discov.Target.Id.ToString() }
@@ -137,11 +141,11 @@ ManagementGroupId    : e37e57e1-7d7b-79cc-6cdf-95cb3750eaaf
 			{
 				do { $taskResultOriginal = Get-SCOMTaskResult -Id $CurrentTaskOutput.Guid }
 				until (($taskResultOriginal.Status -eq 'Succeeded' -or 'Failed') -and ($taskResultOriginal.Status -ne 'Started'))
-                $taskResult = $taskResultOriginal | Select-Object Status, @{ Name = "Discovery Display Name"; Expression = { $Discov.DisplayName } }, @{ Name = "Discovery Name"; Expression = { $Discov.Name } }, TimeFinished, Output; Sleep $randomnumber
-			    if ($Output)
-			    {
-				    $taskResult | Out-File -Append -FilePath $Output
-			    }
+				$taskResult = $taskResultOriginal | Select-Object Status, @{ Name = "Discovery Display Name"; Expression = { $Discov.DisplayName } }, @{ Name = "Discovery Name"; Expression = { $Discov.Name } }, TimeFinished, Output; Sleep $randomnumber
+				if ($Output)
+				{
+					$taskResult | Out-File -Append -FilePath $Output
+				}
 				$taskResult
 				$Timediff = New-TimeSpan -Start $taskResultOriginal.TimeStarted -End $taskResultOriginal.TimeFinished
 				
@@ -153,7 +157,7 @@ ManagementGroupId    : e37e57e1-7d7b-79cc-6cdf-95cb3750eaaf
 				Write-Host ' '
 			}
 			Start-Sleep -Seconds $randomnumber
-        }
+		}
 	}
 	catch
 	{
@@ -168,7 +172,7 @@ ManagementGroupId    : e37e57e1-7d7b-79cc-6cdf-95cb3750eaaf
 }
 if ($ManagementServer -or $DiscoveryDisplayName -or $DiscoveryName -or $Wait -or $DiscoveryId -or $Output)
 {
-	Start-SCOMDiscovery -ManagementServer $ManagementServer -DiscoveryDisplayName $DiscoveryDisplayName -DiscoveryName $DiscoveryName -DiscoveryId $DiscoveryId -Wait:$Wait -Output $Output
+	Start-SCOMDiscovery -ManagementServer $ManagementServer -DisplayName $DiscoveryDisplayName -Name $DiscoveryName -Id $DiscoveryId -Wait:$Wait -Output $Output
 }
 else
 {
