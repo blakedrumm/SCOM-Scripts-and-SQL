@@ -21,7 +21,7 @@ param
 )
 $DiscoveryDisplayName = $DisplayName
 $DiscoveryName = $Name
-$Id = $DiscoveryId
+$DiscoveryId = $Id
 
 function Start-SCOMDiscovery
 {
@@ -49,21 +49,10 @@ function Start-SCOMDiscovery
 	)
 	try
 	{
-		if ($Output)
-		{
-			$scriptOutput = @()
-		}
-		
 		if (!$ManagementServer)
 		{
 			$ManagementServer = $env:COMPUTERNAME
 		}
-<#
-		if ((!$DiscoveryDisplayName) -or (!$DiscoveryName) -or (!$DiscoveryId))
-		{
-			return Write-Host "Missing the Display Name of the Discovery. (ex. Azure SQL*). Run this script like this:`n.\Start-SCOMDiscovery.ps1 -Discovery 'Azure SQL*'" -ForegroundColor Red
-		}
-#>
 		Import-Module OperationsManager
 		if ($Output)
 		{
@@ -83,6 +72,10 @@ function Start-SCOMDiscovery
 		{
 			$Discoveries = Get-SCOMDiscovery -Id $DiscoveryId
 		}
+		else
+		{
+			return Write-Host "Missing the Display Name of the Discovery. (ex. Azure SQL*). Run this script like this:`n.\Start-SCOMDiscovery.ps1 -DisplayName 'Azure SQL*'" -ForegroundColor Red
+		}
 		if ($Output)
 		{
 			'Starting Discoveries (Count: ' + $Discoveries.Count + ')' | Out-File -Append -FilePath $Output
@@ -95,10 +88,16 @@ function Start-SCOMDiscovery
 			$i++
 			if ($Output)
 			{
-				'(' + $i + '/' + $Discoveries.Count + ') ---------------------------------------' | Out-File -Append -FilePath $Output
+				'(' + $i + '/' + $Discoveries.Count + ') -----------------------------------------------------------------' | Out-File -Append -FilePath $Output
+				' ' | Out-File -Append -FilePath $Output
 			}
-			'(' + $i + '/' + $Discoveries.Count + ') ---------------------------------------' | Write-Host
-			$currentoutput = @()
+			'(' | Write-Host -NoNewline
+			$i | Write-Host -NoNewline -ForegroundColor DarkYellow
+			'/' | Write-Host -NoNewline
+			$Discoveries.Count | Write-Host -NoNewline -ForegroundColor Gray
+			') ' | Write-Host -NoNewline
+            '-----------------------------------------------------------------' | Write-Host -ForegroundColor DarkYellow
+			' ' | Write-Host
 			$Override = @{ DiscoveryId = $Discov.Id.ToString(); TargetInstanceId = $Discov.Target.Id.ToString() }
 			$Instance = Get-SCOMClass -Name Microsoft.SystemCenter.ManagementServer | Get-SCOMClassInstance | where { $_.Displayname -like "$ManagementServer`*" }
 			$CurrentTaskOutput = (Start-SCOMTask -Task $Task -Instance $Instance -Override $Override | Select-Object Status, @{ Name = "Discovery Display Name"; Expression = { $Discov.DisplayName } }, @{ Name = "Discovery Name"; Expression = { $Discov.Name } }, @{ Name = "Discovery Guid"; Expression = { $Discov.Id } }, @{ Name = "Guid"; Expression = { $_.Id } }, TimeScheduled, TimeStarted, TimeFinished, Output)
@@ -129,7 +128,7 @@ ManagementGroup      : ManagementGroup1
 ManagementGroupId    : e37e57e1-7d7b-79cc-6cdf-95cb3750eaaf
 
 #>
-			$currentoutput += $CurrentTaskOutput | Out-String -Width 4096
+			$currentoutput = ($CurrentTaskOutput | Out-String -Width 4096).trim()
 			if ($Output)
 			{
 				$currentoutput | Out-File -Append -FilePath $Output
@@ -139,10 +138,14 @@ ManagementGroupId    : e37e57e1-7d7b-79cc-6cdf-95cb3750eaaf
 			$randomnumber = Get-Random -Minimum 1 -Maximum 4
 			if ($Wait)
 			{
-				do { $taskResultOriginal = Get-SCOMTaskResult -Id $CurrentTaskOutput.Guid }
+				do { $taskResultOriginal = Get-SCOMTaskResult -Id $CurrentTaskOutput.Guid; Sleep 1 }
 				until (($taskResultOriginal.Status -eq 'Succeeded' -or 'Failed') -and ($taskResultOriginal.Status -ne 'Started'))
 				$taskResult = $taskResultOriginal | Select-Object Status, @{ Name = "Discovery Display Name"; Expression = { $Discov.DisplayName } }, @{ Name = "Discovery Name"; Expression = { $Discov.Name } }, TimeFinished, Output; Sleep $randomnumber
-				
+				' ' | Write-Host
+				if ($Output)
+				{
+					' ' | Out-File -Append -FilePath $Output
+				}
 				if ($taskResultOriginal.TimeStarted)
 				{
 					$Timediff = New-TimeSpan -Start $taskResultOriginal.TimeStarted -End $taskResultOriginal.TimeFinished
@@ -155,16 +158,17 @@ ManagementGroupId    : e37e57e1-7d7b-79cc-6cdf-95cb3750eaaf
 				if ($Output)
 				{
 					$Discov.DisplayName + ' took ' + $Timediff.Seconds + ' seconds.' | Out-File -Append -FilePath $Output
+					' ' | Out-File -Append -FilePath $Output
 				}
 				$Discov.DisplayName + ' took ' + $Timediff.Seconds + ' seconds.' | Write-Host -ForegroundColor Yellow
-				' ' | Out-File -Append -FilePath $Output
 				Write-Host ' '
+				$taskresult = ($taskResult | Out-String -Width 4096).trim()
 				if ($Output)
 				{
-					$taskResult | Out-File -Append -FilePath $Output
+					$taskresult | Out-File -Append -FilePath $Output
+					' ' | Out-File -Append -FilePath $Output
 				}
 				$taskResult
-				' ' | Out-File -Append -FilePath $Output
 				Write-Host ' '
 				
 			}
