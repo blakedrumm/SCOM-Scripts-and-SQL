@@ -142,11 +142,7 @@ ManagementGroupId    : e37e57e1-7d7b-79cc-6cdf-95cb3750eaaf
 				do { $taskResultOriginal = Get-SCOMTaskResult -Id $CurrentTaskOutput.Guid }
 				until (($taskResultOriginal.Status -eq 'Succeeded' -or 'Failed') -and ($taskResultOriginal.Status -ne 'Started'))
 				$taskResult = $taskResultOriginal | Select-Object Status, @{ Name = "Discovery Display Name"; Expression = { $Discov.DisplayName } }, @{ Name = "Discovery Name"; Expression = { $Discov.Name } }, TimeFinished, Output; Sleep $randomnumber
-				if ($Output)
-				{
-					$taskResult | Out-File -Append -FilePath $Output
-				}
-				$taskResult
+				
 				if ($taskResultOriginal.TimeStarted)
 				{
 					$Timediff = New-TimeSpan -Start $taskResultOriginal.TimeStarted -End $taskResultOriginal.TimeFinished
@@ -156,15 +152,21 @@ ManagementGroupId    : e37e57e1-7d7b-79cc-6cdf-95cb3750eaaf
 					$Timediff = New-TimeSpan -Start $taskResultOriginal.TimeScheduled -End $taskResultOriginal.TimeFinished
 				}
 				
-				
-				
 				if ($Output)
 				{
 					$Discov.DisplayName + ' took ' + $Timediff.Seconds + ' seconds.' | Out-File -Append -FilePath $Output
-					' ' | Out-File -Append -FilePath $Output
 				}
 				$Discov.DisplayName + ' took ' + $Timediff.Seconds + ' seconds.' | Write-Host -ForegroundColor Yellow
+				' ' | Out-File -Append -FilePath $Output
 				Write-Host ' '
+				if ($Output)
+				{
+					$taskResult | Out-File -Append -FilePath $Output
+				}
+				$taskResult
+                ' ' | Out-File -Append -FilePath $Output
+                Write-Host ' '
+                
 			}
 			Start-Sleep -Seconds $randomnumber
 		}
