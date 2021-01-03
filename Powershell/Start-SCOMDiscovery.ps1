@@ -164,9 +164,9 @@ ManagementGroupId    : e37e57e1-7d7b-79cc-6cdf-95cb3750eaaf
 					$taskResult | Out-File -Append -FilePath $Output
 				}
 				$taskResult
-                ' ' | Out-File -Append -FilePath $Output
-                Write-Host ' '
-                
+				' ' | Out-File -Append -FilePath $Output
+				Write-Host ' '
+				
 			}
 			Start-Sleep -Seconds $randomnumber
 		}
