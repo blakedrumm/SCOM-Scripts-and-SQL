@@ -28,24 +28,24 @@ function Start-SCOMDiscovery
 	[CmdletBinding()]
 	param
 	(
-	[Parameter(Mandatory = $false,
-			   Position = 1)]
-	[String]$ManagementServer,
-	[Parameter(Mandatory = $false,
-			   Position = 2)]
-	[String]$DisplayName,
-	[Parameter(Mandatory = $false,
-			   Position = 3)]
-	[String[]]$Name,
-	[Parameter(Mandatory = $false,
-			   Position = 4)]
-	[String]$Id,
-	[Parameter(Mandatory = $false,
-			   Position = 5)]
-	[Switch]$Wait,
-	[Parameter(Mandatory = $false,
-			   Position = 6)]
-	[String]$Output
+		[Parameter(Mandatory = $false,
+				   Position = 1)]
+		[String]$ManagementServer,
+		[Parameter(Mandatory = $false,
+				   Position = 2)]
+		[String]$DisplayName,
+		[Parameter(Mandatory = $false,
+				   Position = 3)]
+		[String[]]$Name,
+		[Parameter(Mandatory = $false,
+				   Position = 4)]
+		[String]$Id,
+		[Parameter(Mandatory = $false,
+				   Position = 5)]
+		[Switch]$Wait,
+		[Parameter(Mandatory = $false,
+				   Position = 6)]
+		[String]$Output
 	)
 	try
 	{
@@ -147,11 +147,21 @@ ManagementGroupId    : e37e57e1-7d7b-79cc-6cdf-95cb3750eaaf
 					$taskResult | Out-File -Append -FilePath $Output
 				}
 				$taskResult
-				$Timediff = New-TimeSpan -Start $taskResultOriginal.TimeStarted -End $taskResultOriginal.TimeFinished
+				if ($taskResultOriginal.TimeStarted)
+				{
+					$Timediff = New-TimeSpan -Start $taskResultOriginal.TimeStarted -End $taskResultOriginal.TimeFinished
+				}
+				else
+				{
+					$Timediff = New-TimeSpan -Start $taskResultOriginal.TimeScheduled -End $taskResultOriginal.TimeFinished
+				}
+				
+				
 				
 				if ($Output)
 				{
 					$Discov.DisplayName + ' took ' + $Timediff.Seconds + ' seconds.' | Out-File -Append -FilePath $Output
+					' ' | Out-File -Append -FilePath $Output
 				}
 				$Discov.DisplayName + ' took ' + $Timediff.Seconds + ' seconds.' | Write-Host -ForegroundColor Yellow
 				Write-Host ' '
