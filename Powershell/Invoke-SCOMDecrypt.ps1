@@ -11,9 +11,14 @@ Released under AGPL see LICENSE for more information
 # THIS SCRIPT WILL DECRYPT ALL THE RUNAS CREDENTIALS TO PLAIN TEXT, WE COULD USE THIS TO VERIFY RUNAS ACCOUNTS AGAINST THE DOMAIN.
 
 function Invoke-SCOMDecrypt {
-
+    # Check if SCOM 2019 is installed	
+	if(Test-Path "C:\Program Files\Microsoft System Center")
+	{
+		[System.Reflection.Assembly]::LoadFile("C:\Program Files\Microsoft System Center\Operations Manager\Server\Microsoft.Mom.Sdk.SecureStorageManager.dll") | Out-Null 
+		[System.Reflection.Assembly]::LoadFile("C:\Program Files\Microsoft System Center\Operations Manager\Server\Microsoft.EnterpriseManagement.DataAccessLayer.dll") | Out-Null
+	}
 	# Check if SCOM 2016 is installed	
-	if(Test-Path "C:\Program Files\Microsoft System Center 2016")
+	elseif(Test-Path "C:\Program Files\Microsoft System Center 2016")
 	{
 		[System.Reflection.Assembly]::LoadFile("C:\Program Files\Microsoft System Center 2016\Operations Manager\Server\Microsoft.Mom.Sdk.SecureStorageManager.dll") | Out-Null 
 		[System.Reflection.Assembly]::LoadFile("C:\Program Files\Microsoft System Center 2016\Operations Manager\Server\Microsoft.EnterpriseManagement.DataAccessLayer.dll") | Out-Null
@@ -25,7 +30,7 @@ function Invoke-SCOMDecrypt {
 	}
 	else
 	{
-		Write-Host "[!] Unable to find installation directory of SCOM 2012 R2 or 2016"
+		Write-Host "[!] Unable to find installation directory of SCOM 2019, 2016, or 2012 R2"
 		return
 	}
 
