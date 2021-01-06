@@ -1,7 +1,7 @@
 # Examples
-#  .\Start-SCOMDiscovery.ps1 -DiscoveryName *Windows*, *Warehouse*
-#  .\Start-SCOMDiscovery.ps1 -Id f3124f32-cba5-5974-77fd-004e5c2f05ce -Wait
-#  .\Start-SCOMDiscovery.ps1 -Name Microsoft.Windows.Server.InstanceGroup.Discovery -Output $ENV:USERPROFILE`\Desktop\Output.txt -Wait
+#  .\Start-SCOMDiscovery.ps1 -DisplayName *Windows*, *Warehouse*
+#  .\Start-SCOMDiscovery.ps1 -Id d7a25f74-a82b-7977-3a8b-19ae527c86fc -Wait
+#  .\Start-SCOMDiscovery.ps1 -Name Microsoft.SQLServer.Windows.Discovery.DBFilegroup -Output $ENV:USERPROFILE`\Desktop\Output.txt -Wait
 param
 (
 	[Parameter(Mandatory = $false,
