@@ -53,6 +53,9 @@ function Start-SCOMDiscovery
 	)
 	try
 	{
+		$DiscoveryDisplayName = $DisplayName
+		$DiscoveryName = $Name
+		$DiscoveryId = $Id
 		if (!$ManagementServer)
 		{
 			$ManagementServer = $env:COMPUTERNAME
@@ -106,7 +109,7 @@ function Start-SCOMDiscovery
 			$Instance = Get-SCOMClass -Name Microsoft.SystemCenter.ManagementServer | Get-SCOMClassInstance | where { $_.Displayname -like "$ManagementServer`*" }
 			$CurrentTaskOutput = (Start-SCOMTask -Task $Task -Instance $Instance -Override $Override | Select-Object Status, @{ Name = "Discovery Display Name"; Expression = { $Discov.DisplayName } }, @{ Name = "Discovery Name"; Expression = { $Discov.Name } }, @{ Name = "Discovery Guid"; Expression = { $Discov.Id } }, @{ Name = "Guid"; Expression = { $_.Id } }, TimeScheduled, TimeStarted, TimeFinished, Output)
 			
-           		<# Task Start
+            <#
 			TaskId               : ff34dc4f-2db3-1736-d9f2-6d85b539ff96
 			BatchId              : 3a33f6f7-d2df-4fcb-9fed-736b92230d6a
 			SubmittedBy          : Contoso\Administrator
