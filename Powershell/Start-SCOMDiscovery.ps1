@@ -1,5 +1,5 @@
 # Examples
-#  .\Start-SCOMDiscovery.ps1 -DisplayName *Windows*, *Warehouse*
+#  .\Start-SCOMDiscovery.ps1 -DisplayName *Windows*, *Warehouse* -Wait
 #  .\Start-SCOMDiscovery.ps1 -Id d7a25f74-a82b-7977-3a8b-19ae527c86fc -Wait
 #  .\Start-SCOMDiscovery.ps1 -Name Microsoft.SQLServer.Windows.Discovery.DBFilegroup -Output $ENV:USERPROFILE`\Desktop\Output.txt -Wait
 param
