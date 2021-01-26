@@ -110,70 +110,78 @@ function Get-EventLogs
 		Write-Host "$server" -ForegroundColor Green
 		foreach ($log in $logs)
 		{
-			Time-Stamp
-			Write-Host "  Exporting log: " -NoNewline
-			Write-Host $log -ForegroundColor Magenta -NoNewline
-			Write-Host " "
-			if ($server -notmatch $env:COMPUTERNAME)
+			$availableLogs = Get-EventLog * | Select Log -ExpandProperty Log
+			if ($log -notin $availableLogs)
 			{
-				try
+				continue
+			}
+			else
+			{
+				Time-Stamp
+				Write-Host "  Exporting log: " -NoNewline
+				Write-Host $log -ForegroundColor Magenta -NoNewline
+				Write-Host " "
+				if ($server -notmatch $env:COMPUTERNAME)
+				{
+					try
+					{
+						if ($log -like '*/*')
+						{ $logname = $log.split('/')[0] }
+						else { $logname = $log }
+						Invoke-Command -ComputerName $server {
+							$fileCheck = test-path "c:\windows\Temp\$using:server`.$using:logname.evtx"
+							if ($fileCheck -eq $true)
+							{
+								Remove-Item "c:\windows\Temp\$using:server`.$using:logname.evtx" -Force
+							}
+							wevtutil epl $using:log "c:\windows\Temp\$using:server.$using:logname.evtx"
+							wevtutil al "c:\windows\Temp\$using:server`.$using:logname.evtx"
+						} -ErrorAction Stop
+						$fileCheck2 = test-path "$OutputPath\$server" -ErrorAction Stop
+						if (!($fileCheck2))
+						{
+							New-Item -ItemType directory -Path "$OutputPath" -Name "$server" -ErrorAction Stop | Out-Null
+							New-Item -ItemType directory -Path "$OutputPath\$server" -Name "localemetadata" -ErrorAction Stop | Out-Null
+						}
+						Move-Item "\\$server\c$\windows\temp\$server.$logname.evtx" "$OutputPath\$server" -force -ErrorAction Stop
+						#"Get-ChildItem \\$server\c$\windows\temp\localemetadata\"
+						Get-ChildItem "\\$server\c$\windows\temp\localemetadata\" -ErrorAction Stop |
+						where { $_.name -like "*$server*" -and $_.name -like "*$logname*" } |
+						Move-Item -Destination "$OutputPath\$server\localemetadata\" -force -ErrorAction Stop
+					}
+					catch
+					{
+						Time-Stamp
+						Write-Warning "$_"
+						break
+					}
+					
+				}
+				else
 				{
 					if ($log -like '*/*')
 					{ $logname = $log.split('/')[0] }
 					else { $logname = $log }
-					Invoke-Command -ComputerName $server {
-						$fileCheck = test-path "c:\windows\Temp\$using:server`.$using:logname.evtx"
-						if ($fileCheck -eq $true)
-						{
-							Remove-Item "c:\windows\Temp\$using:server`.$using:logname.evtx" -Force
-						}
-						wevtutil epl $using:log "c:\windows\Temp\$using:server.$using:logname.evtx"
-						wevtutil al "c:\windows\Temp\$using:server`.$using:logname.evtx"
-					} -ErrorAction Stop
-					$fileCheck2 = test-path "$OutputPath\$server" -ErrorAction Stop
+					$fileCheck = test-path "c:\windows\Temp\$server.$logname.evtx"
+					if ($fileCheck -eq $true)
+					{
+						Remove-Item "c:\windows\Temp\$server.$logname.evtx" -Force | Out-Null
+					}
+					wevtutil epl $log "c:\windows\Temp\$server.$logname.evtx"
+					wevtutil al "c:\windows\Temp\$server.$logname.evtx"
+					
+					$fileCheck2 = test-path "$OutputPath\$server"
 					if (!($fileCheck2))
 					{
-						New-Item -ItemType directory -Path "$OutputPath" -Name "$server" -ErrorAction Stop | Out-Null
-						New-Item -ItemType directory -Path "$OutputPath\$server" -Name "localemetadata" -ErrorAction Stop | Out-Null
+						New-Item -ItemType directory -Path "$OutputPath" -Name "$server" | Out-Null
+						New-Item -ItemType directory -Path "$OutputPath\$server" -Name "localemetadata" | Out-Null
 					}
-					Move-Item "\\$server\c$\windows\temp\$server.$logname.evtx" "$OutputPath\$server" -force -ErrorAction Stop
+					Move-Item "C:\windows\temp\$server.$logname.evtx" "$OutputPath\$server" -force
 					#"Get-ChildItem \\$server\c$\windows\temp\localemetadata\"
-					Get-ChildItem "\\$server\c$\windows\temp\localemetadata\" -ErrorAction Stop |
+					Get-ChildItem "C:\windows\temp\localemetadata\" |
 					where { $_.name -like "*$server*" -and $_.name -like "*$logname*" } |
-					Move-Item -Destination "$OutputPath\$server\localemetadata\" -force -ErrorAction Stop
+					Move-Item -Destination "$OutputPath\$server\localemetadata\" -force
 				}
-				catch
-				{
-					Time-Stamp
-					Write-Warning "$_"
-					break
-				}
-				
-			}
-			else
-			{
-				if ($log -like '*/*')
-				{ $logname = $log.split('/')[0] }
-				else { $logname = $log }
-				$fileCheck = test-path "c:\windows\Temp\$server.$logname.evtx"
-				if ($fileCheck -eq $true)
-				{
-					Remove-Item "c:\windows\Temp\$server.$logname.evtx" -Force | Out-Null
-				}
-				wevtutil epl $log "c:\windows\Temp\$server.$logname.evtx"
-				wevtutil al "c:\windows\Temp\$server.$logname.evtx"
-				
-				$fileCheck2 = test-path "$OutputPath\$server"
-				if (!($fileCheck2))
-				{
-					New-Item -ItemType directory -Path "$OutputPath" -Name "$server" | Out-Null
-					New-Item -ItemType directory -Path "$OutputPath\$server" -Name "localemetadata" | Out-Null
-				}
-				Move-Item "C:\windows\temp\$server.$logname.evtx" "$OutputPath\$server" -force
-				#"Get-ChildItem \\$server\c$\windows\temp\localemetadata\"
-				Get-ChildItem "C:\windows\temp\localemetadata\" |
-				where { $_.name -like "*$server*" -and $_.name -like "*$logname*" } |
-				Move-Item -Destination "$OutputPath\$server\localemetadata\" -force
 			}
 		}
 		
