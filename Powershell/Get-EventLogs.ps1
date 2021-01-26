@@ -3,17 +3,20 @@
 		Get-EventLogs
 	
 	.DESCRIPTION
-		This Script Collects Event Log data from Remote Servers and the Local Machine if defined. It will collect all of these and finally zip the files up into a easy to transport zip file. 
+		This Script Collects Event Log data from Remote Servers and the Local Machine if defined. It will collect all of these and finally zip the files up into a easy to transport zip file.
 		If you need to collect more logs than just Application, System, and Operations Manager. Please change line 35 [String[]]$Logs.
 	
 	.PARAMETER Servers
 		Add DNS Hostnames you would like to retrieve the Event Logs from like this: Agent1.contoso.com, Agent2.contoso.com
 	
+	.PARAMETER Logs
+		Gather specific Event Logs from Remote or Local Machine.
+	
 	.PARAMETER CaseNumber
 		A description of the CaseNumber parameter.
 	
 	.EXAMPLE
-				PS C:\> .\Get-EventLogs.ps1 -Servers Agent1.contoso.com, Agent2.contoso.com
+		PS C:\> .\Get-EventLogs.ps1 -Servers Agent1.contoso.com, Agent2.contoso.com -Logs Application, System
 	
 	.NOTES
 		Additional information about the file.
@@ -26,13 +29,19 @@ param
 	[String[]]$Servers,
 	[Parameter(Mandatory = $false,
 			   Position = 2)]
+	[String[]]$Logs,
+	[Parameter(Mandatory = $false,
+			   Position = 3)]
 	[string]$CaseNumber
 )
 # --------------------------------------------------------------------
 # --------------------------------------------------------------------
 
 #Modify this if you need more logs
-[String[]]$Logs = 'Application', 'System', 'Security', 'Operations Manager', 'Microsoft-Windows-PowerShell/Operational'
+if ($Logs -eq $null)
+{
+	[String[]]$Logs = 'Application', 'System', 'Security', 'Operations Manager', 'Microsoft-Windows-PowerShell/Operational'
+}
 
 $DefinedServers = $null
 
@@ -82,9 +91,9 @@ function Get-EventLogs
 	{
 		Time-Stamp
 		Write-Host "Output folder not found." -ForegroundColor Gray
-        Time-Stamp
-        Write-Host "Creating folder: " -ForegroundColor DarkYellow -NoNewline
-        Write-Host "$OutputPath" -ForegroundColor DarkCyan
+		Time-Stamp
+		Write-Host "Creating folder: " -ForegroundColor DarkYellow -NoNewline
+		Write-Host "$OutputPath" -ForegroundColor DarkCyan
 		md $OutputPath | Out-Null
 	}
 	if ($servers)
@@ -109,9 +118,9 @@ function Get-EventLogs
 			{
 				try
 				{
-                    if($log -like '*/*')
-                    {$logname = $log.split('/')[0]}
-                    else{$logname = $log}
+					if ($log -like '*/*')
+					{ $logname = $log.split('/')[0] }
+					else { $logname = $log }
 					Invoke-Command -ComputerName $server {
 						$fileCheck = test-path "c:\windows\Temp\$using:server`.$using:logname.evtx"
 						if ($fileCheck -eq $true)
@@ -126,7 +135,7 @@ function Get-EventLogs
 					{
 						New-Item -ItemType directory -Path "$OutputPath" -Name "$server" -ErrorAction Stop | Out-Null
 						New-Item -ItemType directory -Path "$OutputPath\$server" -Name "localemetadata" -ErrorAction Stop | Out-Null
-					}                
+					}
 					Move-Item "\\$server\c$\windows\temp\$server.$logname.evtx" "$OutputPath\$server" -force -ErrorAction Stop
 					#"Get-ChildItem \\$server\c$\windows\temp\localemetadata\"
 					Get-ChildItem "\\$server\c$\windows\temp\localemetadata\" -ErrorAction Stop |
@@ -143,9 +152,9 @@ function Get-EventLogs
 			}
 			else
 			{
-                if($log -like '*/*')
-                {$logname = $log.split('/')[0]}
-                else{$logname = $log}
+				if ($log -like '*/*')
+				{ $logname = $log.split('/')[0] }
+				else { $logname = $log }
 				$fileCheck = test-path "c:\windows\Temp\$server.$logname.evtx"
 				if ($fileCheck -eq $true)
 				{
