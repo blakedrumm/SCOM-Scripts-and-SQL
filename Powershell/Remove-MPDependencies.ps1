@@ -24,6 +24,13 @@
 #
 # Arguments		: 	ManagementPackId.  (Provide the value of the management pack ID from the management pack properties, not the value of the Name property.  Otherwise, the script will fail.)
 
+# Example:
+# Get-SCOMManagementPack -DisplayName "Microsoft Azure SQL Managed Instance (Discovery)" | .\RecursiveRemove.ps1 -DryRun -PauseOnEach
+#
+# Get-SCOMManagementPack -DisplayName "Microsoft Azure SQL Managed Instance (Discovery)" | .\RecursiveRemove.ps1
+# 
+# .\RecursiveRemove.ps1 -ManagementPackId Microsoft.Azure.ManagedInstance.Discovery
+
 # Needed for SCOM SDK
 param
 (
