@@ -3,6 +3,10 @@
 # You need to run this function with an account that has admin rights in both environments!
 # Copy-cSCOMSubscription -subscription "mysubscription" -source scom-dev-server -target scom-prod-server
 # Original Script: https://github.com/JeanCloudDev/SCOMRunbooks/blob/master/SCOMRunbooks/Functions/Copy-cSCOMSubscription.ps1
+<#
+	.Modified By
+	Blake Drumm (v-bldrum@microsoft.com)
+#>
 
 function Copy-SCOMSubscription
 {
