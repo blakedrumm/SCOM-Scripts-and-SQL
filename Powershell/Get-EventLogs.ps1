@@ -20,6 +20,9 @@
 	
 	.NOTES
 		Additional information about the file.
+		
+	.AUTHOR
+	        Blake Drumm (v-bldrum@microsoft.com)
 #>
 [CmdletBinding()]
 param
