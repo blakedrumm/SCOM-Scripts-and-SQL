@@ -17,6 +17,9 @@
 		
 	Clear SCOM cache on every Agent in the in Management Group.
 		PS C:\> Get-SCOMAgent | %{.\Clear-SCOMCache.ps1 -Servers $_}
+		
+	.AUTHOR
+	Blake Drumm (v-bldrum@microsoft.com)
 #>
 param
 (
