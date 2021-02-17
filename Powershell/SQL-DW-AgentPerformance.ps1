@@ -1,4 +1,8 @@
-﻿#This script gathers performance data from SQL DW and outputs as Objects.
+<#
+.AUTHOR
+	Blake Drumm (v-bldrum@microsoft.com)
+#>
+#This script gathers performance data from SQL DW and outputs as Objects.
 $SQLServer = "SQL1"
 $db1 = "OperationsManagerDW"
 #Disk space in MB
