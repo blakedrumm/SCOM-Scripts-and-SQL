@@ -1,5 +1,8 @@
 #Verify that the location "C:\SCOM Backup" exists
 #Change Microsoft to either a portion of the name, or use the full Name of the MP you are Looking to get information from
+<#
+Modified By: Blake Drumm (v-bldrum@microsoft.com)
+#>
 $mp = "Microsoft"
 $Path = Test-Path “C:\SCOM Backup”
 If (!$Path){
