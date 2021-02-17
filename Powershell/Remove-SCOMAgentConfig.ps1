@@ -1,3 +1,7 @@
+<#
+.AUTHOR
+Blake Drumm (v-bldrum@microsoft.com)
+#>
 Function Remove-SCOMAgentConfig
 {
 	[cmdletbinding()]
