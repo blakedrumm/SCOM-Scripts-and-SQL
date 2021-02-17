@@ -3,7 +3,7 @@
 		Clear-SCOMCache
 	
 	.DESCRIPTION
-		The script reboots the server(s) if requested after clearing the SCOM cache, Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics, and Resetting Winsock catalog
+		The script clears the SCOM cache, Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics, and Resetting Winsock catalog. And reboots the server(s) if -Reboot switch is present.
 	
 	.PARAMETER Servers
 		A description of the Servers parameter.
