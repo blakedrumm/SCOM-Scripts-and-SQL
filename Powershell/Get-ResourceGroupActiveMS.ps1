@@ -47,4 +47,4 @@ $ServerName = 'SQL1,10433'
 $DBName = 'OperationsManager'
 $ResourcePoolName = 'Linux' # This can contain part of the string for the Resource Pool Name.
 $query = "select BaseManagedEntity.DisplayName ,cs.agent.AgentGuid ,cs.WorkFlowExecutionLocationAgent.AgentRowId ,cs.workflowexecutionlocation.WorkflowExecutionLocationRowId ,cs.workflowexecutionlocation.DisplayName from cs.WorkFlowExecutionLocationAgent inner join cs.workflowexecutionlocation ON cs.WorkFlowExecutionLocationAgent.WorkFlowExecutionLocationAgentRowId = cs.workflowexecutionlocation.WorkflowExecutionLocationRowId inner join CS.agent ON CS.agent.AgentRowId=cs.WorkFlowExecutionLocationAgent.AgentRowId inner join BaseManagedEntity ON BaseManagedEntity.BaseManagedEntityId = CS.agent.AGentGuid where cs.workflowexecutionlocation.DisplayName like '%$ResourcePoolName%'"
-Invoke-SqlCommand -UseWindowsAuthentication -Server "SQL1,10433" -Database $DBName -Query $query
+Invoke-SqlCommand -UseWindowsAuthentication -Server $ServerName -Database $DBName -Query $query
