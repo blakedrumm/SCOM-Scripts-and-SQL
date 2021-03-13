@@ -6,6 +6,14 @@
 .LINK 
     https://blog.jourdant.me/post/simple-sql-in-powershell
 #>
+
+# Variables for Script
+#-----------------------------------------------------
+$ServerName = 'SQL1,10433'
+$DBName = 'OperationsManager'
+$ResourcePoolName = 'Linux' # This can contain part of the string for the Resource Pool Name.
+#-----------------------------------------------------
+
 function Invoke-SqlCommand() {
     [cmdletbinding(DefaultParameterSetName="integrated")]Param (
         [Parameter(Mandatory=$true)][Alias("Serverinstance")][string]$Server,
@@ -43,8 +51,5 @@ function Invoke-SqlCommand() {
     $connection.Close()
     return $table
 }
-$ServerName = 'SQL1,10433'
-$DBName = 'OperationsManager'
-$ResourcePoolName = 'Linux' # This can contain part of the string for the Resource Pool Name.
 $query = "select BaseManagedEntity.DisplayName ,cs.agent.AgentGuid ,cs.WorkFlowExecutionLocationAgent.AgentRowId ,cs.workflowexecutionlocation.WorkflowExecutionLocationRowId ,cs.workflowexecutionlocation.DisplayName from cs.WorkFlowExecutionLocationAgent inner join cs.workflowexecutionlocation ON cs.WorkFlowExecutionLocationAgent.WorkFlowExecutionLocationAgentRowId = cs.workflowexecutionlocation.WorkflowExecutionLocationRowId inner join CS.agent ON CS.agent.AgentRowId=cs.WorkFlowExecutionLocationAgent.AgentRowId inner join BaseManagedEntity ON BaseManagedEntity.BaseManagedEntityId = CS.agent.AGentGuid where cs.workflowexecutionlocation.DisplayName like '%$ResourcePoolName%'"
 Invoke-SqlCommand -UseWindowsAuthentication -Server $ServerName -Database $DBName -Query $query
