@@ -346,15 +346,15 @@ exit 0
 		}
 		do
 		{
-			if ($VerboseTrace -eq "" -or $DebugTrace -eq "")
+			if (!$VerboseTrace -and !$DebugTrace)
 			{
 				$answer = Read-Host -Prompt "Would you like to perform a Verbose or Debug Trace? (V/D)"
 			}
-			elseif ($null -ne $VerboseTrace)
+			if ($VerboseTrace)
 			{
 				$answer = "verbose"
 			}
-			elseif ($null -ne $DebugTrace)
+			elseif ("" -ne $DebugTrace)
 			{
 				$answer = "debug"
 			}
@@ -542,9 +542,9 @@ exit 0
 	
 	C:\Windows\explorer.exe "/select,$destfile"
 }
-if (($GetAdvisor -or $GetAPM -or $GetApmConnector -or $GetBID -or $GetConfigService -or $GetDAS -or $GetFailover -or $GetManaged -or $GetNASM -or $GetNative -or $GetScript -or $GetUI))
+if (($GetAdvisor -or $GetAPM -or $GetApmConnector -or $GetBID -or $GetConfigService -or $GetDAS -or $GetFailover -or $GetManaged -or $GetNASM -or $GetNative -or $GetScript -or $GetUI -or $VerboseTrace -or $DebugTrace))
 {
-	Start-ETLTrace -GetAdvisor:$GetAdvisor -GetApmConnector:$GetApmConnector -GetBID:$GetBID -GetConfigService:$GetConfigService -GetDAS:$GetDAS -GetFailover:$GetFailover -GetManaged:$GetManaged -GetNASM:$GetNASM -GetNative:$GetNative -GetScript:$GetScript -GetUI:$GetUI
+	Start-ETLTrace -GetAdvisor:$GetAdvisor -GetApmConnector:$GetApmConnector -GetBID:$GetBID -GetConfigService:$GetConfigService -GetDAS:$GetDAS -GetFailover:$GetFailover -GetManaged:$GetManaged -GetNASM:$GetNASM -GetNative:$GetNative -GetScript:$GetScript -GetUI:$GetUI -DebugTrace:$DebugTrace -VerboseTrace:$VerboseTrace
 }
 else
 {
