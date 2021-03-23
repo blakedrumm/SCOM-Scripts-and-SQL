@@ -6,6 +6,6 @@ Modified By: Blake Drumm (v-bldrum@microsoft.com)
 $mp = "Microsoft"
 $Path = Test-Path “C:\SCOM Backup”
 If (!$Path){
-md “C:\SCOM Backup”
+md $Path
 }
 Get-SCOMManagementPack | where {$_ -like "*$mp*"} | select -property name -ExpandProperty Name | % { Get-SCOMManagementPack -Name $_ | Get-SCOMRule | Select DisplayName, Description, Name, Enabled, Target | Export-Csv -Path “C:\SCOM Backup\$_.Rules.csv”; Get-SCOMManagementPack -Name $_ | Get-SCOMMonitor | Select DisplayName, Description, Name, Enabled, Target | Export-Csv -Path “C:\SCOM Backup\$_.Monitors.csv” }
