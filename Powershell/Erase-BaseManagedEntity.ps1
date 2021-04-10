@@ -1,6 +1,8 @@
 #This script will run the Kevin Holman steps to Purge Data: https://kevinholman.com/2018/05/03/deleting-and-purging-data-from-the-scom-database/
 #Author: Blake Drumm (v-bldrum@microsoft.com)
 cls
+
+#region ScriptVariables
 #In the format of: ServerName\SQLInstance
 #ex: SQL01\SCOM2019
 $SQLServer = "sql01"
@@ -9,6 +11,7 @@ $db1 = "OperationsManager"
 #Name of Agent to Erase from SCOM
 #Fully Qualified (FQDN)
 $MachineToRemove = "Agent1.contoso.com"
+#endregion
 
 if(!(Get-Command Invoke-Sqlcmd -ErrorAction SilentlyContinue))
 {
