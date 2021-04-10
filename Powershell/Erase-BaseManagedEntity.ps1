@@ -1,4 +1,5 @@
-#This script will run the Kevin Holman steps in Powershell Form: https://kevinholman.com/2018/05/03/deleting-and-purging-data-from-the-scom-database/
+#This script will run the Kevin Holman steps to Purge Data: https://kevinholman.com/2018/05/03/deleting-and-purging-data-from-the-scom-database/
+#Author: Blake Drumm (v-bldrum@microsoft.com)
 cls
 #In the format of: ServerName\SQLInstance
 #ex: SQL01\SCOM2019
