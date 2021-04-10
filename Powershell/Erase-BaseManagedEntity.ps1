@@ -1,8 +1,12 @@
-#This script will run the Kevin Holman steps to Purge Data: https://kevinholman.com/2018/05/03/deleting-and-purging-data-from-the-scom-database/
+#This script will run the Kevin Holman steps to Purge Data from the OperationsManager DB: https://kevinholman.com/2018/05/03/deleting-and-purging-data-from-the-scom-database/
+#----------------------------------------------------------------------------------------------------------------------------------
+#-Requires: SQL Server Powershell Module (https://docs.microsoft.com/en-us/sql/powershell/download-sql-server-ps-module)
 #Author: Blake Drumm (v-bldrum@microsoft.com)
 cls
 
+#-----------------------------------------------------------
 #region ScriptVariables
+#-----------------------------------------------------------
 #In the format of: ServerName\SQLInstance
 #ex: SQL01\SCOM2019
 $SQLServer = "sql01"
@@ -12,6 +16,12 @@ $db1 = "OperationsManager"
 #Fully Qualified (FQDN)
 $MachineToRemove = "Agent1.contoso.com"
 #endregion
+
+#-----------------------------------------------------------
+
+<#
+	DO NOT EDIT PAST THIS POINT
+#>
 
 if(!(Get-Command Invoke-Sqlcmd -ErrorAction SilentlyContinue))
 {
