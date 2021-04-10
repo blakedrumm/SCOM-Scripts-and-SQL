@@ -1,4 +1,4 @@
-#This script will run the Kevin Holman steps to Purge Data from the OperationsManager DB: https://kevinholman.com/2018/05/03/deleting-and-purging-data-from-the-scom-database/
+#This script will run the Kevin Holman steps to Purge Agent Data from the OperationsManager DB: https://kevinholman.com/2018/05/03/deleting-and-purging-data-from-the-scom-database/
 #----------------------------------------------------------------------------------------------------------------------------------
 #-Requires: SQL Server Powershell Module (https://docs.microsoft.com/en-us/sql/powershell/download-sql-server-ps-module)
 #Author: Blake Drumm (v-bldrum@microsoft.com)
