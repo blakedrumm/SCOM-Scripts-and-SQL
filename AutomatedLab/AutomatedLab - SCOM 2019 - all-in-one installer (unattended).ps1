@@ -105,7 +105,8 @@ $DeployRHEL79 = $false
 $RHEL79IPv4Address = '192.168.0.58'
 #DNS Server Forwarder: for addresses / webpages not in Local Network.
 #If $DNSServerForwarder is set to $null, this will be omitted.
-$DNSServerForwarder = '10.50.10.50', '10.50.50.50'
+#ex. '10.1.1.1','10.1.1.2'
+$DNSServerForwarder = $null
 
 $LabName = 'SCOM2019'
 #endregion
