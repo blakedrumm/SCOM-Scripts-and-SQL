@@ -11,6 +11,7 @@
 This will install the following automatically for you in an Hyper-V Environment:
  - Domain Controller
  - SQL Server 2019
+   - SQL Server 2019 for Microsoft Windows Latest Cumulative Update
  - IIS Machine
  - System Center Operations Manager 2019
    - Operations Manager Management Server
