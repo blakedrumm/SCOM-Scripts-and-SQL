@@ -12,5 +12,6 @@ This will install the following automatically for you in an Hyper-V Environment:
  - System Center Operations Manager 2019
    - Reporting Services
    - Operations Manager Console
+   - Operations Manager Web Console
 
 You will need to edit the lines in the `Global variables definition` region of the script.
