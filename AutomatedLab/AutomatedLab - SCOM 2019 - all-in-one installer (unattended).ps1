@@ -440,7 +440,7 @@ Invoke-LabCommand -ActivityName 'Installing the Operations Manager Management Se
 		#To properly license SCOM, install the product key using the following cmdlet: 
 		Set-SCOMLicense -ProductId $SCOMProductKey -ManagementServer $((Get-SCOMManagementServer).DisplayName) -Credential:$Cred -Confirm:$false
 		#(Re)Starting the 'System Center Data Access Service'is mandatory to take effect
-		Start-Service -DisplayName 'System Center Data Access Service' #-Force
+		Restart-Service -DisplayName 'System Center Data Access Service' #-Force
 		#Checking the SkuForLicense = Retail 
 		Get-SCOMManagementGroup | Format-Table -Property SKUForLicense, Version, TimeOfExpiration -AutoSize
 	}
@@ -467,7 +467,7 @@ Invoke-LabCommand -ActivityName 'Installing the Operations Manager Console on SC
 		#To properly license SCOM, install the product key using the following cmdlet: 
 		Set-SCOMLicense -ProductId $SCOMProductKey -ManagementServer $((Get-SCOMManagementServer).DisplayName) -Credential:$Cred -Confirm:$false
 		#(Re)Starting the 'System Center Data Access Service'is mandatory to take effect
-		Start-Service -DisplayName 'System Center Data Access Service' #-Force
+		Restart-Service -DisplayName 'System Center Data Access Service' #-Force
 		#Checking the SkuForLicense = Retail 
 		Get-SCOMManagementGroup | Format-Table -Property SKUForLicense, Version, TimeOfExpiration -AutoSize
 	}
@@ -496,7 +496,7 @@ Invoke-LabCommand -ActivityName 'Installing the Operations Manager Web Console o
 		#To properly license SCOM, install the product key using the following cmdlet: 
 		Set-SCOMLicense -ProductId $SCOMProductKey -ManagementServer $((Get-SCOMManagementServer).DisplayName) -Credential:$Cred -Confirm:$false
 		#(Re)Starting the 'System Center Data Access Service'is mandatory to take effect
-		Start-Service -DisplayName 'System Center Data Access Service' #-Force
+		Restart-Service -DisplayName 'System Center Data Access Service' #-Force
 		#Checking the SkuForLicense = Retail 
 		Get-SCOMManagementGroup | Format-Table -Property SKUForLicense, Version, TimeOfExpiration -AutoSize
 	}
