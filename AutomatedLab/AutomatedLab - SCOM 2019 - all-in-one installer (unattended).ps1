@@ -52,9 +52,9 @@ $WindowsDefender_RealtimeDisable = $true
 
 #Currently written to only license DataCenter Evaluation version: https://www.microsoft.com/en-us/evalcenter/evaluate-windows-server-2019
 #Optional : Without a valid license key you will get a 180-day trial period.
-$WindowsProductKey = 'BQYNM-Y3XBC-8PHQH-CWWWX-66RB4'
-$SCOMProductKey = 'BXH69-M62YX-QQD6R-3GPWX-8WMFY'
-$SQLProductKey = 'P4GHF-Q7T93-JVWND-FR83F-W8H46'
+$WindowsProductKey = '' #xxxx-xxxx-xxxx-xxxx-xxxx
+$SCOMProductKey = '' #xxxx-xxxx-xxxx-xxxx-xxxx
+$SQLProductKey = '' #xxxx-xxxx-xxxx-xxxx-xxxx
 # OU name for placing accounts and groups (Service Accounts,for example)
 $OUName = 'Service Accounts'
 
