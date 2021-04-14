@@ -12,7 +12,8 @@ This will install the following automatically for you in an Hyper-V Environment:
  - SQL Server 2019
  - IIS Machine
  - System Center Operations Manager 2019
-   - Reporting Services
+   - Operations Manager Management Server
+   - Operations Manager Reporting Services
    - Operations Manager Console
    - Operations Manager Web Console
 
