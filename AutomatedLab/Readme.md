@@ -1,3 +1,5 @@
+![SCOM 2019 Automated Lab](/media/git-guidance/automated-lab-scom-2019.png)
+
 # Prerequisites
  - AutomatedLab : https://github.com/AutomatedLab/AutomatedLab
  - Windows Server 2019 ISO (https://www.microsoft.com/en-us/evalcenter/evaluate-windows-server-2019) : \
