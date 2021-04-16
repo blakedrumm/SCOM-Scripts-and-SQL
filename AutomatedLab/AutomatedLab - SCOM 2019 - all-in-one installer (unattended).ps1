@@ -32,7 +32,7 @@ Clear-Host
 #############################################
 
 #The name of the Lab AutomatedLab is creating
-$LabName = 'TEMPSCOM' # (Default: SCOM2019)
+$LabName = 'SCOM2019' # (Default: SCOM2019)
 
 ##############################################
 ######### ISO Names / Executables ############
