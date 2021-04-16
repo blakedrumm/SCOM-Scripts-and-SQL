@@ -32,7 +32,7 @@ Clear-Host
 #############################################
 
 #The name of the Lab AutomatedLab is creating
-$LabName = 'TEMP-SCOM' # (Default: SCOM2019)
+$LabName = 'TEMPSCOM' # (Default: SCOM2019)
 
 ##############################################
 ######### ISO Names / Executables ############
@@ -59,10 +59,10 @@ $WindowsOperatingSystem = 'Windows Server 2019 Datacenter Evaluation (Desktop Ex
 
 #Names of the Hyper-V Servers that can be deployed with this script:
 # Hostname | Role
-# TEMPDC01 : Domain Controller
-# TEMP-MS1 : System Center Operations Manager 2019 - Management Server
-# TEMP-SQL : SQL Server 2019
-# TEMP-IIS : IIS Windows
+# DC01 : Domain Controller
+# SCOM-2019-MS1 : System Center Operations Manager 2019 - Management Server
+# SQL-2019 : SQL Server 2019
+# IIS-Agent : IIS Windows
 # RHEL7-9 : Redhat 7.9
 
 ##############################################
@@ -183,14 +183,14 @@ Set-LabInstallationCredential -Username $Logon -Password $ClearTextPassword
 
 #defining default parameter values, as these ones are the same for all the machines
 $PSDefaultParameterValues = @{
-	'Add-LabMachineDefinition:Network'	    = $LabName
-	'Add-LabMachineDefinition:DomainName'   = $FQDNDomainName
-	'Add-LabMachineDefinition:DiskSizeInGb' = "$HyperV_DiskSize"
-	'Add-LabMachineDefinition:MinMemory'    = "$HyperV_MinMemory"
-	'Add-LabMachineDefinition:MaxMemory'    = "$HyperV_MaxMemory"
-	'Add-LabMachineDefinition:Memory'	    = "$HyperV_Memory"
+	'Add-LabMachineDefinition:Network'		   = $LabName
+	'Add-LabMachineDefinition:DomainName'	   = $FQDNDomainName
+	'Add-LabMachineDefinition:DiskSizeInGb'    = "$HyperV_DiskSize"
+	'Add-LabMachineDefinition:MinMemory'	   = "$HyperV_MinMemory"
+	'Add-LabMachineDefinition:MaxMemory'	   = "$HyperV_MaxMemory"
+	'Add-LabMachineDefinition:Memory'		   = "$HyperV_Memory"
 	'Add-LabMachineDefinition:OperatingSystem' = "$WindowsOperatingSystem"
-	'Add-LabMachineDefinition:Processors'   = "$HyperV_Processors"
+	'Add-LabMachineDefinition:Processors'	   = "$HyperV_Processors"
 }
 
 #$GatewayIPv4Address = (Get-NetIPInterface | Where{ $_.InterfaceAlias -like '*SCOM2019*' } | Where{ $_.AddressFamily -eq 'IPv4' } | Get-NetIPAddress).IPAddress
@@ -251,13 +251,13 @@ Add-LabIsoImageDefinition -Name SQLServer2019 -Path $labSources\$SQLServerISO
 
 #region server definitions
 #Root Domain controller
-Add-LabMachineDefinition -Name TEMPDC01 -Roles RootDC -IpAddress $DC01IPv4Address -Gateway $GatewayIPv4Address -DnsServer1 $DC01IPv4Address
+Add-LabMachineDefinition -Name DC01 -Roles RootDC -IpAddress $DC01IPv4Address -Gateway $GatewayIPv4Address -DnsServer1 $DC01IPv4Address
 #SCOM server
-Add-LabMachineDefinition -Name TEMP-MS1 -NetworkAdapter $SCOM2019MS1NetAdapter -Memory "$HyperV_HighestMemory" -MinMemory "$HyperV_MinMemory" -MaxMemory "$HyperV_HighestMemory" -Processors "$HyperV_MaxProcessors"
+Add-LabMachineDefinition -Name SCOM-2019-MS1 -NetworkAdapter $SCOM2019MS1NetAdapter -Memory "$HyperV_HighestMemory" -MinMemory "$HyperV_MinMemory" -MaxMemory "$HyperV_HighestMemory" -Processors "$HyperV_MaxProcessors"
 #SQL Server
-Add-LabMachineDefinition -Name TEMP-SQL -Roles $SQLServer2019Role -NetworkAdapter $SQL2019NetAdapter -Memory "$HyperV_HighestMemory" -MinMemory "$HyperV_MinMemory" -MaxMemory "$HyperV_HighestMemory" -Processors "$HyperV_MaxProcessors"
+Add-LabMachineDefinition -Name SQL-2019 -Roles $SQLServer2019Role -NetworkAdapter $SQL2019NetAdapter -Memory "$HyperV_HighestMemory" -MinMemory "$HyperV_MinMemory" -MaxMemory "$HyperV_HighestMemory" -Processors "$HyperV_MaxProcessors"
 #IIS front-end server
-Add-LabMachineDefinition -Name TEMP-IIS -NetworkAdapter $IISAgentNetAdapter
+Add-LabMachineDefinition -Name IIS-Agent -NetworkAdapter $IISAgentNetAdapter
 if ($DeployRHEL79)
 {
 	Add-LabMachineDefinition -Name RHEL7-9 -NetworkAdapter $RHEL79NetAdapter -Memory "$HyperV_Memory" -MinMemory "$HyperV_MinMemory" -MaxMemory "$HyperV_Memory" -OperatingSystem 'Red Hat Enterprise Linux 7.9'
@@ -269,12 +269,12 @@ Install-Lab
 
 if ($SQLProductKey)
 {
-	$Drive = Mount-LabIsoImage -ComputerName TEMP-SQL -IsoPath $labSources\$SQLServerISO -PassThru
-	Invoke-LabCommand -ActivityName 'Upgrading SQL 2019 from Evaluation to Full Version.' -ComputerName TEMP-SQL -ScriptBlock {
+	$Drive = Mount-LabIsoImage -ComputerName SQL-2019 -IsoPath $labSources\$SQLServerISO -PassThru
+	Invoke-LabCommand -ActivityName 'Upgrading SQL 2019 from Evaluation to Full Version.' -ComputerName SQL-2019 -ScriptBlock {
 		. "$($Drive.DriveLetter)\setup.exe" '/q' '/IACCEPTSQLSERVERLICENSETERMS' '/ACTION=editionupgrade' '/InstanceName=SCOM2019' "/PID=$SQLProductKey" '/SkipRules=Engine_SqlEngineHealthCheck'
 	} -Variable (Get-Variable -Name Drive, SQLProductKey) -PassThru
-	Dismount-LabIsoImage -ComputerName TEMP-SQL
-	Restart-LabVM -ComputerName TEMP-SQL -Wait
+	Dismount-LabIsoImage -ComputerName SQL-2019
+    Restart-LabVM -ComputerName SQL-2019 -Wait
 }
 #Grab the network adapter names
 $network_adapters = (Get-NetAdapter) | Where { $_.Name -match "$LabName" } | Where { $_.InterfaceDescription -match 'Hyper-V Virtual' }
@@ -305,13 +305,13 @@ if ($WindowsProductKey)
 }
 else
 {
-	Restart-LabVM -ComputerName TEMP-SQL -Wait
+	Restart-LabVM -ComputerName SQL-2019 -Wait
 }
 
 #Downloading SQL Server 2019 CU8 (or later)
 $SQLServer2019LatestCU = Get-LabInternetFile -Uri $SQLServer2019LatestCUURI -Path $labSources\SoftwarePackages -PassThru
 #Installing SQL Server 2019 CU8 (or later)
-Install-LabSoftwarePackage -ComputerName TEMP-SQL -Path $SQLServer2019LatestCU.FullName -CommandLine " /QUIET /IACCEPTSQLSERVERLICENSETERMS /ACTION=PATCH /ALLINSTANCES" #-AsJob
+Install-LabSoftwarePackage -ComputerName SQL-2019 -Path $SQLServer2019LatestCU.FullName -CommandLine " /QUIET /IACCEPTSQLSERVERLICENSETERMS /ACTION=PATCH /ALLINSTANCES" #-AsJob
 #Get-Job -Name 'Installation of*' | Wait-Job | Out-Null
 
 #region Installing Required Windows Features
@@ -319,7 +319,7 @@ Install-LabWindowsFeature -FeatureName Telnet-Client -ComputerName $machines -In
 #endregion
 
 #Installing and setting up DNS
-Invoke-LabCommand -ActivityName 'Domain Naming Service (DNS) & Active Directory Users / Groups (AD) Setup on Domain Controller (DC)' -ComputerName TEMPDC01 -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Domain Naming Service (DNS) & Active Directory Users / Groups (AD) Setup on Domain Controller (DC)' -ComputerName DC01 -ScriptBlock {
 	#region DNS management
 	#Reverse lookup zone creation
 	Add-DnsServerPrimaryZone -NetworkID $NetworkID -ReplicationScope 'Forest' -ErrorAction SilentlyContinue
@@ -335,14 +335,14 @@ Invoke-LabCommand -ActivityName 'Domain Naming Service (DNS) & Active Directory 
 	$ADOrganizationalUnit = New-ADOrganizationalUnit -Name $OUName -Path $ADDistinguishedName -Passthru -ErrorAction SilentlyContinue
 	
 	#Creating AD Users
-	if ($CustomDomainAdmin)
-	{
-		New-ADUser -Name $CustomDomainAdmin -AccountPassword $SecurePassword -PasswordNeverExpires $true -Enabled $true -ErrorAction SilentlyContinue
-		Add-ADGroupMember -Identity 'Domain Admins' -Members $CustomDomainAdmin -ErrorAction SilentlyContinue
-		$group = get-adgroup 'Domain Admins' -properties @("primaryGroupToken") -ErrorAction SilentlyContinue
-		get-aduser $CustomDomainAdmin | set-aduser -replace @{ primaryGroupID = $group.primaryGroupToken } -ErrorAction SilentlyContinue
-		Remove-ADGroupMember -Identity 'Domain Users' -Members $CustomDomainAdmin -Confirm:$false -ErrorAction SilentlyContinue
-	}
+    if($CustomDomainAdmin)
+    {
+	New-ADUser -Name $CustomDomainAdmin -AccountPassword $SecurePassword -PasswordNeverExpires $true -Enabled $true -ErrorAction SilentlyContinue
+	Add-ADGroupMember -Identity 'Domain Admins' -Members $CustomDomainAdmin -ErrorAction SilentlyContinue
+	$group = get-adgroup 'Domain Admins' -properties @("primaryGroupToken") -ErrorAction SilentlyContinue
+	get-aduser $CustomDomainAdmin | set-aduser -replace @{ primaryGroupID = $group.primaryGroupToken } -ErrorAction SilentlyContinue
+    Remove-ADGroupMember -Identity 'Domain Users' -Members $CustomDomainAdmin -Confirm:$false -ErrorAction SilentlyContinue
+    }
 	New-ADUser -Name $SQLUser -AccountPassword $SecurePassword -PasswordNeverExpires $true -CannotChangePassword $True -Enabled $true -ErrorAction SilentlyContinue
 	New-ADUser -Name $SCOMDataAccessAccount -SamAccountName $SCOMDataAccessAccount -AccountPassword $SecurePassword -PasswordNeverExpires $true -Enabled $true -Path $ADOrganizationalUnit.DistinguishedName
 	New-ADUser -Name $SCOMDataWareHouseReader -SamAccountName $SCOMDataWareHouseReader -AccountPassword $SecurePassword -PasswordNeverExpires $true -Enabled $true -Path $ADOrganizationalUnit.DistinguishedName
@@ -357,7 +357,7 @@ Invoke-LabCommand -ActivityName 'Domain Naming Service (DNS) & Active Directory 
 } -Variable (Get-Variable -Name DNSServerForwarder, NetworkID, CustomDomainAdmin, SecurePassword, OUName, SQLUser, SCOMDataAccessAccount, SCOMDataWareHouseReader, SCOMDataWareHouseWriter, SCOMServerAction, SCOMAdmins, SQLSVC, SQLSSRS) -PassThru
 
 
-Invoke-LabCommand -ActivityName 'Adding the SCOM Admins AD Group to the local Administrators Group' -ComputerName TEMP-MS1, TEMP-SQL, TEMP-IIS -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Adding the SCOM Admins AD Group to the local Administrators Group' -ComputerName SCOM-2019-MS1, SQL-2019, IIS-Agent -ScriptBlock {
 	Add-LocalGroupMember -Member "$NetBiosDomainName\$SCOMAdmins" -Group Administrators
 } -Variable (Get-Variable -Name NetBiosDomainName, SCOMAdmins)
 
@@ -385,7 +385,7 @@ Invoke-LabCommand -UseLocalCredential -ActivityName "Disabling IE ESC" -Computer
 	
 } -Variable (Get-Variable -Name UseDefaultSwitch, labName)
 
-Invoke-LabCommand -ActivityName 'Installing IIS, ASP and ASP.NET 4.5+' -ComputerName TEMP-IIS -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Installing IIS, ASP and ASP.NET 4.5+' -ComputerName IIS-Agent -ScriptBlock {
 	Install-WindowsFeature Web-Server, Web-Asp, Web-Asp-Net45 -IncludeManagementTools
 	Import-Module -Name WebAdministration
 	$WebSiteName = 'www.contoso.com'
@@ -407,11 +407,11 @@ $files_to_remove += Get-ChildItem -Path $labSources\SoftwarePackages\SqlServer_P
 $files_to_remove += Get-ChildItem -Path $labSources\SoftwarePackages\SqlServer_Powershell | Where { $_.Name -like "*.nuspec" }
 $files_to_remove | Remove-Item -Recurse -Confirm:$false
 
-Copy-LabFileItem -ComputerName TEMP-SQL $labSources\SoftwarePackages\SqlServer_Powershell
+Copy-LabFileItem -ComputerName SQL-2019 $labSources\SoftwarePackages\SqlServer_Powershell
 Remove-Item $labSources\SoftwarePackages\sqlserver_powershell.nupkg, $labSources\SoftwarePackages\sqlserver_powershell.zip -ErrorAction SilentlyContinue
 Remove-Item $labSources\SoftwarePackages\SqlServer_Powershell -Recurse -Confirm:$false -ErrorAction SilentlyContinue
 
-Invoke-LabCommand -ActivityName 'Installing the latest SQL Server Powershell Module on TEMP-SQL downloaded from Powershell Gallery.' -ComputerName TEMP-SQL -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Installing the latest SQL Server Powershell Module on SQL-2019 downloaded from Powershell Gallery.' -ComputerName SQL-2019 -ScriptBlock {
 	$modules_location = (($env:PSModulePath -split ";") | Where { $_ -like '*Program Files\WindowsPowerShell\Modules' })
 	New-Item -Path $modules_location\SqlServer -ItemType Directory -Confirm:$false
 	$sql_module_version = ((Get-Content -Path C:\SqlServer_Powershell\SqlServer.psd1 | Where { $_ -match 'ModuleVersion' }).Split("'")[1])
@@ -420,16 +420,16 @@ Invoke-LabCommand -ActivityName 'Installing the latest SQL Server Powershell Mod
 }
 #endregion
 
-Invoke-LabCommand -ActivityName "Adding users to the SQL SysAdmin Group / Modifying Windows Firewall" -ComputerName TEMP-SQL -ScriptBlock {
+Invoke-LabCommand -ActivityName "Adding users to the SQL SysAdmin Group / Modifying Windows Firewall" -ComputerName SQL-2019 -ScriptBlock {
 	
 	Import-Module -Name SQLServer
 	
 	$SQLLogin = Add-SqlLogin -ServerInstance $Env:COMPUTERNAME\$LabName -LoginName "$NetBiosDomainName\$SQLUser" -LoginType "WindowsUser" -Enable
 	$SQLLogin.AddToRole("sysadmin")
-	if ($CustomDomainAdmin)
-	{
-		$SQLLogin = Add-SqlLogin -ServerInstance $Env:COMPUTERNAME\$LabName -LoginName "$NetBiosDomainName\$CustomDomainAdmin" -LoginType "WindowsUser" -Enable
-		$SQLLogin.AddToRole("sysadmin")
+	if($CustomDomainAdmin)
+    {
+	$SQLLogin = Add-SqlLogin -ServerInstance $Env:COMPUTERNAME\$LabName -LoginName "$NetBiosDomainName\$CustomDomainAdmin" -LoginType "WindowsUser" -Enable
+	$SQLLogin.AddToRole("sysadmin")
 	}
 	$SQLLogin = Add-SqlLogin -ServerInstance $Env:COMPUTERNAME\$LabName -LoginName "$NetBiosDomainName\$Logon" -LoginType "WindowsUser" -Enable
 	$SQLLogin.AddToRole("sysadmin")
@@ -464,20 +464,20 @@ foreach ($CurrentSCOMServer in $SCOMServers.Name)
 
 #Region for SCOM Installation
 $SystemCLRTypesForSQLServer2014x64 = Get-LabInternetFile -Uri $SystemCLRTypesForSQLServer2014x64URI -Path $labSources\SoftwarePackages -PassThru
-Install-LabSoftwarePackage -ComputerName TEMP-MS1 -Path $SystemCLRTypesForSQLServer2014x64.FullName -CommandLine "/qn  /L* $(Join-Path -Path $env:SystemDrive -ChildPath $($SystemCLRTypesForSQLServer2014x64.FileName + ".log")) /norestart ALLUSERS=2"
+Install-LabSoftwarePackage -ComputerName SCOM-2019-MS1 -Path $SystemCLRTypesForSQLServer2014x64.FullName -CommandLine "/qn  /L* $(Join-Path -Path $env:SystemDrive -ChildPath $($SystemCLRTypesForSQLServer2014x64.FileName + ".log")) /norestart ALLUSERS=2"
 
 $ReportViewer2015Runtime = Get-LabInternetFile -Uri $ReportViewer2015RuntimeURI -Path $labSources\SoftwarePackages -PassThru
-Install-LabSoftwarePackage -ComputerName TEMP-MS1 -Path $ReportViewer2015Runtime.FullName -CommandLine "/qn /L* $(Join-Path -Path $env:SystemDrive -ChildPath $($ReportViewer2015Runtime.FileName + ".log")) /norestart ALLUSERS=2"
+Install-LabSoftwarePackage -ComputerName SCOM-2019-MS1 -Path $ReportViewer2015Runtime.FullName -CommandLine "/qn /L* $(Join-Path -Path $env:SystemDrive -ChildPath $($ReportViewer2015Runtime.FileName + ".log")) /norestart ALLUSERS=2"
 
 #Get-Job -Name 'Installation of*' | Wait-Job | Out-Null
 $LabSourcesLocation = Get-LabSourcesLocation
-Install-LabSoftwarePackage -ComputerName TEMP-MS1 -Path "$LabSourcesLocation\$SCOM2019_Location" -CommandLine "/dir=`"$SCOMSetupLocalFolder`" `"/silent`"" -ErrorAction Stop
-Invoke-LabCommand -ActivityName 'Installing the Operations Manager Management Server on TEMP-MS1' -ComputerName TEMP-MS1 -ScriptBlock {
+Install-LabSoftwarePackage -ComputerName SCOM-2019-MS1 -Path "$LabSourcesLocation\$SCOM2019_Location" -CommandLine "/dir=`"$SCOMSetupLocalFolder`" `"/silent`"" -ErrorAction Stop
+Invoke-LabCommand -ActivityName 'Installing the Operations Manager Management Server on SCOM-2019-MS1' -ComputerName SCOM-2019-MS1 -ScriptBlock {
 	
 	#Setting up SCOM Management Server
 	$ArgumentList = @(
-		"/silent /install /components:OMServer /ManagementGroupName:$SCOMMgmtGroup /SqlServerInstance:TEMP-SQL\SCOM2019",
-		"/DatabaseName:OperationsManager /DWSqlServerInstance:TEMP-SQL\SCOM2019 /DWDatabaseName:OperationsManagerDW /ActionAccountUser:$NetBiosDomainName\$SCOMServerAction",
+		"/silent /install /components:OMServer /ManagementGroupName:$SCOMMgmtGroup /SqlServerInstance:SQL-2019\SCOM2019",
+		"/DatabaseName:OperationsManager /DWSqlServerInstance:SQL-2019\SCOM2019 /DWDatabaseName:OperationsManagerDW /ActionAccountUser:$NetBiosDomainName\$SCOMServerAction",
 		"/ActionAccountPassword:$ClearTextPassword /DASAccountUser:$NetBiosDomainName\$SCOMDataAccessAccount /DASAccountPassword:$ClearTextPassword /DataReaderUser:$NetBiosDomainName\$SCOMDataWareHouseReader",
 		"/DataReaderPassword:$ClearTextPassword /DataWriterUser:$NetBiosDomainName\$SCOMDataWareHouseWriter /DataWriterPassword:$ClearTextPassword",
 		'/EnableErrorReporting:Always /SendCEIPReports:1 /UseMicrosoftUpdate:0 /AcceptEndUserLicenseAgreement:1'
@@ -501,7 +501,7 @@ Invoke-LabCommand -ActivityName 'Installing the Operations Manager Management Se
 } -PassThru -Variable (Get-Variable -Name SCOMSetupLocalFolder, ClearTextPassword, SecurePassword, SCOMMgmtGroup, NetBiosDomainName, SCOMDataAccessAccount, SCOMDataWareHouseReader, SCOMDataWareHouseWriter, SCOMProductKey, SCOMServerAction)
 
 
-Invoke-LabCommand -ActivityName 'Installing the Operations Manager Console on TEMP-MS1' -ComputerName TEMP-MS1 -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Installing the Operations Manager Console on SCOM-2019-MS1' -ComputerName SCOM-2019-MS1 -ScriptBlock {
 	
 	#Setting up SCOM Management Console
 	$ArgumentList = @(
@@ -528,7 +528,7 @@ Invoke-LabCommand -ActivityName 'Installing the Operations Manager Console on TE
 } -PassThru -Variable (Get-Variable -Name SCOMSetupLocalFolder, SecurePassword, SCOMProductKey)
 
 
-Invoke-LabCommand -ActivityName 'Installing the Operations Manager Web Console on TEMP-MS1' -ComputerName TEMP-MS1 -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Installing the Operations Manager Web Console on SCOM-2019-MS1' -ComputerName SCOM-2019-MS1 -ScriptBlock {
 	Install-WindowsFeature Web-Server, Web-Request-Monitor, Web-Asp-Net, Web-Asp-Net45, Web-Windows-Auth, Web-Metabase, NET-WCF-HTTP-Activation45 -IncludeManagementTools -Source "C:\Sources\Sxs"
 	Write-Verbose "The Web Console prerequisites have been installed"
 	
@@ -557,10 +557,10 @@ Invoke-LabCommand -ActivityName 'Installing the Operations Manager Web Console o
 } -PassThru -Variable (Get-Variable -Name SCOMSetupLocalFolder, SecurePassword, SCOMProductKey)
 #Installing SSRS on the SQL Server
 $SQLServer2019ReportingServices = Get-LabInternetFile -Uri $SQLServer2019ReportingServicesURI -Path $labSources\SoftwarePackages -FileName AutomatedLab-SQLSERVER.exe -PassThru
-Install-LabSoftwarePackage -ComputerName TEMP-SQL -Path $SQLServer2019ReportingServices.FullName -CommandLine " /quiet /IAcceptLicenseTerms /Edition=Eval"
+Install-LabSoftwarePackage -ComputerName SQL-2019 -Path $SQLServer2019ReportingServices.FullName -CommandLine " /quiet /IAcceptLicenseTerms /Edition=Eval"
 #Get-Job -Name 'Installation of*' | Wait-Job | Out-Null
 
-Invoke-LabCommand -ActivityName 'Configuring Report Server on SQL Server' -ComputerName TEMP-SQL -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Configuring Report Server on SQL Server' -ComputerName SQL-2019 -ScriptBlock {
 	#From https://blog.aelterman.com/2018/01/01/silent-installation-and-configuration-for-sql-server-2017-reporting-services/
 	#Start-Process -FilePath "$env:ProgramFiles\Microsoft SQL Server Reporting Services\Shared Tools\rsconfig.exe" -ArgumentList "-c -s localhost -d ReportServer -a Windows -i SSRS" -Wait
 	# "$env:ProgramFiles\Microsoft SQL Server Reporting Services\Shared Tools\rsconfig.exe -c -s localhost -d ReportServer -a Windows -i SSRS" | Out-File "$ENV:SystemDrive\SCOMUnattendedSetup.cmd" -Append
@@ -645,11 +645,11 @@ Invoke-LabCommand -ActivityName 'Configuring Report Server on SQL Server' -Compu
 	
 }
 
-Install-LabSoftwarePackage -ComputerName TEMP-SQL -Path "$LabSourcesLocation\$SCOM2019_Location" -CommandLine "/dir=`"$SCOMSetupLocalFolder`" `"/silent`"" -ErrorAction Stop
-Invoke-LabCommand -ActivityName 'Installing the Operations Manager Reporting on the SQL Server' -ComputerName TEMP-SQL -ScriptBlock {
+Install-LabSoftwarePackage -ComputerName SQL-2019 -Path "$LabSourcesLocation\$SCOM2019_Location" -CommandLine "/dir=`"$SCOMSetupLocalFolder`" `"/silent`"" -ErrorAction Stop
+Invoke-LabCommand -ActivityName 'Installing the Operations Manager Reporting on the SQL Server' -ComputerName SQL-2019 -ScriptBlock {
 	#Setting up SCOM
 	$ArgumentList = @(
-		"/silent /install /components:OMReporting /ManagementServer:TEMP-MS1 /SRSInstance:TEMP-SQL\SSRS",
+		"/silent /install /components:OMReporting /ManagementServer:SCOM-2019-MS1 /SRSInstance:SQL-2019\SSRS",
 		"/DataReaderUser:$NetBiosDomainName\$SCOMDataWareHouseReader /DataReaderPassword:$ClearTextPassword",
 		"/SendODRReports:1 /UseMicrosoftUpdate:0 /AcceptEndUserLicenseAgreement:1"
 	)
@@ -657,10 +657,10 @@ Invoke-LabCommand -ActivityName 'Installing the Operations Manager Reporting on 
 	Start-Process -FilePath "$SCOMSetupLocalFolder\Setup.exe" -ArgumentList $ArgumentList -Wait
 	"`"$SCOMSetupLocalFolder\Setup.exe`" $($ArgumentList -join ' ')" | Out-File "$ENV:SystemDrive\SCOMUnattendedSetup.cmd"
 } -Variable (Get-Variable -Name SCOMSetupLocalFolder, ClearTextPassword, NetBiosDomainName, SCOMDataWareHouseReader)
-Dismount-LabIsoImage -ComputerName TEMP-SQL
+Dismount-LabIsoImage -ComputerName SQL-2019
 
 
-Invoke-LabCommand -ActivityName 'Cleanup on SQL Server' -ComputerName TEMP-SQL -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Cleanup on SQL Server' -ComputerName SQL-2019 -ScriptBlock {
 	Remove-Item -Path "C:\vcredist_x*.*" -Force
 	Remove-Item -Path "C:\SSMS-Setup-ENU.exe" -Force
 	#Disabling the Internet Connection on the SQL Server
@@ -675,13 +675,13 @@ $SCOMWS2016andWS2019ManagementPack = Get-LabInternetFile -Uri $SCOMWS2016andWS20
 $SCOMNETAPMManagementPack = Get-LabInternetFile -Uri $SCOMNETAPMManagementPackURI -Path $labSources\SoftwarePackages -PassThru
 
 #Installing the SCOM IIS and Dependent Management Packs
-#Install-LabSoftwarePackage -ComputerName TEMP-MS1 -Path $SCOMWSManagementPack.FullName -CommandLine "-quiet"
-Install-LabSoftwarePackage -ComputerName TEMP-MS1 -Path $SCOMWS2016andWS2019ManagementPack.FullName -CommandLine "-quiet"
-Install-LabSoftwarePackage -ComputerName TEMP-MS1 -Path $SCOMIISManagementPack.FullName -CommandLine "-quiet"
-Install-LabSoftwarePackage -ComputerName TEMP-MS1 -Path $SCOMNETAPMManagementPack.FullName -CommandLine "-quiet"
+#Install-LabSoftwarePackage -ComputerName SCOM-2019-MS1 -Path $SCOMWSManagementPack.FullName -CommandLine "-quiet"
+Install-LabSoftwarePackage -ComputerName SCOM-2019-MS1 -Path $SCOMWS2016andWS2019ManagementPack.FullName -CommandLine "-quiet"
+Install-LabSoftwarePackage -ComputerName SCOM-2019-MS1 -Path $SCOMIISManagementPack.FullName -CommandLine "-quiet"
+Install-LabSoftwarePackage -ComputerName SCOM-2019-MS1 -Path $SCOMNETAPMManagementPack.FullName -CommandLine "-quiet"
 #Get-Job -Name 'Installation of*' | Wait-Job | Out-Null
 
-Invoke-LabCommand -ActivityName 'Installing Management Packs' -ComputerName TEMP-MS1 -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Installing Management Packs' -ComputerName SCOM-2019-MS1 -ScriptBlock {
 	# From GutHub : Script designed to enumerate and download currently available MPs from Microsoft Download servers.
 	#Invoke-Expression -Command "& { $(Invoke-RestMethod https://raw.githubusercontent.com/slavizh/Get-SCOMManagementPacks/master/Get-SCOMManagementPacks.ps1) } -Extract"
 	#For some cleanup in case of a previous install
@@ -702,7 +702,7 @@ Invoke-LabCommand -ActivityName 'Installing Management Packs' -ComputerName TEMP
 	#Installing ApplicationInsights ManagementPack.
 	Get-ChildItem -Path "${env:ProgramFiles(x86)}\System Center Management Packs\" -File -Filter *.mp? -Recurse | Where-Object -FilterScript { $_.BaseName -in 'Microsoft.SystemCenter.ApplicationInsights' } | Import-SCOMManagementPack
 	
-	$SCOMAgent = Install-SCOMAgent -PrimaryManagementServer $(Get-SCOMManagementServer) -DNSHostName TEMP-IIS.contoso.com -PassThru
+	$SCOMAgent = Install-SCOMAgent -PrimaryManagementServer $(Get-SCOMManagementServer) -DNSHostName IIS-Agent.contoso.com -PassThru
 	Get-SCOMPendingManagement | Approve-SCOMPendingManagement
 }
 
@@ -713,7 +713,7 @@ Install-LabSoftwarePackage -ComputerName $machines -Path $NotepadPlusPlusLocatio
 if ($UseDefaultSwitch)
 {
 	#Removing the Internet Connection on the SQL Server (Required only for the SQL Setup via AutomatedLab)
-	Get-VM -Name 'TEMP-SQL' | Remove-VMNetworkAdapter -Name 'Default Switch' -ErrorAction SilentlyContinue
+	Get-VM -Name 'SQL-2019' | Remove-VMNetworkAdapter -Name 'Default Switch' -ErrorAction SilentlyContinue
 }
 
 #Setting processor number to 1 for all VMs (The AL deployment fails with 1 CPU)
