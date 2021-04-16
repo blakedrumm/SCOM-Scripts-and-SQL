@@ -102,10 +102,10 @@ $SQLProductKey = '' #xxxx-xxxx-xxxx-xxxx-xxxx
 ##############################################
 $NetBiosDomainName = 'CONTOSO' #NetBios Domain Name
 $FQDNDomainName = 'contoso.com' #FQDN Domain Name
-$OUName = 'Service Accounts' #OU name for placing accounts and groups (Service Accounts,for example)
 $Logon = 'Administrator' #Installation Credential for AutomatedLab.
 $CustomDomainAdmin = 'bdrumm' #Additional Domain Admin to add to installation.
 $ClearTextPassword = 'Password1' #This gets used by all the accounts created.
+$OUName = 'Service Accounts' #OU name for placing accounts and groups (Service Accounts,for example)
 #SCOM Accounts
 $SCOMDataAccessAccount = 'OMDAS'
 $SCOMDataWareHouseWriter = 'OMWrite'
@@ -117,7 +117,13 @@ $SCOMMgmtGroup = 'SCOM-2019-MG' # SCOM management group name (SCOM-2019-MG, for 
 $SQLSVC = 'SQLSVC' #SQL Service Account
 $SQLSSRS = 'SQLSSRS' #SQL SSRS Account
 $SQLUser = 'SQLUser' # User Name with admin rights on SQL Server (SQLUser,for example)
-##############################################
+#############################################
+
+#############################################
+#############################################
+######### DO NOT EDIT BELOW HERE ############
+#############################################
+#############################################
 
 Import-Module AutomatedLab
 #Clear-LabCache
