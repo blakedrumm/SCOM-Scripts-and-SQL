@@ -30,7 +30,10 @@ You will need to edit the lines below the `Global variables definition` region o
 Hostname | Role
 ------------ | -------------
 DC01 | Domain Controller
-SCOM-2019-MS1 | System Center Operations Manager 2019 - Management Server
+SCOM-2019-MS1 | System Center Operations Manager 2019
+&nbsp; | Management Server
+&nbsp; | Web Console
+&nbsp; | Reporting
 SQL-2019 | SQL Server 2019
 IIS-Agent | IIS Windows
 RHEL7-9 | Redhat 7.9
