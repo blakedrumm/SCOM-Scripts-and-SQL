@@ -345,7 +345,7 @@ Invoke-LabCommand -ActivityName 'Installing IIS, ASP and ASP.NET 4.5+' -Computer
 
 #region Install the SQL Powershell Module on SQL Server
 ##SQL Server Management Studio (SSMS), beginning with version 17.0, doesn't install either PowerShell module. To use PowerShell with SSMS, install the SqlServer module from the PowerShell Gallery.
-Write-Host "Downloading Latest SQL Powershell Module from the Powershell Gallery Online."
+Write-ScreenInfo -Message "Downloading Latest SQL Powershell Module from the Powershell Gallery Online."
 Get-LabInternetFile https://www.powershellgallery.com/api/v2/package/SqlServer -Path $labSources\SoftwarePackages -File sqlserver_powershell.nupkg
 Rename-Item -Path $labSources\SoftwarePackages\sqlserver_powershell.nupkg $labSources\SoftwarePackages\sqlserver_powershell.zip -Force
 Expand-Archive $labSources\SoftwarePackages\sqlserver_powershell.zip -DestinationPath $labSources\SoftwarePackages\SqlServer_Powershell
