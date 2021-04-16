@@ -68,15 +68,15 @@ $WindowsOperatingSystem = 'Windows Server 2019 Datacenter Evaluation (Desktop Ex
 ##############################################
 ########### Network / IP Address #############
 ##############################################
-$NetworkID = '192.169.0.0/24' # (Default: 192.168.0.0/24)
-$DC01IPv4Address = '192.169.0.1' # (Default: 192.168.0.1)
-$GatewayIPv4Address = '192.169.0.2' # Hyper-V Host IP (Default: 192.168.0.2)
-$SQL2019IPv4Address = '192.169.0.11' #SQL 2019 Server (Default: 192.168.0.11)
-$IIS_IPv4Address = '192.169.0.21' #SCOM Web Console (Default: 192.168.0.21)
-$SCOM2019MS1IPv4Address = '192.169.0.31' # (Default: 192.168.0.31)
+$NetworkID = '192.168.0.0/24' # (Default: 192.168.0.0/24)
+$DC01IPv4Address = '192.168.0.1' # (Default: 192.168.0.1)
+$GatewayIPv4Address = '192.168.0.2' # Hyper-V Host IP (Default: 192.168.0.2)
+$SQL2019IPv4Address = '192.168.0.11' #SQL 2019 Server (Default: 192.168.0.11)
+$IIS_IPv4Address = '192.168.0.21' #SCOM Web Console (Default: 192.168.0.21)
+$SCOM2019MS1IPv4Address = '192.168.0.31' # (Default: 192.168.0.31)
 #Redhat 7.9 - if you dont want this deployed, set $DeployRHEL79 = $false.
 $DeployRHEL79 = $false # (Default: $false)
-$RHEL79IPv4Address = '192.169.0.58' # (Default: 192.168.0.58)
+$RHEL79IPv4Address = '192.168.0.58' # (Default: 192.168.0.58)
 #DNS Server Forwarder : for addresses / webpages not in Local Network.
 #If $DNSServerForwarder is set to $null, this will be omitted.
 #ex. '10.1.1.1','10.1.1.2'
