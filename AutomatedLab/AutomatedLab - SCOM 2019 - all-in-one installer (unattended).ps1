@@ -1,4 +1,4 @@
-﻿<#
+<#
 Based on 
 - https://rlevchenko.com/2018/01/16/automate-scom-2016-installation-with-powershell/
 - https://thesystemcenterblog.com/2019/07/08/installing-scom-2019-from-the-command-line/
@@ -8,6 +8,7 @@ Based on
 - https://blog.aelterman.com/2018/01/03/complete-automated-configuration-of-sql-server-2017-reporting-services/
 - https://www.prajwaldesai.com/install-scom-agent-using-command-line/
 #>
+#
 # Author: Blake Drumm (v-bldrum@microsoft.com)
 # Original Author: Laurent VAN ACKER (lavanack) - https://github.com/lavanack/laurentvanacker.com/blob/master/Windows%20Powershell/SCOM/AutomatedLab%20-%20SCOM%20-%202019.ps1
 # Date Created: March 22nd, 2021
@@ -24,6 +25,100 @@ trap
 }
 Clear-Host
 
+#region Global variables definition
+
+#############################################
+############ EDIT BELOW HERE ################
+#############################################
+
+#The name of the Lab AutomatedLab is creating
+$LabName = 'SCOM2019'
+
+##############################################
+######### ISO Names / Executables ############
+##############################################
+$SQLServerISO = 'ISOs\SQLServer2019-x64-ENU.iso' #Location of the SQL Server 2019 ISO (https://go.microsoft.com/fwlink/?linkid=866664)
+$SCOM2019_Location = 'SoftwarePackages\SCOM_2019.exe' #Location of the SCOM 2019 Executable (https://www.microsoft.com/en-US/evalcenter/evaluate-system-center-2019)
+##############################################
+
+
+##############################################
+########### Additional Settings ##############
+##############################################
+$WindowsDefender_RealtimeDisable = $true #Disable Windows Defender Realtime Protection - Default: $true
+$SCOMSetupLocalFolder = "C:\System Center Operations Manager 2019" #Where you want to extract the SCOM Installation when installing the SCOM Components to the Management Server.
+$WindowsOperatingSystem = 'Windows Server 2019 Datacenter Evaluation (Desktop Experience)' #Set the Operating System Type here. Grab the OS with this command: Get-LabAvailableOperatingSystem
+$HyperV_Memory = '4GB' #Default memory for Domain Controller and IIS Server.
+$HyperV_MinMemory = '2GB' #Default min memory for Domain Controller and IIS Server.
+$HyperV_MaxMemory = '4GB' #Default max memory for Domain Controller and IIS Server.
+$HyperV_HighestMemory = '8GB' #Change this to whatever you want the max to be for your lab
+$HyperV_DiskSize = '60GB'
+$HyperV_Processors = '2'
+##############################################
+
+#Names of the Hyper-V Servers that can be deployed with this script:
+# Hostname | Role
+# DC01 : Domain Controller
+# SCOM-2019-MS1 : System Center Operations Manager 2019 - Management Server
+# SQL-2019 : SQL Server 2019
+# IIS-Agent : IIS Windows
+# RHEL7-9 : Redhat 7.9
+
+##############################################
+########### Network / IP Address #############
+##############################################
+$NetworkID = '192.168.0.0/24'
+$DC01IPv4Address = '192.168.0.1'
+$GatewayIPv4Address = '192.168.0.2'
+$SQL2019IPv4Address = '192.168.0.11' #SQL 2019 Server
+$IIS_IPv4Address = '192.168.0.21' #SCOM Web Console
+$SCOM2019MS1IPv4Address = '192.168.0.31'
+#Redhat 7.9 - if you dont want this deployed, set $DeployRHEL79 = $false.
+$DeployRHEL79 = $false
+$RHEL79IPv4Address = '192.168.0.58'
+#DNS Server Forwarder : for addresses / webpages not in Local Network.
+#If $DNSServerForwarder is set to $null, this will be omitted.
+#ex. '10.1.1.1','10.1.1.2'
+$DNSServerForwarder = $null
+#UseDefaultSwitch : Allow you to use a Hyper-V Host System Internet connection for VM Internet Connection
+$UseDefaultSwitch = $false
+##############################################
+
+
+##############################################
+############### Product Keys #################
+##############################################
+#Currently written to only license DataCenter Evaluation version: https://www.microsoft.com/en-us/evalcenter/evaluate-windows-server-2019
+#Optional : Without a valid license key you will get a 180-day trial period.
+$WindowsProductKey = '' #xxxx-xxxx-xxxx-xxxx-xxxx
+$SCOMProductKey = '' #xxxx-xxxx-xxxx-xxxx-xxxx
+$SQLProductKey = '' #xxxx-xxxx-xxxx-xxxx-xxxx
+##############################################
+
+
+
+##############################################
+###### Active Directory / Accounts ###########
+##############################################
+$NetBiosDomainName = 'CONTOSO' #NetBios Domain Name
+$FQDNDomainName = 'contoso.com' #FQDN Domain Name
+$OUName = 'Service Accounts' #OU name for placing accounts and groups (Service Accounts,for example)
+$Logon = 'Administrator' #Installation Credential for AutomatedLab.
+$CustomDomainAdmin = 'bdrumm' #Additional Domain Admin to add to installation.
+$ClearTextPassword = 'Password1' #This gets used by all the accounts created.
+#SCOM Accounts
+$SCOMDataAccessAccount = 'OMDAS'
+$SCOMDataWareHouseWriter = 'OMWrite'
+$SCOMDataWareHouseReader = 'OMRead'
+$SCOMServerAction = 'OMAA' # Action Account
+$SCOMAdmins = 'OMAdmins' # AD Group for SCOM Accounts
+$SCOMMgmtGroup = 'SCOM-2019-MG' # SCOM management group name (SCOM-2019-MG, for example)
+#SQL Accounts
+$SQLSVC = 'SQLSVC' #SQL Service Account
+$SQLSSRS = 'SQLSSRS' #SQL SSRS Account
+$SQLUser = 'SQLUser' # User Name with admin rights on SQL Server (SQLUser,for example)
+##############################################
+
 Import-Module AutomatedLab
 #Clear-LabCache
 $PreviousVerbosePreference = $VerbosePreference
@@ -36,43 +131,6 @@ $CurrentScript = $MyInvocation.MyCommand.Path
 $CurrentDir = Split-Path -Path $CurrentScript -Parent
 $TranscriptFile = $CurrentScript -replace ".ps1$", "_$("{0:yyyyMMddHHmmss}" -f (Get-Date)).txt"
 Start-Transcript -Path $TranscriptFile -IncludeInvocationHeader
-
-#region Global variables definition
-$Logon = 'Administrator'
-$CustomDomainAdmin = 'bdrumm'
-$ClearTextPassword = 'Password1'
-$SecurePassword = ConvertTo-SecureString -String $ClearTextPassword -AsPlainText -Force
-$NetBiosDomainName = 'CONTOSO'
-$FQDNDomainName = 'contoso.com'
-#Download SQL : https://go.microsoft.com/fwlink/?linkid=866664
-$SQLServerISO = 'SQLServer2019-x64-ENU.iso'
-
-#Disable Windows Defender Realtime Protection - Default: $true
-$WindowsDefender_RealtimeDisable = $true
-
-#Currently written to only license DataCenter Evaluation version: https://www.microsoft.com/en-us/evalcenter/evaluate-windows-server-2019
-#Optional : Without a valid license key you will get a 180-day trial period.
-$WindowsProductKey = '' #xxxx-xxxx-xxxx-xxxx-xxxx
-$SCOMProductKey = '' #xxxx-xxxx-xxxx-xxxx-xxxx
-$SQLProductKey = '' #xxxx-xxxx-xxxx-xxxx-xxxx
-# OU name for placing accounts and groups (Service Accounts,for example)
-$OUName = 'Service Accounts'
-
-#SCOM Accounts
-$SCOMDataAccessAccount = 'OMDAS'
-$SCOMDataWareHouseWriter = 'OMWrite'
-$SCOMDataWareHouseReader = 'OMRead'
-$SCOMServerAction = 'OMAA'
-$SCOMAdmins = 'OMAdmins'
-# SCOM management group name (SCOM-2019-MG, for example)
-$SCOMMgmtGroup = 'SCOM-2019-MG'
-
-
-$SQLSVC = 'SQLSVC'
-$SQLSSRS = 'SQLSSRS'
-# User Name with admin rights on SQL Server (SQLUser,for example)
-$SQLUser = 'SQLUser'
-$SCOMSetupLocalFolder = "C:\System Center Operations Manager 2019"
 
 #For Microsoft.Windows.Server.2016.Discovery and Microsoft.Windows.Server.Library
 #$SCOMWSManagementPackURI = 'https://download.microsoft.com/download/f/7/b/f7b960c9-7392-4c5a-bab4-efbb8a66ec2a/SC%20Management%20Pack%20for%20Windows%20Server%20Operating%20System.msi'
@@ -90,25 +148,8 @@ $SQLServer2019LatestCUURI = ((Invoke-WebRequest -Uri "https://www.microsoft.com/
 $SQLServer2019ReportingServicesDownload = ('https://www.microsoft.com/en-us/download/' + ((Invoke-WebRequest -Uri "https://www.microsoft.com/en-us/download/details.aspx?id=100122" -UseBasicParsing).Links | where { $_.href -like "*confirmation*" }).href)
 $SQLServer2019ReportingServicesURI = ((Invoke-WebRequest -Uri $SQLServer2019ReportingServicesDownload -UseBasicParsing).Links | Where { $_.class -eq 'mscom-link failoverLink' }).href
 
+#Notepad++ : This will automatically grab the latest version of Notepad++.
 $NotepadPlusPlusURI = ((Invoke-WebRequest ('https://notepad-plus-plus.org' + ((Invoke-WebRequest https://notepad-plus-plus.org/ -UseBasicParsing).Links | Where { $_.outerHTML -match 'Current Version' }).href) -UseBasicParsing).Links | Where { $_.href -like "*x64.exe" }).href
-
-#UseDefaultSwitch : Allow you to use a Hyper-V Host System Internet connection for VM Internet Connection
-$UseDefaultSwitch = $false
-$NetworkID = '192.168.0.0/24'
-$DC01IPv4Address = '192.168.0.1'
-$GatewayIPv4Address = '192.168.0.2'
-$SQL2019IPv4Address = '192.168.0.11'
-$SCOM2019WCIPv4Address = '192.168.0.21'
-$SCOM2019MS1IPv4Address = '192.168.0.31'
-#Redhat 7.9 - if you dont want this deployed, set $DeployRHEL79 = $false.
-$DeployRHEL79 = $false
-$RHEL79IPv4Address = '192.168.0.58'
-#DNS Server Forwarder: for addresses / webpages not in Local Network.
-#If $DNSServerForwarder is set to $null, this will be omitted.
-#ex. '10.1.1.1','10.1.1.2'
-$DNSServerForwarder = $null
-
-$LabName = 'SCOM2019'
 #endregion
 
 #Cleaning previously existing lab
@@ -137,18 +178,18 @@ Set-LabInstallationCredential -Username $Logon -Password $ClearTextPassword
 $PSDefaultParameterValues = @{
 	'Add-LabMachineDefinition:Network'		   = $LabName
 	'Add-LabMachineDefinition:DomainName'	   = $FQDNDomainName
-	'Add-LabMachineDefinition:DiskSizeInGb'    = 60GB
-	'Add-LabMachineDefinition:MinMemory'	   = 2GB
-	'Add-LabMachineDefinition:MaxMemory'	   = 4GB
-	'Add-LabMachineDefinition:Memory'		   = 4GB
-	'Add-LabMachineDefinition:OperatingSystem' = 'Windows Server 2019 Datacenter Evaluation (Desktop Experience)'
-	'Add-LabMachineDefinition:Processors'	   = 2
+	'Add-LabMachineDefinition:DiskSizeInGb'    = $HyperV_DiskSize
+	'Add-LabMachineDefinition:MinMemory'	   = $HyperV_MinMemory
+	'Add-LabMachineDefinition:MaxMemory'	   = $HyperV_MaxMemory
+	'Add-LabMachineDefinition:Memory'		   = $HyperV_Memory
+	'Add-LabMachineDefinition:OperatingSystem' = $WindowsOperatingSystem
+	'Add-LabMachineDefinition:Processors'	   = $HyperV_Processors
 }
 
 #$GatewayIPv4Address = (Get-NetIPInterface | Where{ $_.InterfaceAlias -like '*SCOM2019*' } | Where{ $_.AddressFamily -eq 'IPv4' } | Get-NetIPAddress).IPAddress
 
 $IISAgentNetAdapter = @()
-$IISAgentNetAdapter += New-LabNetworkAdapterDefinition -VirtualSwitch $LabName -Ipv4Address $SCOM2019WCIPv4Address -Ipv4Gateway $GatewayIPv4Address -Ipv4DNSServers $DC01IPv4Address -RegisterInDNS:$true
+$IISAgentNetAdapter += New-LabNetworkAdapterDefinition -VirtualSwitch $LabName -Ipv4Address $IIS_IPv4Address -Ipv4Gateway $GatewayIPv4Address -Ipv4DNSServers $DC01IPv4Address -RegisterInDNS:$true
 if ($UseDefaultSwitch)
 {
 	$IISAgentNetAdapter += New-LabNetworkAdapterDefinition -VirtualSwitch 'Default Switch' -UseDhcp
@@ -199,20 +240,20 @@ else
 	}
 }
 
-Add-LabIsoImageDefinition -Name SQLServer2019 -Path $labSources\ISOs\$SQLServerISO
+Add-LabIsoImageDefinition -Name SQLServer2019 -Path $labSources\$SQLServerISO
 
 #region server definitions
 #Root Domain controller
 Add-LabMachineDefinition -Name DC01 -Roles RootDC -IpAddress $DC01IPv4Address -Gateway $GatewayIPv4Address -DnsServer1 $DC01IPv4Address
 #SCOM server
-Add-LabMachineDefinition -Name SCOM-2019-MS1 -NetworkAdapter $SCOM2019MS1NetAdapter -Memory 8GB -MinMemory 4GB -MaxMemory 8GB -Processors 4
+Add-LabMachineDefinition -Name SCOM-2019-MS1 -NetworkAdapter $SCOM2019MS1NetAdapter -Memory $HyperV_HighestMemory -MinMemory $HyperV_MinMemory -MaxMemory $HyperV_HighestMemory -Processors 4
 #SQL Server
-Add-LabMachineDefinition -Name SQL-2019 -Roles $SQLServer2019Role -NetworkAdapter $SQL2019NetAdapter -Memory 8GB -MinMemory 8GB -MaxMemory 12GB -Processors 4
+Add-LabMachineDefinition -Name SQL-2019 -Roles $SQLServer2019Role -NetworkAdapter $SQL2019NetAdapter -Memory $HyperV_HighestMemory -MinMemory $HyperV_MinMemory -MaxMemory $HyperV_HighestMemory -Processors 4
 #IIS front-end server
 Add-LabMachineDefinition -Name IIS-Agent -NetworkAdapter $IISAgentNetAdapter
 if ($DeployRHEL79)
 {
-	Add-LabMachineDefinition -Name RHEL7-9 -NetworkAdapter $RHEL79NetAdapter -Memory 4GB -MinMemory 4GB -MaxMemory 4GB -Processors 2 -OperatingSystem 'Red Hat Enterprise Linux 7.9'
+	Add-LabMachineDefinition -Name RHEL7-9 -NetworkAdapter $RHEL79NetAdapter -Memory $HyperV_Memory -MinMemory $HyperV_MinMemory -MaxMemory $HyperV_Memory -OperatingSystem 'Red Hat Enterprise Linux 7.9'
 }
 #endregion
 
@@ -221,7 +262,7 @@ Install-Lab
 
 if ($SQLProductKey)
 {
-	$Drive = Mount-LabIsoImage -ComputerName SQL-2019 -IsoPath $labSources\ISOs\$SQLServerISO -PassThru
+	$Drive = Mount-LabIsoImage -ComputerName SQL-2019 -IsoPath $labSources\$SQLServerISO -PassThru
 	Invoke-LabCommand -ActivityName 'Upgrading SQL 2019 from Evaluation to Full Version.' -ComputerName SQL-2019 -ScriptBlock {
 		. "$($Drive.DriveLetter)\setup.exe" '/q' '/IACCEPTSQLSERVERLICENSETERMS' '/ACTION=editionupgrade' '/InstanceName=SCOM2019' "/PID=$SQLProductKey" '/SkipRules=Engine_SqlEngineHealthCheck'
 	} -Variable (Get-Variable -Name Drive, SQLProductKey) -PassThru
@@ -239,7 +280,7 @@ Set-DNSClientServerAddress -InterfaceIndex $network_adapters.ifIndex[0] -ServerA
 #endregion
 
 $machines = Get-LabVM | Where { $_.OperatingSystem -match "Windows" }
-
+$SecurePassword = ConvertTo-SecureString -String $ClearTextPassword -AsPlainText -Force
 $Cred = New-Object System.Management.Automation.PSCredential ($Logon, $SecurePassword)
 
 if ($WindowsDefender_RealtimeDisable)
@@ -418,7 +459,7 @@ Install-LabSoftwarePackage -ComputerName SCOM-2019-MS1 -Path $ReportViewer2015Ru
 
 #Get-Job -Name 'Installation of*' | Wait-Job | Out-Null
 $LabSourcesLocation = Get-LabSourcesLocation
-Install-LabSoftwarePackage -ComputerName SCOM-2019-MS1 -Path "$LabSourcesLocation\SoftwarePackages\SCOM_2019.exe" -CommandLine "/dir=`"$SCOMSetupLocalFolder`" `"/silent`"" -ErrorAction Stop
+Install-LabSoftwarePackage -ComputerName SCOM-2019-MS1 -Path "$LabSourcesLocation\$SCOM2019_Location" -CommandLine "/dir=`"$SCOMSetupLocalFolder`" `"/silent`"" -ErrorAction Stop
 Invoke-LabCommand -ActivityName 'Installing the Operations Manager Management Server on SCOM-2019-MS1' -ComputerName SCOM-2019-MS1 -ScriptBlock {
 	
 	#Setting up SCOM Management Server
@@ -592,7 +633,7 @@ Invoke-LabCommand -ActivityName 'Configuring Report Server on SQL Server' -Compu
 	
 }
 
-Install-LabSoftwarePackage -ComputerName SQL-2019 -Path "$LabSourcesLocation\SoftwarePackages\SCOM_2019.exe" -CommandLine "/dir=`"$SCOMSetupLocalFolder`" `"/silent`"" -ErrorAction Stop
+Install-LabSoftwarePackage -ComputerName SQL-2019 -Path "$LabSourcesLocation\$SCOM2019_Location" -CommandLine "/dir=`"$SCOMSetupLocalFolder`" `"/silent`"" -ErrorAction Stop
 Invoke-LabCommand -ActivityName 'Installing the Operations Manager Reporting on the SQL Server' -ComputerName SQL-2019 -ScriptBlock {
 	#Setting up SCOM
 	$ArgumentList = @(
