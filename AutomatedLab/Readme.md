@@ -21,4 +21,16 @@ This will install the following automatically for you in an Hyper-V Environment:
    - Operations Manager Console
    - Operations Manager Web Console
 
-You will need to edit the lines in the `Global variables definition` region of the script.
+The script will also deploy the following tool(s):
+ - Notepad++
+
+You will need to edit the lines below the `Global variables definition` region of the script.
+
+### Names of the Hyper-V Servers that can be deployed with this script:
+Hostname | Role
+------------ | -------------
+DC01 | Domain Controller
+SCOM-2019-MS1 | System Center Operations Manager 2019 - Management Server
+SQL-2019 | SQL Server 2019
+IIS-Agent | IIS Windows
+RHEL7-9 | Redhat 7.9
