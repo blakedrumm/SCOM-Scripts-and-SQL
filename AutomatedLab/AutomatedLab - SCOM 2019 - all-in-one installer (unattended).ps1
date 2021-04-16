@@ -335,11 +335,14 @@ Invoke-LabCommand -ActivityName 'Domain Naming Service (DNS) & Active Directory 
 	$ADOrganizationalUnit = New-ADOrganizationalUnit -Name $OUName -Path $ADDistinguishedName -Passthru -ErrorAction SilentlyContinue
 	
 	#Creating AD Users
+    if($CustomDomainAdmin)
+    {
 	New-ADUser -Name $CustomDomainAdmin -AccountPassword $SecurePassword -PasswordNeverExpires $true -Enabled $true -ErrorAction SilentlyContinue
 	Add-ADGroupMember -Identity 'Domain Admins' -Members $CustomDomainAdmin -ErrorAction SilentlyContinue
 	$group = get-adgroup 'Domain Admins' -properties @("primaryGroupToken") -ErrorAction SilentlyContinue
 	get-aduser $CustomDomainAdmin | set-aduser -replace @{ primaryGroupID = $group.primaryGroupToken } -ErrorAction SilentlyContinue
-	Remove-ADGroupMember -Identity 'Domain Users' -Members $CustomDomainAdmin -Confirm:$false -ErrorAction SilentlyContinue
+    Remove-ADGroupMember -Identity 'Domain Users' -Members $CustomDomainAdmin -Confirm:$false -ErrorAction SilentlyContinue
+    }
 	New-ADUser -Name $SQLUser -AccountPassword $SecurePassword -PasswordNeverExpires $true -CannotChangePassword $True -Enabled $true -ErrorAction SilentlyContinue
 	New-ADUser -Name $SCOMDataAccessAccount -SamAccountName $SCOMDataAccessAccount -AccountPassword $SecurePassword -PasswordNeverExpires $true -Enabled $true -Path $ADOrganizationalUnit.DistinguishedName
 	New-ADUser -Name $SCOMDataWareHouseReader -SamAccountName $SCOMDataWareHouseReader -AccountPassword $SecurePassword -PasswordNeverExpires $true -Enabled $true -Path $ADOrganizationalUnit.DistinguishedName
@@ -417,16 +420,17 @@ Invoke-LabCommand -ActivityName 'Installing the latest SQL Server Powershell Mod
 }
 #endregion
 
-Invoke-LabCommand -ActivityName "Adding $SQLUser, $CustomDomainAdmin, and $Logon to the SQL SysAdmin Group / Modifying Windows Firewall" -ComputerName SQL-2019 -ScriptBlock {
+Invoke-LabCommand -ActivityName "Adding users to the SQL SysAdmin Group / Modifying Windows Firewall" -ComputerName SQL-2019 -ScriptBlock {
 	
 	Import-Module -Name SQLServer
 	
 	$SQLLogin = Add-SqlLogin -ServerInstance $Env:COMPUTERNAME\$LabName -LoginName "$NetBiosDomainName\$SQLUser" -LoginType "WindowsUser" -Enable
 	$SQLLogin.AddToRole("sysadmin")
-	
+	if($CustomDomainAdmin)
+    {
 	$SQLLogin = Add-SqlLogin -ServerInstance $Env:COMPUTERNAME\$LabName -LoginName "$NetBiosDomainName\$CustomDomainAdmin" -LoginType "WindowsUser" -Enable
 	$SQLLogin.AddToRole("sysadmin")
-	
+	}
 	$SQLLogin = Add-SqlLogin -ServerInstance $Env:COMPUTERNAME\$LabName -LoginName "$NetBiosDomainName\$Logon" -LoginType "WindowsUser" -Enable
 	$SQLLogin.AddToRole("sysadmin")
 	
