@@ -32,28 +32,29 @@ Clear-Host
 #############################################
 
 #The name of the Lab AutomatedLab is creating
-$LabName = 'SCOM2019'
+$LabName = 'SCOM2019' # (Default: SCOM2019)
 
 ##############################################
 ######### ISO Names / Executables ############
 ##############################################
-$SQLServerISO = 'ISOs\SQLServer2019-x64-ENU.iso' #Location of the SQL Server 2019 ISO (https://go.microsoft.com/fwlink/?linkid=866664)
-$SCOM2019_Location = 'SoftwarePackages\SCOM_2019.exe' #Location of the SCOM 2019 Executable (https://www.microsoft.com/en-US/evalcenter/evaluate-system-center-2019)
+$SQLServerISO = 'ISOs\SQLServer2019-x64-ENU.iso' #Location of the SQL Server 2019 ISO (https://go.microsoft.com/fwlink/?linkid=866664) (Default: ISOs\SQLServer2019-x64-ENU.iso)
+$SCOM2019_Location = 'SoftwarePackages\SCOM_2019.exe' #Location of the SCOM 2019 Executable (https://www.microsoft.com/en-US/evalcenter/evaluate-system-center-2019) (Default: SoftwarePackages\SCOM_2019.exe)
 ##############################################
 
 
 ##############################################
 ########### Additional Settings ##############
 ##############################################
-$WindowsDefender_RealtimeDisable = $true #Disable Windows Defender Realtime Protection - Default: $true
-$SCOMSetupLocalFolder = "C:\System Center Operations Manager 2019" #Where you want to extract the SCOM Installation when installing the SCOM Components to the Management Server.
+$WindowsDefender_RealtimeDisable = $true #Disable Windows Defender Realtime Protection - (Default: $true)
+$SCOMSetupLocalFolder = 'C:\System Center Operations Manager 2019' #Where you want to extract the SCOM Installation when installing the SCOM Components to the Management Server. (Default: C:\System Center Operations Manager 2019)
 $WindowsOperatingSystem = 'Windows Server 2019 Datacenter Evaluation (Desktop Experience)' #Set the Operating System Type here. Grab the OS with this command: Get-LabAvailableOperatingSystem
-$HyperV_Memory = '4GB' #Default memory for Domain Controller and IIS Server.
-$HyperV_MinMemory = '2GB' #Default min memory for Domain Controller and IIS Server.
-$HyperV_MaxMemory = '4GB' #Default max memory for Domain Controller and IIS Server.
-$HyperV_HighestMemory = '8GB' #Change this to whatever you want the max to be for your lab
-$HyperV_DiskSize = '60GB'
-$HyperV_Processors = '2'
+$HyperV_Memory = '4GB' #Default memory for Domain Controller and IIS Server (Default: 4GB)
+$HyperV_MinMemory = '2GB' #Default min memory for Domain Controller and IIS Server (Default: 2GB)
+$HyperV_MaxMemory = '4GB' #Default max memory for Domain Controller and IIS Server (Default: 4GB)
+$HyperV_HighestMemory = '8GB' #Change this to whatever you want the max to be for your lab (Default: 8GB)
+$HyperV_DiskSize = '60GB' #Default Disk Size (Default: 60GB)
+$HyperV_Processors = '2' #Default number of processors for Domain Controller and IIS Server (Default: 2)
+$HyperV_MaxProcessors = '4' #Number of processors for SQL Server and SCOM Server (Default: 4)
 ##############################################
 
 #Names of the Hyper-V Servers that can be deployed with this script:
@@ -67,21 +68,21 @@ $HyperV_Processors = '2'
 ##############################################
 ########### Network / IP Address #############
 ##############################################
-$NetworkID = '192.168.0.0/24'
-$DC01IPv4Address = '192.168.0.1'
-$GatewayIPv4Address = '192.168.0.2'
-$SQL2019IPv4Address = '192.168.0.11' #SQL 2019 Server
-$IIS_IPv4Address = '192.168.0.21' #SCOM Web Console
-$SCOM2019MS1IPv4Address = '192.168.0.31'
+$NetworkID = '192.168.0.0/24' # (Default: 192.168.0.0/24)
+$DC01IPv4Address = '192.168.0.1' # (Default: 192.168.0.1)
+$GatewayIPv4Address = '192.168.0.2' # Hyper-V Host IP (Default: 192.168.0.2)
+$SQL2019IPv4Address = '192.168.0.11' #SQL 2019 Server (Default: 192.168.0.11)
+$IIS_IPv4Address = '192.168.0.21' #SCOM Web Console (Default: 192.168.0.21)
+$SCOM2019MS1IPv4Address = '192.168.0.31' # (Default: 192.168.0.31)
 #Redhat 7.9 - if you dont want this deployed, set $DeployRHEL79 = $false.
-$DeployRHEL79 = $false
-$RHEL79IPv4Address = '192.168.0.58'
+$DeployRHEL79 = $false # (Default: $false)
+$RHEL79IPv4Address = '192.168.0.58' # (Default: 192.168.0.58)
 #DNS Server Forwarder : for addresses / webpages not in Local Network.
 #If $DNSServerForwarder is set to $null, this will be omitted.
 #ex. '10.1.1.1','10.1.1.2'
-$DNSServerForwarder = $null
+$DNSServerForwarder = $null # (Default: $null)
 #UseDefaultSwitch : Allow you to use a Hyper-V Host System Internet connection for VM Internet Connection
-$UseDefaultSwitch = $false
+$UseDefaultSwitch = $false # (Default: $false)
 ##############################################
 
 
@@ -100,23 +101,23 @@ $SQLProductKey = '' #xxxx-xxxx-xxxx-xxxx-xxxx
 ##############################################
 ###### Active Directory / Accounts ###########
 ##############################################
-$NetBiosDomainName = 'CONTOSO' #NetBios Domain Name
-$FQDNDomainName = 'contoso.com' #FQDN Domain Name
-$Logon = 'Administrator' #Installation Credential for AutomatedLab.
-$CustomDomainAdmin = 'bdrumm' #Additional Domain Admin to add to installation.
-$ClearTextPassword = 'Password1' #This gets used by all the accounts created.
-$OUName = 'Service Accounts' #OU name for placing accounts and groups (Service Accounts,for example)
+$NetBiosDomainName = 'CONTOSO' #NetBios Domain Name (Default: CONTOSO)
+$FQDNDomainName = 'contoso.com' #FQDN Domain Name (Default: contoso.com)
+$Logon = 'Administrator' #Installation Credential for AutomatedLab. (Default: Administrator)
+$CustomDomainAdmin = $null #Additional Domain Admin to add to installation. (Default: $null)
+$ClearTextPassword = 'Password1' #This gets used by all the accounts created. (Default: Password1)
+$OUName = 'Service Accounts' #OU name for placing accounts and groups (Service Accounts,for example) (Default: Service Accounts)
 #SCOM Accounts
-$SCOMDataAccessAccount = 'OMDAS'
-$SCOMDataWareHouseWriter = 'OMWrite'
-$SCOMDataWareHouseReader = 'OMRead'
-$SCOMServerAction = 'OMAA' # Action Account
-$SCOMAdmins = 'OMAdmins' # AD Group for SCOM Accounts
-$SCOMMgmtGroup = 'SCOM-2019-MG' # SCOM management group name (SCOM-2019-MG, for example)
+$SCOMDataAccessAccount = 'OMDAS' # (Default: OMDAS)
+$SCOMDataWareHouseWriter = 'OMWrite' # (Default: OMWrite)
+$SCOMDataWareHouseReader = 'OMRead' # (Default: OMRead)
+$SCOMServerAction = 'OMAA' # Action Account (Default: OMAA)
+$SCOMAdmins = 'OMAdmins' # AD Group for SCOM Accounts (Default: OMAdmins)
+$SCOMMgmtGroup = 'SCOM-2019-MG' # SCOM management group name (SCOM-2019-MG, for example) (Default: SCOM-2019-MG)
 #SQL Accounts
-$SQLSVC = 'SQLSVC' #SQL Service Account
-$SQLSSRS = 'SQLSSRS' #SQL SSRS Account
-$SQLUser = 'SQLUser' # User Name with admin rights on SQL Server (SQLUser,for example)
+$SQLSVC = 'SQLSVC' #SQL Service Account (Default: SQLSVC)
+$SQLSSRS = 'SQLSSRS' #SQL SSRS Account (Default: SQLSSRS)
+$SQLUser = 'SQLUser' # User Name with admin rights on SQL Server (SQLUser,for example) (Default: SQLUser)
 #############################################
 
 #############################################
@@ -273,6 +274,7 @@ if ($SQLProductKey)
 		. "$($Drive.DriveLetter)\setup.exe" '/q' '/IACCEPTSQLSERVERLICENSETERMS' '/ACTION=editionupgrade' '/InstanceName=SCOM2019' "/PID=$SQLProductKey" '/SkipRules=Engine_SqlEngineHealthCheck'
 	} -Variable (Get-Variable -Name Drive, SQLProductKey) -PassThru
 	Dismount-LabIsoImage -ComputerName SQL-2019
+    Restart-LabVM -ComputerName SQL-2019 -Wait
 }
 #Grab the network adapter names
 $network_adapters = (Get-NetAdapter) | Where { $_.Name -match "$LabName" } | Where { $_.InterfaceDescription -match 'Hyper-V Virtual' }
