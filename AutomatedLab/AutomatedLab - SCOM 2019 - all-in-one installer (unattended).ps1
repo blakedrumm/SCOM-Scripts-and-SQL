@@ -590,7 +590,7 @@ Invoke-LabCommand -ActivityName 'Configuring Report Server on SQL Server' -Compu
 		#Import-Module sqlps -DisableNameChecking | Out-Null
 		
 		# Establish a connection to the database server (localhost)
-		$conn = New-Object Microsoft.SqlServer.Management.Common.ServerConnection -ArgumentList $env:ComputerName
+		$conn = New-Object Microsoft.SqlServer.Management.Common.ServerConnection -ArgumentList $env:ComputerName\SCOM2019
 		$conn.ApplicationName = "SSRS Configuration Script"
 		$conn.StatementTimeout = 0
 		$conn.Connect()
