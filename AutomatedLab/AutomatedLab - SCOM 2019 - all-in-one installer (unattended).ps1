@@ -270,7 +270,7 @@ if ($SQLProductKey)
 	$Drive = Mount-LabIsoImage -ComputerName SQL-2019 -IsoPath $labSources\$SQLServerISO -PassThru
 	Invoke-LabCommand -ActivityName 'Upgrading SQL 2019 from Evaluation to Full Version.' -ComputerName SQL-2019 -ScriptBlock {
 		. "$($Drive.DriveLetter)\setup.exe" '/q' '/IACCEPTSQLSERVERLICENSETERMS' '/ACTION=EditionUpgrade' "/InstanceName=$LabName" "/PID=$SQLProductKey" '/SkipRules=Engine_SqlEngineHealthCheck'
-	} -Variable (Get-Variable -Name Drive, SQLProductKey, LabName) -PassThru
+	} -Variable (Get-Variable -Name Drive, SQLProductKey, LabName)
 	Dismount-LabIsoImage -ComputerName SQL-2019
 	Restart-LabVM -ComputerName SQL-2019 -Wait
 }
@@ -298,7 +298,7 @@ if ($WindowsProductKey)
 {
 	Invoke-LabCommand -UseLocalCredential -ActivityName "Changing from Evaluation to Full Version of Windows Server DataCenter." -ComputerName $machines -ScriptBlock {
 		Dism /online /Set-Edition:ServerDatacenter /AcceptEula /ProductKey:$WindowsProductKey /NoRestart /Quiet
-	} -Variable (Get-Variable -Name WindowsProductKey) -PassThru
+	} -Variable (Get-Variable -Name WindowsProductKey)
 	Restart-LabVM -ComputerName $machines -Wait
 }
 else
@@ -519,6 +519,7 @@ Invoke-LabCommand -ActivityName 'Installing the Operations Manager Management Se
 	
 	if ($SCOMProductKey -match "^\w{5}-\w{5}-\w{5}-\w{5}-\w{5}$")
 	{
+		sleep 30
 		#Importing the OperationsManager module by specifying the full folder path
 		Import-Module "${env:ProgramFiles}\Microsoft System Center\Operations Manager\Powershell\OperationsManager"
 		$Cred = New-Object System.Management.Automation.PSCredential ($(whoami), $SecurePassword)
@@ -546,6 +547,7 @@ Invoke-LabCommand -ActivityName 'Installing the Operations Manager Console' -Com
 	
 	if ($SCOMProductKey -match "^\w{5}-\w{5}-\w{5}-\w{5}-\w{5}$")
 	{
+		sleep 30
 		#Importing the OperationsManager module by specifying the full folder path
 		Import-Module "${env:ProgramFiles}\Microsoft System Center\Operations Manager\Powershell\OperationsManager"
 		$Cred = New-Object System.Management.Automation.PSCredential ($(whoami), $SecurePassword)
@@ -575,6 +577,7 @@ Invoke-LabCommand -ActivityName 'Installing the Operations Manager Web Console' 
 	
 	if ($SCOMProductKey -match "^\w{5}-\w{5}-\w{5}-\w{5}-\w{5}$")
 	{
+		sleep 30
 		#Importing the OperationsManager module by specifying the full folder path
 		Import-Module "${env:ProgramFiles}\Microsoft System Center\Operations Manager\Powershell\OperationsManager"
 		$Cred = New-Object System.Management.Automation.PSCredential ($(whoami), $SecurePassword)
