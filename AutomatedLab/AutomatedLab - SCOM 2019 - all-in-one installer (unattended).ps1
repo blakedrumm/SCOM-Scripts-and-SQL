@@ -633,7 +633,7 @@ Invoke-LabCommand -ActivityName 'Configuring Report Server on SQL Server' -Compu
 		$db.ExecuteNonQuery($dbscript)
 		
 		# Set the database connection info
-		$configset.SetDatabaseConnection("(local)", "ReportServer", 2, "", "")
+		$configset.SetDatabaseConnection("$env:ComputerName\$LabName", "ReportServer", 2, "", "")
 		
 		$configset.SetVirtualDirectory("ReportServerWebService", "ReportServer", 1033)
 		$configset.ReserveURL("ReportServerWebService", "http://+:80", 1033)
