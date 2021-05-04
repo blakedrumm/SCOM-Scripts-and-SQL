@@ -317,7 +317,7 @@ $SCOMServers = Get-LabVM | Where-Object -FilterScript { $_.Name -eq 'MS1-2019' }
 #region Installing Required Windows Features
 Install-LabWindowsFeature -FeatureName Telnet-Client -ComputerName $machines -IncludeManagementTools
 #Below is needed to install Web Console
-Install-LabWindowsFeature -ComputerName $SCOMServers -FeatureName NET-WCF-HTTP-Activation45, Web-Static-Content, Web-Default-Doc, Web-Dir-Browsing, Web-Http-Errors, Web-Http-Logging, Web-Request-Monitor, Web-Filtering, Web-Stat-Compression, Web-Mgmt-Console, Web-Metabase, Web-Asp-Net, Web-Windows-Auth  -NoDisplay
+Install-LabWindowsFeature -ComputerName $SCOMServers -FeatureName NET-WCF-HTTP-Activation45, Web-Static-Content, Web-Default-Doc, Web-Dir-Browsing, Web-Http-Errors, Web-Http-Logging, Web-Request-Monitor, Web-Filtering, Web-Stat-Compression, Web-Mgmt-Console, Web-Metabase, Web-Asp-Net, Web-Windows-Auth -NoDisplay
 #endregion
 
 #Installing and setting up DNS
@@ -401,11 +401,12 @@ Invoke-LabCommand -ActivityName 'Installing IIS, ASP and ASP.NET 4.5+' -Computer
 ##SQL Server Management Studio (SSMS), beginning with version 17.0, doesn't install either PowerShell module. To use PowerShell with SSMS, install the SqlServer module from the PowerShell Gallery.
 Write-ScreenInfo -Message "Downloading Latest SQL Powershell Module from the Powershell Gallery Online"
 Get-LabInternetFile https://www.powershellgallery.com/api/v2/package/SqlServer -Path $labSources\SoftwarePackages -File sqlserver_powershell.nupkg
-try{
-Rename-Item -Path $labSources\SoftwarePackages\sqlserver_powershell.nupkg $labSources\SoftwarePackages\sqlserver_powershell.zip -Force
-Expand-Archive $labSources\SoftwarePackages\sqlserver_powershell.zip -DestinationPath $labSources\SoftwarePackages\SqlServer_Powershell
+try
+{
+	Rename-Item -Path $labSources\SoftwarePackages\sqlserver_powershell.nupkg $labSources\SoftwarePackages\sqlserver_powershell.zip -Force
+	Expand-Archive $labSources\SoftwarePackages\sqlserver_powershell.zip -DestinationPath $labSources\SoftwarePackages\SqlServer_Powershell
 }
-catch{Write-Verbose 'Potentially found the files for SQL Powershell module in the SoftwarePackages Path.'}
+catch { Write-Verbose 'Potentially found the files for SQL Powershell module in the SoftwarePackages Path.' }
 $files_to_remove = $null
 $files_to_remove = Get-ChildItem -Directory -Path $labSources\SoftwarePackages\SqlServer_Powershell | Where { $_.Name -match "_rels|package" }
 $files_to_remove += Get-ChildItem -Path $labSources\SoftwarePackages\SqlServer_Powershell | Where { $_.Name -eq '[Content_Types].xml' }
@@ -428,11 +429,12 @@ Invoke-LabCommand -ActivityName 'Installing the latest SQL Server Powershell Mod
 #region Install the Windows Update Powershell Module on the Lab Machines
 Write-ScreenInfo -Message "Downloading Latest Windows Update Powershell Module from the Powershell Gallery Online"
 Get-LabInternetFile https://www.powershellgallery.com/api/v2/package/PSWindowsUpdate -Path $labSources\SoftwarePackages -File PSWindowsUpdate.nupkg
-try{
-Rename-Item -Path $labSources\SoftwarePackages\PSWindowsUpdate.nupkg $labSources\SoftwarePackages\windowsupdate_powershell.zip -Force
-Expand-Archive $labSources\SoftwarePackages\windowsupdate_powershell.zip -DestinationPath $labSources\SoftwarePackages\WindowsUpdate_Powershell
+try
+{
+	Rename-Item -Path $labSources\SoftwarePackages\PSWindowsUpdate.nupkg $labSources\SoftwarePackages\windowsupdate_powershell.zip -Force
+	Expand-Archive $labSources\SoftwarePackages\windowsupdate_powershell.zip -DestinationPath $labSources\SoftwarePackages\WindowsUpdate_Powershell
 }
-catch{Write-Verbose 'Potentially found the files for Windows Update Powershell module in the SoftwarePackages Path.'}
+catch { Write-Verbose 'Potentially found the files for Windows Update Powershell module in the SoftwarePackages Path.' }
 $files_to_remove = $null
 $files_to_remove = Get-ChildItem -Directory -Path $labSources\SoftwarePackages\WindowsUpdate_Powershell | Where { $_.Name -match "_rels|package" }
 $files_to_remove += Get-ChildItem -Path $labSources\SoftwarePackages\WindowsUpdate_Powershell | Where { $_.Name -eq '[Content_Types].xml' }
@@ -522,15 +524,17 @@ Invoke-LabCommand -ActivityName 'Installing the Operations Manager Management Se
 		sleep 30
 		#Importing the OperationsManager module by specifying the full folder path
 		Import-Module "${env:ProgramFiles}\Microsoft System Center\Operations Manager\Powershell\OperationsManager"
-		$Cred = New-Object System.Management.Automation.PSCredential ($(whoami), $SecurePassword)
-		#To properly license SCOM, install the product key using the following cmdlet: 
-		Set-SCOMLicense -ProductId $SCOMProductKey -ManagementServer $((Get-SCOMManagementServer).DisplayName) -Credential:$Cred -Confirm:$false
-		#(Re)Starting the 'System Center Data Access Service'is mandatory to take effect
-		Restart-Service -DisplayName 'System Center Data Access Service' -ErrorAction SilentlyContinue #-Force
 		#Checking the SkuForLicense = Retail 
-		Get-SCOMManagementGroup | Format-Table -Property SKUForLicense, Version, TimeOfExpiration -AutoSize
+		if ((Get-SCOMManagementGroup).SKUForLicense -ne 'Retail')
+		{
+			$Cred = New-Object System.Management.Automation.PSCredential ($(whoami), $SecurePassword)
+			#To properly license SCOM, install the product key using the following cmdlet: 
+			Set-SCOMLicense -ProductId $SCOMProductKey -ManagementServer $((Get-SCOMManagementServer).DisplayName) -Credential:$Cred -Confirm:$false
+			#(Re)Starting the 'System Center Data Access Service'is mandatory to take effect
+			Restart-Service healthservice, omsdk, cshost -ErrorAction SilentlyContinue #-Force
+		}
 	}
-} -PassThru -Variable (Get-Variable -Name LabName, SCOMSetupLocalFolder, ClearTextPassword, SecurePassword, SCOMMgmtGroup, NetBiosDomainName, SCOMDataAccessAccount, SCOMDataWareHouseReader, SCOMDataWareHouseWriter, SCOMProductKey, SCOMServerAction)
+} -Variable (Get-Variable -Name LabName, SCOMSetupLocalFolder, ClearTextPassword, SecurePassword, SCOMMgmtGroup, NetBiosDomainName, SCOMDataAccessAccount, SCOMDataWareHouseReader, SCOMDataWareHouseWriter, SCOMProductKey, SCOMServerAction)
 
 
 Invoke-LabCommand -ActivityName 'Installing the Operations Manager Console' -ComputerName MS1-2019 -ScriptBlock {
@@ -544,21 +548,22 @@ Invoke-LabCommand -ActivityName 'Installing the Operations Manager Console' -Com
 	"`"$SCOMSetupLocalFolder\Setup.exe`" $($ArgumentList -join ' ')" | Out-File "$ENV:SystemDrive\SCOMUnattendedSetup.cmd"
 	
 	Write-Verbose "SCOM Console has been installed. Don't forget to license SCOM"
-	
 	if ($SCOMProductKey -match "^\w{5}-\w{5}-\w{5}-\w{5}-\w{5}$")
 	{
 		sleep 30
 		#Importing the OperationsManager module by specifying the full folder path
 		Import-Module "${env:ProgramFiles}\Microsoft System Center\Operations Manager\Powershell\OperationsManager"
-		$Cred = New-Object System.Management.Automation.PSCredential ($(whoami), $SecurePassword)
-		#To properly license SCOM, install the product key using the following cmdlet: 
-		Set-SCOMLicense -ProductId $SCOMProductKey -ManagementServer $((Get-SCOMManagementServer).DisplayName) -Credential:$Cred -Confirm:$false
-		#(Re)Starting the 'System Center Data Access Service'is mandatory to take effect
-		Restart-Service -DisplayName 'System Center Data Access Service' -ErrorAction SilentlyContinue #-Force
 		#Checking the SkuForLicense = Retail 
-		Get-SCOMManagementGroup | Format-Table -Property SKUForLicense, Version, TimeOfExpiration -AutoSize
+		if ((Get-SCOMManagementGroup).SKUForLicense -ne 'Retail')
+		{
+			$Cred = New-Object System.Management.Automation.PSCredential ($(whoami), $SecurePassword)
+			#To properly license SCOM, install the product key using the following cmdlet: 
+			Set-SCOMLicense -ProductId $SCOMProductKey -ManagementServer $((Get-SCOMManagementServer).DisplayName) -Credential:$Cred -Confirm:$false
+			#(Re)Starting the 'System Center Data Access Service'is mandatory to take effect
+			Restart-Service healthservice, omsdk, cshost -ErrorAction SilentlyContinue #-Force
+		}
 	}
-} -PassThru -Variable (Get-Variable -Name SCOMSetupLocalFolder, SecurePassword, SCOMProductKey)
+} -Variable (Get-Variable -Name SCOMSetupLocalFolder, SecurePassword, SCOMProductKey)
 
 
 Invoke-LabCommand -ActivityName 'Installing the Operations Manager Web Console' -ComputerName MS1-2019 -ScriptBlock {
@@ -580,15 +585,17 @@ Invoke-LabCommand -ActivityName 'Installing the Operations Manager Web Console' 
 		sleep 30
 		#Importing the OperationsManager module by specifying the full folder path
 		Import-Module "${env:ProgramFiles}\Microsoft System Center\Operations Manager\Powershell\OperationsManager"
-		$Cred = New-Object System.Management.Automation.PSCredential ($(whoami), $SecurePassword)
-		#To properly license SCOM, install the product key using the following cmdlet: 
-		Set-SCOMLicense -ProductId $SCOMProductKey -ManagementServer $((Get-SCOMManagementServer).DisplayName) -Credential:$Cred -Confirm:$false
-		#(Re)Starting the 'System Center Data Access Service'is mandatory to take effect
-		Restart-Service -DisplayName 'System Center Data Access Service' -ErrorAction SilentlyContinue #-Force
 		#Checking the SkuForLicense = Retail 
-		Get-SCOMManagementGroup | Format-Table -Property SKUForLicense, Version, TimeOfExpiration -AutoSize
+		if ((Get-SCOMManagementGroup).SKUForLicense -ne 'Retail')
+		{
+			$Cred = New-Object System.Management.Automation.PSCredential ($(whoami), $SecurePassword)
+			#To properly license SCOM, install the product key using the following cmdlet: 
+			Set-SCOMLicense -ProductId $SCOMProductKey -ManagementServer $((Get-SCOMManagementServer).DisplayName) -Credential:$Cred -Confirm:$false
+			#(Re)Starting the 'System Center Data Access Service'is mandatory to take effect
+			Restart-Service healthservice, omsdk, cshost -ErrorAction SilentlyContinue #-Force
+		}
 	}
-} -PassThru -Variable (Get-Variable -Name SCOMSetupLocalFolder, SecurePassword, SCOMProductKey)
+} -Variable (Get-Variable -Name SCOMSetupLocalFolder, SecurePassword, SCOMProductKey)
 #Installing SSRS on the SQL Server
 $SQLServer2019ReportingServices = Get-LabInternetFile -Uri $SQLServer2019ReportingServicesURI -Path $labSources\SoftwarePackages -FileName SQLServer2019_ReportingServices.exe -PassThru
 Install-LabSoftwarePackage -ComputerName SQL-2019 -Path $SQLServer2019ReportingServices.FullName -CommandLine " /quiet /IAcceptLicenseTerms /Edition=Eval"
