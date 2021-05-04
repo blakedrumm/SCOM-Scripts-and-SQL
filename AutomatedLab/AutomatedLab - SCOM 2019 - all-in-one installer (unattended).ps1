@@ -12,7 +12,7 @@ Based on
 # Author: Blake Drumm (v-bldrum@microsoft.com)
 # Original Author: Laurent VAN ACKER (lavanack) - https://github.com/lavanack/laurentvanacker.com/blob/master/Windows%20Powershell/SCOM/AutomatedLab%20-%20SCOM%20-%202019.ps1
 # Date Created: March 22nd, 2021
-# Date Modified: May 1st, 2021
+# Date Modified: May 4th, 2021
 #requires -Version 5 -Modules AutomatedLab -RunAsAdministrator 
 trap
 {
