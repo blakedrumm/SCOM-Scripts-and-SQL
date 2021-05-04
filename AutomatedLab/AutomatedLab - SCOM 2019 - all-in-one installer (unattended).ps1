@@ -312,8 +312,12 @@ $SQLServer2019LatestCU = Get-LabInternetFile -Uri $SQLServer2019LatestCUURI -Pat
 Install-LabSoftwarePackage -ComputerName SQL-2019 -Path $SQLServer2019LatestCU.FullName -CommandLine " /QUIET /IACCEPTSQLSERVERLICENSETERMS /ACTION=PATCH /ALLINSTANCES" #-AsJob
 #Get-Job -Name 'Installation of*' | Wait-Job | Out-Null
 
+$SCOMServers = Get-LabVM | Where-Object -FilterScript { $_.Name -eq 'MS1-2019' }
+
 #region Installing Required Windows Features
 Install-LabWindowsFeature -FeatureName Telnet-Client -ComputerName $machines -IncludeManagementTools
+#Below is needed to install Web Console
+Install-LabWindowsFeature -ComputerName $SCOMServers -FeatureName NET-WCF-HTTP-Activation45, Web-Static-Content, Web-Default-Doc, Web-Dir-Browsing, Web-Http-Errors, Web-Http-Logging, Web-Request-Monitor, Web-Filtering, Web-Stat-Compression, Web-Mgmt-Console, Web-Metabase, Web-Asp-Net, Web-Windows-Auth  -NoDisplay
 #endregion
 
 #Installing and setting up DNS
@@ -478,7 +482,6 @@ Invoke-LabCommand -ActivityName "Adding users to the SQL SysAdmin Group / Modify
 } -Variable (Get-Variable -Name CustomDomainAdmin, NetBiosDomainName, SQLUser, Logon, LabName)
 
 # Hastable for getting the ISO Path for every VM (needed for .Net 2.0 setup)
-$SCOMServers = Get-LabVM | Where-Object -FilterScript { $_.Name -like "*SCOM*" }
 $IsoPathHashTable = $SCOMServers | Select-Object -Property Name, @{ Name = "IsoPath"; Expression = { $_.OperatingSystem.IsoPath } } | Group-Object -Property Name -AsHashTable -AsString
 foreach ($CurrentSCOMServer in $SCOMServers.Name)
 {
@@ -671,7 +674,7 @@ Invoke-LabCommand -ActivityName 'Configuring Report Server on SQL Server' -Compu
 		$inst.GetReportServerUrls()
 	}
 	
-} -PassThru -Variable (Get-Variable -Name LabName)
+} -Variable (Get-Variable -Name LabName)
 
 Install-LabSoftwarePackage -ComputerName SQL-2019 -Path "$LabSourcesLocation\$SCOM2019_Location" -CommandLine "/dir=`"$SCOMSetupLocalFolder`" `"/silent`"" -ErrorAction Stop
 Invoke-LabCommand -ActivityName 'Installing the Operations Manager Reporting Services' -ComputerName SQL-2019 -ScriptBlock {
