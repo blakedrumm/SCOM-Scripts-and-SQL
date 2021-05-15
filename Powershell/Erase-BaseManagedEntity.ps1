@@ -10,31 +10,34 @@ cls
 #-----------------------------------------------------------
 #In the format of: ServerName\SQLInstance
 #ex: SQL01\SCOM2019
-$SQLServer = "sql01"
+$SQLServer = "SQL01"
 $db1 = "OperationsManager"
 
 #Name of Agent to Erase from SCOM
 #Fully Qualified (FQDN)
-$MachineToRemove = "Agent1.contoso.com"
+$MachineToRemove = "Agent1.contoso.com", "Agent2.contoso.com"
+#If you want to assume yes on all the questions asked typically.
+$yes = $false
 #endregion
 
 #-----------------------------------------------------------
 
 <#
-	DO NOT EDIT PAST THIS POINT
+DO NOT EDIT PAST THIS POINT
 #>
 
 if(!(Get-Command Invoke-Sqlcmd -ErrorAction SilentlyContinue))
 {
-    Write-Warning "Unable to run this script due to missing dependency:`n`t`tSQL Server Powershell Module (https://docs.microsoft.com/en-us/sql/powershell/download-sql-server-ps-module)`n`nTry running this script on a SQL Server if you cannot download the Powershell Module."
-    break
+Write-Warning "Unable to run this script due to missing dependency:`n`t`tSQL Server Powershell Module (https://docs.microsoft.com/en-us/sql/powershell/download-sql-server-ps-module)`n`nTry running this script on a SQL Server if you cannot download the Powershell Module."
+break
 }
-
+foreach($machine in $MachineToRemove)
+{
 $bme_query = @"
 --Query 1
 --First get the Base Managed Entity ID of the object you think is orphaned/bad/needstogo:
 --
-DECLARE @name varchar(255) = '%$MachineToRemove%'
+DECLARE @name varchar(255) = '%$machine%'
 --
 SELECT BaseManagedEntityId, FullName, DisplayName, IsDeleted, Path, Name
 FROM BaseManagedEntity WHERE FullName like @name OR DisplayName like @name
@@ -45,19 +48,24 @@ $BME_IDs = (Invoke-Sqlcmd -ServerInstance $SQLServer -Database $db1 -Query $bme_
 
 if(!$BME_IDs)
 {
-Write-Warning "Unable to find any data in the OperationsManager DB associated with: $MachineToRemove"
+Write-Warning "Unable to find any data in the OperationsManager DB associated with: $machine"
 break
 }
 
 Write-Host "Found the following data associated with: " -NoNewline
-Write-Host $MachineToRemove -ForegroundColor Green
+Write-Host $machine -ForegroundColor Green
 $BME_IDs | Select FullName, DisplayName, Path, IsDeleted, BaseManagedEntityId
 $count = $BME_IDs.Count
+if(!$yes)
+{
 do
 {
-	$answer1 = Read-Host -Prompt "Do you want to delete the above $count item(s) from the OperationsManager DB? (Y/N)"
+$answer1 = Read-Host -Prompt "Do you want to delete the above $count item(s) from the OperationsManager DB? (Y/N)"
 }
 until ($answer1 -eq "y" -or $answer1 -eq "n")
+}
+else
+{$answer1 = 'y'}
 if($answer1 -eq "n")
 { Write-Host "Exiting Script.."; break }
 foreach($BaseManagedEntityID in $BME_IDs)
@@ -99,26 +107,28 @@ $remove_count = (Invoke-Sqlcmd -ServerInstance $SQLServer -Database $db1 -Query 
 "OperationsManager DB has " | Write-Host -NoNewline
 $remove_count | Write-Host -NoNewline -ForegroundColor Green
 " object(s) pending to Delete`n" | Write-Host
-
+if(!$yes)
+{
 do
 {
-	$answer2 = Read-Host -Prompt "Do you want to purge the deleted item(s) from the OperationsManager DB? (Y/N)"
+$answer2 = Read-Host -Prompt "Do you want to purge the deleted item(s) from the OperationsManager DB? (Y/N)"
 }
 until ($answer2 -eq "y" -or $answer2 -eq "n")
+}
 
 $remove_pending_management = @"
-exec p_AgentPendingActionDeleteByAgentName "$MachineToRemove"
+exec p_AgentPendingActionDeleteByAgentName "$machine"
 "@
 
 Invoke-Sqlcmd -ServerInstance $SQLServer -Database $db1 -Query $remove_pending_management -OutputSqlErrors $true
 
-Write-Host "Cleared $MachineToRemove from Pending Management List in SCOM Console." -ForegroundColor DarkGreen
+Write-Host "Cleared $machine from Pending Management List in SCOM Console." -ForegroundColor DarkGreen
 
 $purge_deleted_query = @"
 --Query 5
 --This query statement for SCOM 2012 will purge all IsDeleted=1 objects immediately
 --Normally this is a 2-3day wait before this would happen naturally
---This only purges 10000 records.  If you have more it will require multiple runs
+--This only purges 10000 records. If you have more it will require multiple runs
 --Purge IsDeleted=1 data from the SCOM 2012 DB:
 DECLARE @TimeGenerated DATETIME, @BatchSize INT, @RowCount INT
 SET @TimeGenerated = GETUTCDATE()
@@ -135,4 +145,5 @@ Write-Host "Successfully Purged the OperationsManager DB of Deleted Data!" -Fore
 catch
 {
 Write-Error "Unable to Purge the Deleted Items from the OperationsManager DB`n`nCould not run the following command against the OperationsManager DB:`n$purge_deleted_query"
+}
 }
