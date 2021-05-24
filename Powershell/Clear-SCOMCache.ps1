@@ -12,14 +12,14 @@
 	Optionally reboot the server after stopping the SCOM Services and clearing SCOM Cache. 
 
 	.EXAMPLE
-	Clear SCOM cache and reboot the 2 Servers specified.
-		PS C:\> .\Clear-SCOMCache.ps1 -Servers MS1.contoso.com, MS2.contoso.com -Reboot
-
 	Clear SCOM cache on every Management Server in Management Group.
 		PS C:\> Get-SCOMManagementServer | %{.\Clear-SCOMCache.ps1 -Servers $_}
 
 	Clear SCOM cache on every Agent in the in Management Group.
 		PS C:\> Get-SCOMAgent | %{.\Clear-SCOMCache.ps1 -Servers $_}
+		
+	Clear SCOM cache and reboot the Servers specified.
+		PS C:\> .\Clear-SCOMCache.ps1 -Servers IIS-Server.contoso.com, MS2.contoso.com -Reboot
 
 	.AUTHOR
 	Blake Drumm (v-bldrum@microsoft.com)
@@ -44,7 +44,7 @@ if ($Servers -match 'Microsoft.EnterpriseManagement.Administration.ManagementSer
 }
 elseif ($Servers -match 'Microsoft.EnterpriseManagement.Administration.AgentManagedComputer')
 {
-    $Servers = $Servers.DisplayName
+	$Servers = $Servers.DisplayName
 }
 
 
@@ -268,15 +268,17 @@ Function Clear-SCOMCache
 							break
 						}
 					}
-			        # Clear Console Cache
-                    $consoleKey = Get-Item 'HKLM:\SOFTWARE\Microsoft\System Center Operations Manager\12\Setup\Console\' -ErrorAction SilentlyContinue
-                    if($consoleKey)
-                    {
-			        try { Time-Stamp; Write-Host "Clearing Operations Manager Console Cache."; Get-ChildItem "$env:SystemDrive\Users\*\AppData\Local\Microsoft\Microsoft.EnterpriseManagement.Monitoring.Console\momcache.mdb" | % { Remove-Item $_ -Force -ErrorAction Stop }
-                    }
-			        catch { Write-Warning $_ }
-                    }
-				
+					# Clear Console Cache
+					$consoleKey = Get-Item 'HKLM:\SOFTWARE\Microsoft\System Center Operations Manager\12\Setup\Console\' -ErrorAction SilentlyContinue
+					if ($consoleKey)
+					{
+						try
+						{
+							Time-Stamp; Write-Host "Clearing Operations Manager Console Cache."; Get-ChildItem "$env:SystemDrive\Users\*\AppData\Local\Microsoft\Microsoft.EnterpriseManagement.Monitoring.Console\momcache.mdb" | % { Remove-Item $_ -Force -ErrorAction Stop }
+						}
+						catch { Write-Warning $_ }
+					}
+					
 					
 					Time-Stamp
 					Write-Host "Flushing DNS: " -NoNewline
@@ -477,15 +479,17 @@ Function Clear-SCOMCache
 							break
 						}
 					}
-			        # Clear Console Cache
-                    $consoleKey = Get-Item 'HKLM:\SOFTWARE\Microsoft\System Center Operations Manager\12\Setup\Console\' -ErrorAction SilentlyContinue
-                    if($consoleKey)
-                    {
-			        try { Time-Stamp; Write-Host "Clearing Operations Manager Console Cache."; Get-ChildItem "$env:SystemDrive\Users\*\AppData\Local\Microsoft\Microsoft.EnterpriseManagement.Monitoring.Console\momcache.mdb" | % { Remove-Item $_ -Force -ErrorAction Stop }
-                    }
-			        catch { Write-Warning $_ }
-                    }
-				
+					# Clear Console Cache
+					$consoleKey = Get-Item 'HKLM:\SOFTWARE\Microsoft\System Center Operations Manager\12\Setup\Console\' -ErrorAction SilentlyContinue
+					if ($consoleKey)
+					{
+						try
+						{
+							Time-Stamp; Write-Host "Clearing Operations Manager Console Cache."; Get-ChildItem "$env:SystemDrive\Users\*\AppData\Local\Microsoft\Microsoft.EnterpriseManagement.Monitoring.Console\momcache.mdb" | % { Remove-Item $_ -Force -ErrorAction Stop }
+						}
+						catch { Write-Warning $_ }
+					}
+					
 					
 					Time-Stamp
 					Write-Host "Flushing DNS: " -NoNewline
@@ -900,14 +904,16 @@ Function Clear-SCOMCache
 						break
 					}
 				}
-			    # Clear Console Cache
-                $consoleKey = Get-Item 'HKLM:\SOFTWARE\Microsoft\System Center Operations Manager\12\Setup\Console\' -ErrorAction SilentlyContinue
-                if($consoleKey)
-                {
-			    try { Time-Stamp; Write-Host "Clearing Operations Manager Console Cache."; Get-ChildItem "$env:SystemDrive\Users\*\AppData\Local\Microsoft\Microsoft.EnterpriseManagement.Monitoring.Console\momcache.mdb" | % { Remove-Item $_ -Force -ErrorAction Stop }
-                }
-			    catch { Write-Warning $_ }
-                }
+				# Clear Console Cache
+				$consoleKey = Get-Item 'HKLM:\SOFTWARE\Microsoft\System Center Operations Manager\12\Setup\Console\' -ErrorAction SilentlyContinue
+				if ($consoleKey)
+				{
+					try
+					{
+						Time-Stamp; Write-Host "Clearing Operations Manager Console Cache."; Get-ChildItem "$env:SystemDrive\Users\*\AppData\Local\Microsoft\Microsoft.EnterpriseManagement.Monitoring.Console\momcache.mdb" | % { Remove-Item $_ -Force -ErrorAction Stop }
+					}
+					catch { Write-Warning $_ }
+				}
 				
 				Time-Stamp
 				Write-Host "Flushing DNS: " -NoNewline
@@ -1326,13 +1332,15 @@ Function Clear-SCOMCache
 				}
 			}
 			# Clear Console Cache
-            $consoleKey = Get-Item 'HKLM:\SOFTWARE\Microsoft\System Center Operations Manager\12\Setup\Console\' -ErrorAction SilentlyContinue
-            if($consoleKey)
-            {
-			try { Time-Stamp; Write-Host "Clearing Operations Manager Console Cache."; Get-ChildItem "$env:SystemDrive\Users\*\AppData\Local\Microsoft\Microsoft.EnterpriseManagement.Monitoring.Console\momcache.mdb" | % { Remove-Item $_ -Force -ErrorAction Stop }
-            }
-			catch { Write-Warning $_ }
-            }
+			$consoleKey = Get-Item 'HKLM:\SOFTWARE\Microsoft\System Center Operations Manager\12\Setup\Console\' -ErrorAction SilentlyContinue
+			if ($consoleKey)
+			{
+				try
+				{
+					Time-Stamp; Write-Host "Clearing Operations Manager Console Cache."; Get-ChildItem "$env:SystemDrive\Users\*\AppData\Local\Microsoft\Microsoft.EnterpriseManagement.Monitoring.Console\momcache.mdb" | % { Remove-Item $_ -Force -ErrorAction Stop }
+				}
+				catch { Write-Warning $_ }
+			}
 			Time-Stamp
 			Write-Host "Flushing DNS: " -NoNewline
 			Write-Host "IPConfig /FlushDNS" -ForegroundColor Cyan
