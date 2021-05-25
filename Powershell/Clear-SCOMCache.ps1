@@ -102,6 +102,7 @@ Function Clear-SCOMCache
 						$TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
 						write-host "$TimeStamp - " -NoNewline
 					}
+					Write-Host "`n==================================================================="
 					Time-Stamp
 					Write-Host "Starting Script Execution on: " -NoNewline
 					Write-Host "$currentserv" -ForegroundColor Cyan
@@ -313,6 +314,7 @@ Function Clear-SCOMCache
 						$TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
 						write-host "$TimeStamp - " -NoNewline
 					}
+					Write-Host "`n==================================================================="
 					Time-Stamp
 					Write-Host "Starting Script Execution on: " -NoNewline
 					Write-Host "$currentserv" -ForegroundColor Cyan
@@ -542,6 +544,7 @@ Function Clear-SCOMCache
 					$TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
 					write-host "$TimeStamp - " -NoNewline
 				}
+				Write-Host "`n==================================================================="
 				Time-Stamp
 				Write-Host "Starting Script Execution on: " -NoNewline
 				Write-Host "$env:ComputerName (Local Computer)" -ForegroundColor Cyan
@@ -738,6 +741,7 @@ Function Clear-SCOMCache
 					$TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
 					write-host "$TimeStamp - " -NoNewline
 				}
+				Write-Host "`n==================================================================="
 				Time-Stamp
 				Write-Host "Starting Script Execution on: " -NoNewline
 				Write-Host "$env:ComputerName (Local Computer)" -ForegroundColor Cyan
@@ -971,6 +975,7 @@ Function Clear-SCOMCache
 				$TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
 				write-host "$TimeStamp - " -NoNewline
 			}
+			Write-Host "`n==================================================================="
 			Time-Stamp
 			Write-Host "Starting Script Execution on: " -NoNewline
 			Write-Host "$env:ComputerName (Local Computer)" -ForegroundColor Cyan
@@ -1165,6 +1170,7 @@ Function Clear-SCOMCache
 				$TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
 				write-host "$TimeStamp - " -NoNewline
 			}
+			Write-Host "`n==================================================================="
 			Time-Stamp
 			Write-Host "Starting Script Execution on: " -NoNewline
 			Write-Host "$env:ComputerName (Local Computer)" -ForegroundColor Cyan
@@ -1389,10 +1395,10 @@ if ($Servers -or $Reboot)
 }
 else
 {
-<# Edit line 1397 to modify the default command run when this script is executed.
+<# Edit line 1403 to modify the default command run when this script is executed.
 
    Example: 
    Clear-SCOMCache -Servers Agent1.contoso.com, Agent2.contoso.com, MS1.contoso.com, MS2.contoso.com
    #>
-	Clear-SCOMCache
+	Clear-SCOMCache -Servers
 }
