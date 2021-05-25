@@ -1,40 +1,46 @@
 <#
 	.SYNOPSIS
-	Clear-SCOMCache
-
+		Clear-SCOMCache
+	
 	.DESCRIPTION
-	The script clears the SCOM cache, Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics, and Resetting Winsock catalog. And reboots the server(s) if -Reboot switch is present.
-
+		The script clears the SCOM cache, Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics, and Resetting Winsock catalog. And reboots the server(s) if -Reboot switch is present.
+	
 	.PARAMETER Servers
-	Each Server you want to Clear SCOM Cache on, can be an Agent, Management Server, or SCOM Gateway.
-
+		Each Server you want to Clear SCOM Cache on, can be an Agent, Management Server, or SCOM Gateway.
+	
 	.PARAMETER Reboot
-	Optionally reboot the server after stopping the SCOM Services and clearing SCOM Cache. 
-
+		Optionally reboot the server after stopping the SCOM Services and clearing SCOM Cache.
+	
 	.EXAMPLE
-	Clear SCOM cache on every Management Server in Management Group.
+		Clear SCOM cache on every Management Server in Management Group.
 		PS C:\> Get-SCOMManagementServer | %{.\Clear-SCOMCache.ps1 -Servers $_}
-
-	Clear SCOM cache on every Agent in the in Management Group.
+		
+		Clear SCOM cache on every Agent in the in Management Group.
 		PS C:\> Get-SCOMAgent | %{.\Clear-SCOMCache.ps1 -Servers $_}
 		
-	Clear SCOM cache and reboot the Servers specified.
+		Clear SCOM cache and reboot the Servers specified.
 		PS C:\> .\Clear-SCOMCache.ps1 -Servers IIS-Server.contoso.com, MS2.contoso.com -Reboot
-
-	.AUTHOR
-	Blake Drumm (v-bldrum@microsoft.com)
-
-	.MODIFIED
-	May 24th, 2021
+		
+		.AUTHOR
+		Blake Drumm (v-bldrum@microsoft.com)
+		
+		.MODIFIED
+		May 24th, 2021
+	
+	.NOTES
+		Additional information about the file.
 #>
+[OutputType([string])]
 param
 (
 	[Parameter(Mandatory = $false,
+			   ValueFromPipeline = $true,
 			   Position = 1,
-			   ValueFromPipeline)]
+			   HelpMessage = 'Each Server you want to Clear SCOM Cache on, can be an Agent, Management Server, or SCOM Gateway.')]
 	[Array]$Servers,
 	[Parameter(Mandatory = $false,
-			   Position = 2)]
+			   Position = 2,
+			   HelpMessage = 'Optionally reboot the server after stopping the SCOM Services and clearing SCOM Cache.')]
 	[Switch]$Reboot
 )
 
@@ -1395,7 +1401,7 @@ if ($Servers -or $Reboot)
 }
 else
 {
-<# Edit line 1403 to modify the default command run when this script is executed.
+<# Edit line 1409 to modify the default command run when this script is executed.
 
    Example: 
    Clear-SCOMCache -Servers Agent1.contoso.com, Agent2.contoso.com, MS1.contoso.com, MS2.contoso.com
