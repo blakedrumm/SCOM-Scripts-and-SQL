@@ -34,11 +34,11 @@ param
 	[Parameter(Mandatory = $false,
 			   ValueFromPipeline = $true,
 			   Position = 1,
-			   HelpMessage = 'Each Server you want to Clear SCOM Cache on, can be an Agent, Management Server, or SCOM Gateway.')]
+			   HelpMessage = 'Each Server you want to Clear SCOM Cache on. Can be an Agent, Management Server, or SCOM Gateway. This will always perform on the local server last.')]
 	[Array]$Servers,
 	[Parameter(Mandatory = $false,
 			   Position = 2,
-			   HelpMessage = 'Optionally reboot the server after stopping the SCOM Services and clearing SCOM Cache.')]
+			   HelpMessage = 'Optionally reboot the server after stopping the SCOM Services and clearing SCOM Cache. This will always perform on the local server last.')]
 	[Switch]$Reboot
 )
 
