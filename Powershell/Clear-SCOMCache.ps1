@@ -6,7 +6,7 @@
 	The script clears the SCOM cache, Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics, and Resetting Winsock catalog. And reboots the server(s) if -Reboot switch is present.
 
 	.PARAMETER Servers
-	Each Server you want to Clear SCOM Cache on.
+	Each Server you want to Clear SCOM Cache on, can be an Agent, Management Server, or SCOM Gateway.
 
 	.PARAMETER Reboot
 	Optionally reboot the server after stopping the SCOM Services and clearing SCOM Cache. 
