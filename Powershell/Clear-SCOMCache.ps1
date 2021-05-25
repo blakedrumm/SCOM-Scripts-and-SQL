@@ -1400,5 +1400,5 @@ else
    Example: 
    Clear-SCOMCache -Servers Agent1.contoso.com, Agent2.contoso.com, MS1.contoso.com, MS2.contoso.com
    #>
-	Clear-SCOMCache -Servers
+	Clear-SCOMCache
 }
