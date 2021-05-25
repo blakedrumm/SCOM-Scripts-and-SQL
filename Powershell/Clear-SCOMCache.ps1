@@ -20,16 +20,13 @@
 		
 		Clear SCOM cache and reboot the Servers specified.
 		PS C:\> .\Clear-SCOMCache.ps1 -Servers IIS-Server.contoso.com, MS2.contoso.com -Reboot
-		
+	
+	.NOTES
 		.AUTHOR
 		Blake Drumm (v-bldrum@microsoft.com)
 		
 		.MODIFIED
 		May 24th, 2021
-	
-	.NOTES
-		.AUTHOR
-		Blake Drumm (v-bldrum@microsoft.com)
 #>
 [OutputType([string])]
 param
