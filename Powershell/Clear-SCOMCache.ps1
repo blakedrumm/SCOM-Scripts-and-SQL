@@ -28,7 +28,8 @@
 		May 24th, 2021
 	
 	.NOTES
-		Additional information about the file.
+		.AUTHOR
+		Blake Drumm (v-bldrum@microsoft.com)
 #>
 [OutputType([string])]
 param
