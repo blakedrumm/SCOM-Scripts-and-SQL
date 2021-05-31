@@ -3,7 +3,7 @@
 		Erase-BaseManagedEntity
 	
 	.DESCRIPTION
-		This script removes any BME ID's related  to the Display Name provided with the -Servers switch.
+		This script removes any BME ID's related to the Display Name provided with the -Servers switch.
 	
 	.PARAMETER SqlServer
 		SQL Server/Instance that hosts OperationsManager Database for SCOM.
