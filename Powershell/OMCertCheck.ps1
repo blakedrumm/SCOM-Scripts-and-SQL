@@ -666,6 +666,7 @@ $time : Starting Script
 							if ($regSerial -eq "" -or $null) { $regSerial = "`{Empty`}" }
 							if ($regSerial -ne $certSerialReversed)
 							{
+								continue
                                 <# Do Nothing.#>
 							}
 						}
