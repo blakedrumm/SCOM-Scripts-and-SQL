@@ -119,6 +119,7 @@ function SCOM-CertCheck
 		if ($server -ne $env:COMPUTERNAME)
 		{
 			Invoke-Command -ComputerName $server {
+				$All = $using:All
 				Function Time-Stamp
 				{
 					
@@ -154,7 +155,7 @@ $time : Starting Script
 				Write-Host $text3
 				foreach ($cert in $certs)
 				{
-					if (!$using:All)
+					if (!$All)
 					{
 						$certSerial = $cert.SerialNumber
 						$certSerialReversed = [System.String]("")
