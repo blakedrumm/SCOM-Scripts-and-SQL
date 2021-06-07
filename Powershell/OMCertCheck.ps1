@@ -154,7 +154,7 @@ $time : Starting Script
 				Write-Host $text3
 				foreach ($cert in $certs)
 				{
-					if (!$All)
+					if (!$using:All)
 					{
 						$certSerial = $cert.SerialNumber
 						$certSerialReversed = [System.String]("")
