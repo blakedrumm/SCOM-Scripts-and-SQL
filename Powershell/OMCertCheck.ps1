@@ -98,7 +98,7 @@ function SCOM-CertCheck
 		[Array]$Servers,
 		[Parameter(Mandatory = $false,
 				   Position = 2)]
-		[String]$Output = "C:\Windows\temp\SCOM-CertChecker-Output.txt",
+		[String]$Output,
 		[Parameter(Mandatory = $false,
 				   Position = 3)]
 		[Switch]$All
@@ -1048,9 +1048,9 @@ Enhanced Key Usage Extension is Good
 $time : Script Completed
 "@
 			$out | Out-File $Output
+			start C:\Windows\explorer.exe -ArgumentList "/select, $Output"
 		}
 	}
-	start C:\Windows\explorer.exe -ArgumentList "/select, $Output"
 	#return $out
 	break
 }
