@@ -6,48 +6,67 @@
 		The steps for configuring certificates in System Center Operations Manager are numerous and one can easily get them confused.
 		I see posts to the newsgroups and discussion lists regularly trying to troubleshoot why certificate authentication is not working, perhaps for a workgroup machine or gateway.
 		Sometimes it takes 3 or 4 messages back and forth before I or anyone else can diagnose what the problem actually is but once this is finally done we can suggest how to fix the problem.
-
-		In an attempt to make this diagnosis stage easier I put together a PowerShell script that automatically checks installed certificates for the needed properties and configuration. 
+		
+		In an attempt to make this diagnosis stage easier I put together a PowerShell script that automatically checks installed certificates for the needed properties and configuration.
 		If you think everything is set up correctly but the machines just won't communicate, try running this script on each computer and it will hopefully point you to the issue.
 		I have tried to provide useful knowledge for fixing the problems.
-
+		
 		This script is for stand-alone PowerShell 1.0 - it does not require the OpsMgr PowerShell snapins.
 		Technet Article: https://gallery.technet.microsoft.com/scriptcenter/Troubleshooting-OpsMgr-27be19d3
 	
+	.PARAMETER Servers
+		A description of the Servers parameter.
+	
+	.PARAMETER Output
+		A description of the Output parameter.
+	
+	.PARAMETER All
+		A description of the All parameter.
+	
 	.EXAMPLE
-				PS C:\> .\OMCertCheck.ps1 -Servers Agent1 Agent2
+		PS C:\> .\OMCertCheck.ps1 -Servers Agent1 Agent2
 	
 	.NOTES
-	Original Publish Date 1/2009
-	    (Lincoln Atkinson?, https://blogs.technet.microsoft.com/momteam/author/latkin/ )
-	 Update 11/2020 (Blake Drumm, https://github.com/v-bldrum/ )
-	    Shows Subject Name instead of Issuer for each Certificate Checked.
-	 Update 08/2020 (Blake Drumm, https://github.com/v-bldrum/ )
-	    Fixed formatting in output.
-	 Update 06/2020 (Blake Drumm, https://github.com/v-bldrum/ )
-	    Added ability to output script to file.
-	
-	 Update 2017.11.17 (Tyson Paul, https://blogs.msdn.microsoft.com/tysonpaul/ )
-	    Fixed certificate SerialNumber parsing error. 
-	
-	 Update 2/2009
-	    Fixes for subjectname validation
-	    Typos
-	    Modification for CA chain validation
-	    Adds needed check for MachineKeyStore property on the private key
-	
-	 Update 7/2009
-	    Fix for workgroup machine subjectname validation
+		Update 06/2021 (Blake Drumm, https://github.com/v-bldrum/ )
+		The Script will now by default only check every Certificate only if you have the -All Switch. Otherwise it will just check the certificate Serial Number (Reversed) that is present in the Registry.
+		
+		Update 11/2020 (Blake Drumm, https://github.com/v-bldrum/ )
+		Shows Subject Name instead of Issuer for each Certificate Checked.
+		
+		Update 08/2020 (Blake Drumm, https://github.com/v-bldrum/ )
+		Fixed formatting in output.
+		
+		Update 06/2020 (Blake Drumm, https://github.com/v-bldrum/ )
+		Added ability to output script to file.
+		
+		Update 2017.11.17 (Tyson Paul, https://blogs.msdn.microsoft.com/tysonpaul/ )
+		Fixed certificate SerialNumber parsing error.
+		
+		Update 2/2009
+		Fixes for subjectname validation
+		Typos
+		Modification for CA chain validation
+		Adds needed check for MachineKeyStore property on the private key
+		
+		Update 7/2009
+		Fix for workgroup machine subjectname validation
+		
+		Original Publish Date 1/2009
+		(Lincoln Atkinson?, https://blogs.technet.microsoft.com/momteam/author/latkin/ )
 #>
-[OutputType([string])]
 [CmdletBinding()]
+[OutputType([string])]
 param
 (
 	[Parameter(Mandatory = $false,
+               Position = 1)]
+	[Array]$Servers,
+	[Parameter(Mandatory = $false,
 			   Position = 2)]
-	[String]$Output = "C:\Windows\temp\SCOM-CertChecker-Output.txt",
-	[Parameter(Position = 1)]
-	[Array]$Servers
+	[String]$Output,
+	[Parameter(Mandatory = $false,
+			   Position = 3)]
+	[Switch]$All
 )
 
 $checkingpermission = "Checking for elevated permissions..."
@@ -75,11 +94,14 @@ function SCOM-CertCheck
 	[CmdletBinding()]
 	param
 	(
+		[Parameter(Position = 1)]
+		[Array]$Servers,
 		[Parameter(Mandatory = $false,
-				   Position = 1)]
+				   Position = 2)]
 		[String]$Output = "C:\Windows\temp\SCOM-CertChecker-Output.txt",
-		[Parameter(Position = 2)]
-		[Array]$Servers
+		[Parameter(Mandatory = $false,
+				   Position = 3)]
+		[Switch]$All
 	)
 	if ($null -eq $Servers) { $Servers = $env:COMPUTERNAME }
 	else
@@ -132,6 +154,55 @@ $time : Starting Script
 				Write-Host $text3
 				foreach ($cert in $certs)
 				{
+					if (!$All)
+					{
+						$certSerial = $cert.SerialNumber
+						$certSerialReversed = [System.String]("")
+						-1 .. -19 | % { $certSerialReversed += $certSerial[2 * $_] + $certSerial[2 * $_ + 1] }
+						
+						if (! (Test-Path "HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Machine Settings"))
+						{
+							$text36 = "Serial Number is not written to registry"
+							$out += $text36
+							Write-Host $text36 -BackgroundColor Red -ForegroundColor Black
+							$text37 = @"
+    The certificate serial number is not written to registry.
+    Need to run MomCertImport.exe
+"@
+							$out += $text37
+							Write-Host $text37
+							$pass = $false
+							break
+						}
+						else
+						{
+							$regKeys = get-itemproperty -path "HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Machine Settings"
+							if ($regKeys.ChannelCertificateSerialNumber -eq $null)
+							{
+								$text36 = "Serial Number is not written to registry"
+								$out += $text36
+								Write-Host $text36 -BackgroundColor Red -ForegroundColor Black
+								$text37 = @"
+    The certificate serial number is not written to registry.
+    Need to run MomCertImport.exe
+"@
+								$out += $text37
+								Write-Host $text37
+								$pass = $false
+								break
+							}
+							else
+							{
+								$regSerial = ""
+								$regKeys.ChannelCertificateSerialNumber | % { $regSerial += $_.ToString("X2") }
+								if ($regSerial -eq "" -or $null) { $regSerial = "`{Empty`}" }
+								if ($regSerial -ne $certSerialReversed)
+								{
+                                <# Do Nothing.#>
+								}
+							}
+						}
+					}
 					$text4 = @"
 
 Examining Certificate - Subject: $($cert.Subject -replace "CN=", $null) - Serial Number $($cert.SerialNumber)
@@ -541,12 +612,64 @@ $time : Starting Script
 				$out += $text2
 				exit
 			}
-			"Found: " + ($certs | Measure-Object) + " Certs." | Write-Host
-			$text3 = "Verifying each certificate..."
-			$out += $text3
-			Write-Host $text3
+			if ($All)
+			{
+				"Found: " + $certs.Count + " Certs." | Write-Host
+				$text3 = "Verifying each certificate..."
+				$out += $text3
+				Write-Host $text3
+			}
 			foreach ($cert in $certs)
 			{
+				if (!$All)
+				{
+					$certSerial = $cert.SerialNumber
+					$certSerialReversed = [System.String]("")
+					-1 .. -19 | % { $certSerialReversed += $certSerial[2 * $_] + $certSerial[2 * $_ + 1] }
+					
+					if (! (Test-Path "HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Machine Settings"))
+					{
+						$text36 = "Serial Number is not written to registry"
+						$out += $text36
+						Write-Host $text36 -BackgroundColor Red -ForegroundColor Black
+						$text37 = @"
+    The certificate serial number is not written to registry.
+    Need to run MomCertImport.exe
+"@
+						$out += $text37
+						Write-Host $text37
+						$pass = $false
+						break
+					}
+					else
+					{
+						$regKeys = get-itemproperty -path "HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Machine Settings"
+						if ($regKeys.ChannelCertificateSerialNumber -eq $null)
+						{
+							$text36 = "Serial Number is not written to registry"
+							$out += $text36
+							Write-Host $text36 -BackgroundColor Red -ForegroundColor Black
+							$text37 = @"
+    The certificate serial number is not written to registry.
+    Need to run MomCertImport.exe
+"@
+							$out += $text37
+							Write-Host $text37
+							$pass = $false
+							break
+						}
+						else
+						{
+							$regSerial = ""
+							$regKeys.ChannelCertificateSerialNumber | % { $regSerial += $_.ToString("X2") }
+							if ($regSerial -eq "" -or $null) { $regSerial = "`{Empty`}" }
+							if ($regSerial -ne $certSerialReversed)
+							{
+                                <# Do Nothing.#>
+							}
+						}
+					}
+				}
 				$text4 = @"
 
 Examining Certificate - Subject: $($cert.Subject -replace "CN=", $null) - Serial Number $($cert.SerialNumber)
@@ -914,15 +1037,15 @@ Enhanced Key Usage Extension is Good
 				if ($pass) { $text49 = "***This certificate is properly configured and imported for System Center Operations Manager.***"; $out += $text49; Write-Host $text49 -ForegroundColor Green }
 				$out += " " # This is so there is white space between each Cert. Makes it less of a jumbled mess.
 			}
-			if ($Output)
-			{
-				$time = Time-Stamp
-				$out += @"
+		}
+		if ($Output)
+		{
+			$time = Time-Stamp
+			$out += @"
 
 $time : Script Completed
 "@
-				$out | Out-File $Output
-			}
+			$out | Out-File $Output
 		}
 	}
 	start C:\Windows\explorer.exe -ArgumentList "/select, $Output"
