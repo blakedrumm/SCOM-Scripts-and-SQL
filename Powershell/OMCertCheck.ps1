@@ -108,7 +108,6 @@ function SCOM-CertCheck
 	{
 		Write-Host $Servers
 		$Servers = ($Servers.Split(",").Split(" ") -replace (" ", ""))
-		pause
 		$Servers = $Servers | select -Unique
 	}
 	[string[]]$out = @()
