@@ -59,7 +59,7 @@
 param
 (
 	[Parameter(Mandatory = $false,
-               Position = 1)]
+			   Position = 1)]
 	[Array]$Servers,
 	[Parameter(Mandatory = $false,
 			   Position = 2)]
@@ -146,7 +146,7 @@ $time : Starting Script
 "@
 					Write-Host $text2 -ForegroundColor Red
 					$out += $text2
-					exit
+					break
 				}
 				"Found: " + ($certs | Measure-Object) + " Certs." | Write-Host
 				$text3 = "Verifying each certificate..."
@@ -198,6 +198,7 @@ $time : Starting Script
 								if ($regSerial -eq "" -or $null) { $regSerial = "`{Empty`}" }
 								if ($regSerial -ne $certSerialReversed)
 								{
+									continue
                                 <# Do Nothing.#>
 								}
 							}
@@ -610,7 +611,7 @@ $time : Starting Script
 "@
 				Write-Host $text2 -ForegroundColor Red
 				$out += $text2
-				exit
+				break
 			}
 			if ($All)
 			{
