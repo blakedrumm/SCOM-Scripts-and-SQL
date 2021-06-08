@@ -15,16 +15,16 @@
 		Technet Article: https://gallery.technet.microsoft.com/scriptcenter/Troubleshooting-OpsMgr-27be19d3
 	
 	.PARAMETER Servers
-		A description of the Servers parameter.
+		Each Server you want to Check Certificates for SCOM on.
 	
 	.PARAMETER Output
-		A description of the Output parameter.
+		Where to Output the Text Log for Script.
 	
 	.PARAMETER All
-		A description of the All parameter.
+		Check All Certificates in Local Machine Store.
 	
 	.EXAMPLE
-		PS C:\> .\OMCertCheck.ps1 -Servers Agent1 Agent2
+		PS C:\> .\OMCertCheck.ps1 -Servers ManagementServer1, ManagementServer2.contoso.com, Gateway.contoso.com, Agent1.contoso.com -All -Output C:\Temp
 	
 	.NOTES
 		Update 06/2021 (Blake Drumm, https://github.com/v-bldrum/ )
@@ -41,15 +41,15 @@
 		
 		Update 2017.11.17 (Tyson Paul, https://blogs.msdn.microsoft.com/tysonpaul/ )
 		Fixed certificate SerialNumber parsing error.
-		
+			
+		Update 7/2009
+		Fix for workgroup machine subjectname validation
+
 		Update 2/2009
 		Fixes for subjectname validation
 		Typos
 		Modification for CA chain validation
 		Adds needed check for MachineKeyStore property on the private key
-		
-		Update 7/2009
-		Fix for workgroup machine subjectname validation
 		
 		Original Publish Date 1/2009
 		(Lincoln Atkinson?, https://blogs.technet.microsoft.com/momteam/author/latkin/ )
