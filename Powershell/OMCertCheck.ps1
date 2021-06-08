@@ -106,15 +106,18 @@ function SCOM-CertCheck
 	if ($null -eq $Servers) { $Servers = $env:COMPUTERNAME }
 	else
 	{
-		Write-Host $Servers
 		$Servers = ($Servers.Split(",").Split(" ") -replace (" ", ""))
 		$Servers = $Servers | select -Unique
 	}
 	[string[]]$out = @()
 	foreach ($server in $Servers)
 	{
-		Write-Output " "
-		Write-Output "Certificate Checker"
+		$startofline = @" 
+
+========================================================
+Certificate Checker
+"@
+		Write-Output $startofline
 		if ($server -ne $env:COMPUTERNAME)
 		{
 			Invoke-Command -ComputerName $server {
@@ -148,7 +151,7 @@ $time : Starting Script
 					$out += $text2
 					break
 				}
-				"Found: " + ($certs | Measure-Object) + " Certs." | Write-Host
+				"Found: " + $certs.Count + " Certs." | Write-Host
 				$text3 = "Verifying each certificate..."
 				$out += $text3
 				Write-Host $text3
@@ -613,13 +616,10 @@ $time : Starting Script
 				$out += $text2
 				break
 			}
-			if ($All)
-			{
-				"Found: " + $certs.Count + " Certs." | Write-Host
-				$text3 = "Verifying each certificate..."
-				$out += $text3
-				Write-Host $text3
-			}
+			"Found: " + $certs.Count + " Certs." | Write-Host
+			$text3 = "Verifying each certificate..."
+			$out += $text3
+			Write-Host $text3
 			foreach ($cert in $certs)
 			{
 				if (!$All)
