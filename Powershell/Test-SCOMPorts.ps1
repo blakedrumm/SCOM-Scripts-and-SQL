@@ -26,7 +26,20 @@ param
 			   Position = 1)]
 	[array]$Servers
 )
-
+$ports = @{
+	"Management Server / Agent Port"  = 5723;
+	"Console Port"				      = 5724;
+	"Connector Framework Source Port" = 51905;
+	"ACS Forwarder Port"			  = 51909;
+	"AEM Port"					      = 51906;
+	"SQL Server (Default) Port"	      = 1433;
+	"SSH Port"					      = 22;
+	"WS-MAN Port"					  = 1270;
+	"Web Console (HTTP) Port"		  = 80;
+	"Web Console (HTTPS) Port"	      = 443;
+	"SNMP (Get) Port"				  = 161;
+	"SNMP (Trap) Port"			      = 162
+}
 if (!$servers)
 {
 	$servers = $env:COMPUTERNAME
@@ -44,12 +57,6 @@ foreach ($server in $servers)
 	if ($server -match $env:COMPUTERNAME)
 	{
 		Write-Host -ForegroundColor Yellow "Checking SCOM ports on computer: $env:COMPUTERNAME"
-		
-		$ports = @{
-			"Management Server / Agent Port" = 5723; "Console Port" = 5724; "Connector Framework Source Port" = 51905;`
-			"ACS Forwarder Port" = 51909; "AEM Port" = 51906; "SQL Server (Default) Port" = 1433; "SSH Port" = 22; "WS-MAN Port" = 1270;`
-			"Web Console (HTTP) Port" = 80; "Web Console (HTTPS) Port" = 443; "SNMP (Get) Port" = 161; "SNMP (Trap) Port" = 162
-		}
 		
 		
 		ForEach ($port in $ports.GetEnumerator())
@@ -73,11 +80,7 @@ foreach ($server in $servers)
 		Invoke-Command -ComputerName $server -ScriptBlock {
 			Write-Host -ForegroundColor Yellow "Checking SCOM ports on computer: $env:COMPUTERNAME"
 			
-			$ports = @{
-				"Management Server / Agent Port" = 5723; "Console Port" = 5724; "Connector Framework Source Port" = 51905;`
-				"ACS Forwarder Port" = 51909; "AEM Port" = 51906; "SQL Server (Default) Port" = 1433; "SSH Port" = 22; "WS-MAN Port" = 1270;`
-				"Web Console (HTTP) Port" = 80; "Web Console (HTTPS) Port" = 443; "SNMP (Get) Port" = 161; "SNMP (Trap) Port" = 162
-			}
+			$ports = $using:ports
 			
 			
 			ForEach ($port in $ports.GetEnumerator())
