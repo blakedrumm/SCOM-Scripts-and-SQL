@@ -18,6 +18,8 @@
 			Blake Drumm (v-bldrum@microsoft.com)
 		.LAST MODIFIED
 			06/10/2021
+			
+		https://www.stefanroth.net/2013/10/08/powershell-4-0-checking-scom-required-ports/
 #>
 param
 (
