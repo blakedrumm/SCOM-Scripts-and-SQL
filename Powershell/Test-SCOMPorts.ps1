@@ -27,20 +27,20 @@ param
 	[array]$Servers
 )
 $ports = @{
-	"Management Server / Agent Port"  = 5723;
-	"Console Port"				      = 5724;
+	"Management Server / Agent Port" = 5723;
+	"Console Port" = 5724;
 	"Connector Framework Source Port" = 51905;
-	"ACS Forwarder Port"			  = 51909;
-	"AEM Port"					      = 51906;
-	"SQL Server (Default) Port"	      = 1433;
-	"SSH Port"					      = 22;
-	"WS-MAN Port"					  = 1270;
-	"Web Console (HTTP) Port"		  = 80;
-	"Web Console (HTTPS) Port"	      = 443;
-	"SNMP (Get) Port"				  = 161;
-	"SNMP (Trap) Port"			      = 162
+	"ACS Forwarder Port" = 51909;
+	"AEM Port" = 51906;
+	"SQL Server (Default) Port" = 1433;
+	"SSH Port" = 22;
+	"WS-MAN Port" = 1270;
+	"Web Console (HTTP) Port" = 80;
+	"Web Console (HTTPS) Port" = 443;
+	"SNMP (Get) Port" = 161;
+	"SNMP (Trap) Port" = 162
 }
-if (!$servers)
+if (!$Servers)
 {
 	$servers = $env:COMPUTERNAME
 }
@@ -52,7 +52,7 @@ elseif ($Servers -match 'Microsoft.EnterpriseManagement.Administration.AgentMana
 {
 	$Servers = $Servers.DisplayName
 }
-foreach ($server in $servers)
+foreach ($server in $Servers)
 {
 	if ($server -match $env:COMPUTERNAME)
 	{
