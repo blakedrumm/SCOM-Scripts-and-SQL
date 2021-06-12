@@ -24,7 +24,7 @@ Open Powershell Prompt as Administrator:
 ### Gather Verbose ETL Trace and detect for 1210 Event ID (Sleep for 30 Seconds between checks)
     .\Start-ScomETLTrace.ps1 -VerboseTracing -DetectOpsMgrEventID 1210 -SleepSeconds 30
 
-### Restart SCOM Services after starting an ETL Trace. Sleep for 30 seconds and stop the Trace Automatically
+### Restart SCOM Services after starting an ETL Trace. Sleep for 2 Minutes and stop the Trace Automatically
     .\Start-ScomETLTrace.ps1 -Sleep 120 -RestartSCOMServices
 
 ### Get All ETL Tracing
