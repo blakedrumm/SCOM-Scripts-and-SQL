@@ -584,7 +584,7 @@ exit 0
 		else
 		{
 			Time-Stamp
-			Write-Host "Sleeping for $SleepSeconds seconds and then continuing automatically."
+			Write-Host "Sleeping for $SleepSeconds seconds and then continuing automatically." -ForegroundColor DarkCyan
 			sleep $SleepSeconds
 		}
 		
