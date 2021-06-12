@@ -1,4 +1,75 @@
+<#
+	.SYNOPSIS
+		Start-ScomETLTrace
+	
+	.DESCRIPTION
+		This will allow you to gather an ETL Trace from an Operations Manager Server or Agent.
+		The Script will detect the location of the ETL Tools based on this registry path: 
+		HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Setup
+	
+	.PARAMETER GetAdvisor
+		Gather only the Advisor.
+	
+	.PARAMETER GetAPM
+		Gather only the APM.
+	
+	.PARAMETER GetApmConnector
+		Gather only the APM Connector.
+	
+	.PARAMETER GetBID
+		Gather only the BID.
+	
+	.PARAMETER GetConfigService
+		Gather only the ConfigService.
+	
+	.PARAMETER GetDAS
+		Gather only the DAS.
+	
+	.PARAMETER GetFailover
+		Gather only the Failover.
+	
+	.PARAMETER GetManaged
+		Gather only the Managed.
+	
+	.PARAMETER GetNASM
+		Gather only the NASM.
+	
+	.PARAMETER GetNative
+		Gather only the Native.
+	
+	.PARAMETER GetScript
+		Gather only the Script.
+	
+	.PARAMETER GetUI
+		Gather only the UI.
+	
+	.PARAMETER DebugTrace
+		Gather Debug Trace, the Same as: StartTracing.cmd DBG
+	
+	.PARAMETER VerboseTrace
+		Gather Verbose Trace, the Same as: StartTracing.cmd VER
+	
+	.PARAMETER NetworkTrace
+		A description of the NetworkTrace parameter.
+	
+	.PARAMETER RestartSCOMServices
+		A description of the RestartSCOMServices parameter.
+	
+	.PARAMETER DetectOpsMgrEventID
+		A description of the DetectOpsMgrEventID parameter.
+	
+	.PARAMETER SleepSeconds
+		A description of the SleepSeconds parameter.
+	
+	.EXAMPLE
+				PS C:\> .\
+	
+	.NOTES
+		.AUTHOR
+			Blake Drumm (https://github.com/v-bldrum)
+#>
 [CmdletBinding()]
+[OutputType([string])]
 param
 (
 	[Parameter(Mandatory = $false,
@@ -45,8 +116,21 @@ param
 	[switch]$VerboseTrace,
 	[Parameter(Mandatory = $false,
 			   Position = 15)]
-	[switch]$NetworkTrace
+	[switch]$NetworkTrace,
+	[Parameter(Mandatory = $false,
+			   Position = 16)]
+	[switch]$RestartSCOMServices,
+	[Parameter(Mandatory = $false,
+			   Position = 17)]
+	[int64]$DetectOpsMgrEventID,
+	[Parameter(Mandatory = $false,
+			   Position = 18)]
+	[int64]$SleepSeconds = 10
 )
+trap
+{
+	Write-Warning "Encountered an Exception: $_"
+}
 Function Start-ETLTrace
 {
 	[CmdletBinding()]
@@ -96,7 +180,16 @@ Function Start-ETLTrace
 		[switch]$VerboseTrace,
 		[Parameter(Mandatory = $false,
 				   Position = 15)]
-		[switch]$NetworkTrace
+		[switch]$NetworkTrace,
+		[Parameter(Mandatory = $false,
+				   Position = 16)]
+		[switch]$RestartSCOMServices,
+		[Parameter(Mandatory = $false,
+				   Position = 17)]
+		[int64]$DetectOpsMgrEventID,
+		[Parameter(Mandatory = $false,
+				   Position = 18)]
+		[int64]$SleepSeconds = 10
 	)
 	$Loc = $env:COMPUTERNAME
 	$date = Get-Date -Format "MM.dd.yyyy-hh.mmtt"
@@ -120,7 +213,7 @@ Function Start-ETLTrace
 		
 	}
 	
-	if ($null -ne ($GetAdvisor -or $GetAPM -or $GetApmConnector -or $GetBID -or $GetConfigService -or $GetDAS -or $GetFailover -or $GetManaged -or $GetNASM -or $GetNative -or $GetScript -or $GetUI))
+	if ($null -ne ($GetAdvisor -or $GetAPM -or $GetApmConnector -or $GetBID -or $GetConfigService -or $GetDAS -or $GetFailover -or $GetManaged -or $GetNASM -or $GetNative -or $GetScript -or $GetUI -or $DebugTrace -or $VerboseTrace -or $NetworkTrace -or $RestartSCOMServices -or $DetectOpsMgrEventID -or $SleepSeconds))
 	{
 		$TempDirectory = "C:\Windows\Temp\SCOMTracingTemp"
 		if (!(test-path $TempDirectory))
@@ -130,84 +223,84 @@ Function Start-ETLTrace
 	}
 	
 	# Start GetAdvisor Switch
-	if ($False -ne $GetAdvisor)
+	if ($GetAdvisor)
 	{
 		$TracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*Advisor*" }
 		$TracingFiles | % { mv "$installdir`\$_" $TempDirectory }
 	}
 	
 	# Start GetAPM Switch
-	if ($False -ne $GetAPM)
+	if ($GetAPM)
 	{
 		$APMTracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*APM*" }
 		$APMTracingFiles | % { mv "$installdir`\$_" $TempDirectory }
 	}
 	
 	# Start GetApmConnector Switch
-	if ($False -ne $GetApmConnector)
+	if ($GetApmConnector)
 	{
 		$APMTracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*ApmConnector*" }
 		$APMTracingFiles | % { mv "$installdir`\$_" $TempDirectory }
 	}
 	
 	# Start GetBID Switch
-	if ($False -ne $GetBID)
+	if ($GetBID)
 	{
 		$APMTracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*BID*" }
 		$APMTracingFiles | % { mv "$installdir`\$_" $TempDirectory }
 	}
 	
 	# Start GetConfigService Switch
-	if ($False -ne $GetConfigService)
+	if ($GetConfigService)
 	{
 		$APMTracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*ConfigService*" }
 		$APMTracingFiles | % { mv "$installdir`\$_" $TempDirectory }
 	}
 	
 	# Start GetDAS Switch
-	if ($False -ne $GetDAS)
+	if ($GetDAS)
 	{
 		$APMTracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*DAS*" }
 		$APMTracingFiles | % { mv "$installdir`\$_" $TempDirectory }
 	}
 	
 	# Start GetFailover Switch
-	if ($False -ne $GetFailover)
+	if ($GetFailover)
 	{
 		$APMTracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*Failover*" }
 		$APMTracingFiles | % { mv "$installdir`\$_" $TempDirectory }
 	}
 	
 	# Start GetManaged Switch
-	if ($False -ne $GetManaged)
+	if ($GetManaged)
 	{
 		$APMTracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*Managed*" }
 		$APMTracingFiles | % { mv "$installdir`\$_" $TempDirectory }
 	}
 	
 	# Start GetNASM Switch
-	if ($False -ne $GetNASM)
+	if ($GetNASM)
 	{
 		$APMTracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*NASM*" }
 		$APMTracingFiles | % { mv "$installdir`\$_" $TempDirectory }
 	}
 	
 	# Start GetNative Switch
-	if ($False -ne $GetNative)
+	if ($GetNative)
 	{
 		$APMTracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*Native*" }
 		$APMTracingFiles | % { mv "$installdir`\$_" $TempDirectory }
 	}
 	
 	# Start GetScript Switch
-	if ($False -ne $GetScript)
+	if ($GetScript)
 	{
 		$APMTracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*Script*" }
 		$APMTracingFiles | % { mv "$installdir`\$_" $TempDirectory }
 	}
 	
 	# Start GetUI Switch
-	if ($False -ne $GetUI)
+	if ($GetUI)
 	{
 		$APMTracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*UI*" }
 		$APMTracingFiles | % { mv "$installdir`\$_" $TempDirectory }
@@ -348,28 +441,31 @@ exit 0
 		{
 			if (!$VerboseTrace -and !$DebugTrace)
 			{
+				$answer = $null
 				$answer = Read-Host -Prompt "Would you like to perform a Verbose or Debug Trace? (V/D)"
 			}
 			if ($VerboseTrace)
 			{
 				$answer = "verbose"
 			}
-			elseif ("" -ne $DebugTrace)
+			elseif ($DebugTrace)
 			{
 				$answer = "debug"
 			}
 		}
-		until ($answer -eq "verbose" -or "v" -or $answer -eq "debug" -or "d")
-		Time-Stamp
-		write-host "Stopping `'System Center Data Access Service`'" -ForegroundColor DarkCyan
-		stop-service OMSDK -ErrorAction SilentlyContinue
-		Time-Stamp
-		write-host "Stopping `'System Center Management Configuration`' Service" -ForegroundColor DarkCyan
-		stop-service cshost -ErrorAction SilentlyContinue
-		Time-Stamp
-		write-host "Stopping `'Microsoft Monitoring Agent`' Service" -ForegroundColor DarkCyan
-		stop-service healthservice -ErrorAction SilentlyContinue
-		
+		until (($answer -eq "verbose" -or "v") -or ($answer -eq "debug" -or "d"))
+		if ($RestartSCOMServices)
+		{
+			Time-Stamp
+			write-host "Stopping `'System Center Data Access Service`'" -ForegroundColor DarkCyan
+			stop-service OMSDK -ErrorAction SilentlyContinue
+			Time-Stamp
+			write-host "Stopping `'System Center Management Configuration`' Service" -ForegroundColor DarkCyan
+			stop-service cshost -ErrorAction SilentlyContinue
+			Time-Stamp
+			write-host "Stopping `'Microsoft Monitoring Agent`' Service" -ForegroundColor DarkCyan
+			stop-service healthservice -ErrorAction SilentlyContinue
+		}
 		Time-Stamp
 		write-host "Removing stale log files" -ForegroundColor DarkCyan
 		try
@@ -390,16 +486,16 @@ exit 0
 				Write-Warning "Attempted to Move Folder from `"C:\Windows\Logs\OpsMgrTrace`" to `"C:\Windows\Logs\OpsMgrTrace.old`" and receieved the following message:`n`t`t`t`t$_"
 			}
 		}
-		if ($answer -eq "verbose" -or $answer -eq "v")
+		if ($NetworkTrace)
+		{
+			Time-Stamp
+			Write-Host "Starting Network Trace" -ForegroundColor Cyan
+			Netsh trace start scenario=netconnection capture=yes maxsize=3000 tracefile=C:\Windows\Temp\$mod.etl | out-null
+		}
+		if (($answer -eq "verbose") -or ($answer -eq "v"))
 		{
 			try
 			{
-				if ($NetworkTrace)
-				{
-					Time-Stamp
-					Write-Host "Starting Network Trace" -ForegroundColor Cyan
-					Netsh trace start scenario=netconnection capture=yes maxsize=3000 tracefile=C:\Windows\Temp\$mod.etl | out-null
-				}
 				Time-Stamp
 				write-host "Starting ETL trace at Verbose level" -ForegroundColor Cyan
 				Start-Process "$env:SystemRoot\SYSWOW64\cmd.exe" "/c `"$installdir`\StartTracing.cmd`" VER" -WorkingDirectory $installdir -NoNewWindow -Wait | out-null
@@ -414,16 +510,10 @@ exit 0
 				Write-Host $_
 			}
 		}
-		elseif ($answer -eq "debug" -or $answer -eq "d")
+		elseif (($answer -eq "debug") -or ($answer -eq "d"))
 		{
 			try
 			{
-				if ($NetworkTrace)
-				{
-					Time-Stamp
-					Write-Host "Starting Network Trace" -ForegroundColor Cyan
-					Netsh trace start scenario=netconnection capture=yes maxsize=3000 tracefile=C:\Windows\Temp\$mod.etl | out-null
-				}
 				Time-Stamp
 				write-host "Starting ETL trace at Debug level" -ForegroundColor Cyan
 				Start-Process "$env:SystemRoot\SYSWOW64\cmd.exe" "/c `"$installdir`\StartTracing.cmd`" DBG" -WorkingDirectory $installdir -NoNewWindow -Wait | out-null
@@ -436,22 +526,67 @@ exit 0
 				Write-Host $_
 			}
 		}
-		
-		Time-Stamp
-		write-host "Starting `'Microsoft Monitoring Agent`' Service" -ForegroundColor DarkCyan
-		start-service healthservice -ErrorAction SilentlyContinue
-		Time-Stamp
-		write-host "Starting `'System Center Data Access Service`'" -ForegroundColor DarkCyan
-		start-service OMSDK -ErrorAction SilentlyContinue
-		Time-Stamp
-		write-host "Starting `'System Center Management Configuration`' Service" -ForegroundColor DarkCyan
-		start-service cshost -ErrorAction SilentlyContinue
-		
+		if ($RestartSCOMServices)
+		{
+			Time-Stamp
+			write-host "Starting `'Microsoft Monitoring Agent`' Service" -ForegroundColor DarkCyan
+			start-service healthservice -ErrorAction SilentlyContinue
+			Time-Stamp
+			write-host "Starting `'System Center Data Access Service`'" -ForegroundColor DarkCyan
+			start-service OMSDK -ErrorAction SilentlyContinue
+			Time-Stamp
+			write-host "Starting `'System Center Management Configuration`' Service" -ForegroundColor DarkCyan
+			start-service cshost -ErrorAction SilentlyContinue
+		}
 	}
 	Start-ScomETLTrace
-	Time-Stamp
-	Write-Host "Once you have reproduced the issue, Press Enter to continue." -ForegroundColor Green
-	pause
+	if ($DetectOpsMgrEventID)
+	{
+		Time-Stamp
+		Write-Host "Starting Detection of OperationsManager Event ID " -NoNewLine -ForegroundColor DarkGreen
+		Write-Host "(Checking every $SleepSeconds seconds): " -NoNewline -ForegroundColor DarkCyan
+		Write-Host $DetectOpsMgrEventID -NoNewline -ForegroundColor Cyan
+		do
+		{
+			Write-Host '.' -NoNewline -ForegroundColor DarkCyan
+			$Date = $null
+			$events = $null
+			$foundEventID = $false
+			$Date = (Get-Date).AddSeconds("`-" + ($SleepSeconds + 2))
+			$events = Get-WinEvent -FilterHashtable @{ LogName = 'Operations Manager'; StartTime = $Date; Id = $DetectOpsMgrEventID } -ErrorAction SilentlyContinue
+			if ($events)
+			{
+				Write-Host ' '
+				Time-Stamp
+				Write-Host 'Found the Event ID:' -ForegroundColor Green -NoNewline
+				Write-Host $DetectOpsMgrEventID -NoNewline -ForegroundColor Cyan
+				Write-Host "!" -ForegroundColor DarkCyan
+				$foundEventID = $true
+			}
+			else
+			{
+				sleep $SleepSeconds
+			}
+		}
+		until ($foundEventID)
+	}
+	else
+	{
+		if ($SleepSeconds -eq 10)
+		{
+			Time-Stamp
+			Write-Host "Once you have reproduced the issue, Press Enter to continue." -ForegroundColor Green
+			pause
+		}
+		else
+		{
+			Time-Stamp
+			Write-Host "Sleeping for $SleepSeconds seconds and then continuing automatically."
+			sleep $SleepSeconds
+		}
+		
+	}
+	
 	Time-Stamp
 	Write-Host "Stopping ETL Trace" -ForegroundColor Cyan
 	Start-Process "$env:SystemRoot\SYSWOW64\cmd.exe" "/c `"$installdir`\StopTracing.cmd`"" -WorkingDirectory $installdir -NoNewWindow -Wait | out-null
@@ -503,7 +638,10 @@ exit 0
 	{
 		mkdir C:\Windows\Temp\scomETLtrace\ETL | Out-Null
 	}
-	
+	else
+	{
+		Remove-Item C:\Windows\Temp\scomETLtrace\* -Recurse -Confirm:$false | Out-Null
+	}
 	Copy-Item "C:\Windows\Logs\OpsMgrTrace\*" "C:\Windows\Temp\scomETLtrace\ETL" -Force | Out-Null
 	
 	#Zip output
@@ -526,10 +664,12 @@ exit 0
 	$compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
 	$includebasedir = $false
 	[System.IO.Compression.ZipFile]::CreateFromDirectory($SourcePath, $destfile, $compressionLevel, $includebasedir) | Out-Null
+	Remove-Item "C:\Windows\Temp\scomETLtrace" -Recurse -Confirm:$false
 	if ($Error)
 	{
 		Time-Stamp
-		Write-Host "Error creating zip file."
+		Write-Warning "Error creating zip file."
+		Write-Host $_
 	}
 	else
 	{
@@ -542,9 +682,9 @@ exit 0
 	
 	C:\Windows\explorer.exe "/select,$destfile"
 }
-if (($GetAdvisor -or $GetAPM -or $GetApmConnector -or $GetBID -or $GetConfigService -or $GetDAS -or $GetFailover -or $GetManaged -or $GetNASM -or $GetNative -or $GetScript -or $GetUI -or $VerboseTrace -or $DebugTrace -or $NetworkTrace))
+if ($GetAdvisor -or $GetAPM -or $GetApmConnector -or $GetBID -or $GetConfigService -or $GetDAS -or $GetFailover -or $GetManaged -or $GetNASM -or $GetNative -or $GetScript -or $GetUI -or $DebugTrace -or $VerboseTrace -or $NetworkTrace -or $RestartSCOMServices -or $DetectOpsMgrEventID)
 {
-	Start-ETLTrace -GetAdvisor:$GetAdvisor -GetApmConnector:$GetApmConnector -GetBID:$GetBID -GetConfigService:$GetConfigService -GetDAS:$GetDAS -GetFailover:$GetFailover -GetManaged:$GetManaged -GetNASM:$GetNASM -GetNative:$GetNative -GetScript:$GetScript -GetUI:$GetUI -DebugTrace:$DebugTrace -VerboseTrace:$VerboseTrace -NetworkTrace:$NetworkTrace
+	Start-ETLTrace -GetAdvisor:$GetAdvisor -GetApmConnector:$GetApmConnector -GetBID:$GetBID -GetConfigService:$GetConfigService -GetDAS:$GetDAS -GetFailover:$GetFailover -GetManaged:$GetManaged -GetNASM:$GetNASM -GetNative:$GetNative -GetScript:$GetScript -GetUI:$GetUI -DebugTrace:$DebugTrace -VerboseTrace:$VerboseTrace -NetworkTrace:$NetworkTrace -RestartSCOMServices:$RestartSCOMServices -DetectOpsMgrEventID $DetectOpsMgrEventID -SleepSeconds $SleepSeconds
 }
 else
 {
