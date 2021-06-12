@@ -8,40 +8,40 @@
 		HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Setup
 	
 	.PARAMETER GetAdvisor
-		Gather only the Advisor.
+		Gather the Advisor.
 	
 	.PARAMETER GetAPM
-		Gather only the APM.
+		Gather the APM.
 	
 	.PARAMETER GetApmConnector
-		Gather only the APM Connector.
+		Gather the APM Connector.
 	
 	.PARAMETER GetBID
-		Gather only the BID.
+		Gather the BID.
 	
 	.PARAMETER GetConfigService
-		Gather only the ConfigService.
+		Gather the ConfigService.
 	
 	.PARAMETER GetDAS
-		Gather only the DAS.
+		Gather the DAS.
 	
 	.PARAMETER GetFailover
-		Gather only the Failover.
+		Gather the Failover.
 	
 	.PARAMETER GetManaged
-		Gather only the Managed.
+		Gather the Managed.
 	
 	.PARAMETER GetNASM
-		Gather only the NASM.
+		Gather the NASM.
 	
 	.PARAMETER GetNative
-		Gather only the Native.
+		Gather the Native.
 	
 	.PARAMETER GetScript
-		Gather only the Script.
+		Gather the Script.
 	
 	.PARAMETER GetUI
-		Gather only the UI.
+		Gather the UI.
 	
 	.PARAMETER DebugTrace
 		Gather Debug Trace, the Same as: StartTracing.cmd DBG
