@@ -68,6 +68,9 @@
 		.AUTHOR
 		Blake Drumm (https://github.com/v-bldrum)
 		
+		.CREATED
+		September 3rd 2020
+		
 		.MODIFIED
 		June 11th, 2021
 #>
