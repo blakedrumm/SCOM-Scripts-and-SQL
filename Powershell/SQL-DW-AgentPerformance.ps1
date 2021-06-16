@@ -1,12 +1,18 @@
 <#
 .AUTHOR
 	Blake Drumm (v-bldrum@microsoft.com)
+.MODIFIED
+	June 16th, 2021
 #>
 #This script gathers performance data from SQL DW and outputs as Objects.
-$SQLServer = "SQL1"
+$SQLServer = "SQL-2019\SCOM2019"
 $db1 = "OperationsManagerDW"
+$now = $(Get-Date -Format "yyyy-MM-dd")
+
+#run this query to get all performance counters available:
+# SELECT CounterName from vPerformanceRule
 #Disk space in MB
-$query1 = @'
+$query1 = @"
 select
 vManagedEntity.Path
  ,Perf.vPerfdaily.DateTime
@@ -25,17 +31,17 @@ join vPerformanceRuleInstance on vPerformanceRuleInstance.PerformanceRuleInstanc
 join vPerformanceRule on vPerformanceRule.RuleRowId=vPerformanceRuleInstance.RuleRowId
 join vManagedEntity on vManagedEntity.ManagedEntityRowid=Perf.vPerfDaily.ManagedEntityRowId
 join vRule on vRule.RuleRowId=vPerformanceRuleInstance.RuleRowId
-where Perf.vPerfDaily.Datetime between '2020-01-01' and '2020-07-30'
+where Perf.vPerfDaily.Datetime between '2020-01-01' and '$now'
 and vPerformanceRule.ObjectName='LogicalDisk'
 and vPerformanceRule.CounterName='Free Megabytes'
 and (vRule.RuleDefaultName='Logical Disk Free Megabytes 2000'
 	or vRule.RuleDefaultName='Logical Disk Free Megabytes 2003'
 	or vRule.RuleDefaultName='Logical Disk Free Megabytes 2008')
 Order by Path, Name
-'@
+"@
 
 #CPU Utilization
-$query2 = @'
+$query2 = @"
 select
 vManagedEntity.Path
 ,Perf.vPerfdaily.DateTime
@@ -54,13 +60,13 @@ join vPerformanceRuleInstance on vPerformanceRuleInstance.PerformanceRuleInstanc
 join vPerformanceRule on vPerformanceRule.RuleRowId=vPerformanceRuleInstance.RuleRowId
 join vManagedEntity on vManagedEntity.ManagedEntityRowid=Perf.vPerfDaily.ManagedEntityRowId
 join vRule on vRule.RuleRowId=vPerformanceRuleInstance.RuleRowId
-where Perf.vPerfDaily.Datetime between '2020-01-01' and '2020-07-30'
+where Perf.vPerfDaily.Datetime between '2020-01-01' and '$now'
 and vPerformanceRule.ObjectName='Processor'
 and vPerformanceRule.CounterName='% Processor Time'
 and (vRule.RuleDefaultName='Processor % Processor Time Total 2003'
 or vRule.RuleDefaultName='% Processor % Processor TIme Total 2008')
 Order by Path,Name
-'@
+"@
 
 #Free disk space in Percentage
 $query3 = @'
@@ -82,7 +88,7 @@ join vPerformanceRuleInstance on vPerformanceRuleInstance.PerformanceRuleInstanc
 join vPerformanceRule on vPerformanceRule.RuleRowId=vPerformanceRuleInstance.RuleRowId
 join vManagedEntity on vManagedEntity.ManagedEntityRowid=Perf.vPerfDaily.ManagedEntityRowId
 join vRule on vRule.RuleRowId=vPerformanceRuleInstance.RuleRowId
-where Perf.vPerfDaily.Datetime between '2020-01-01' and '2020-07-30'
+where Perf.vPerfDaily.Datetime between '2020-01-01' and '$now'
 and vPerformanceRule.ObjectName='LogicalDisk'
 and vPerformanceRule.CounterName='% Free Space'
 and (vRule.RuleDefaultName='% Logical Disk Free space 2000'
@@ -92,7 +98,7 @@ Order by Path, Name
 '@
 
 # Memory Percentage Used
-$query4 = @'
+$query4 = @"
 select
 vManagedEntity.Path
 ,Perf.vPerfdaily.DateTime
@@ -111,12 +117,12 @@ join vPerformanceRuleInstance on vPerformanceRuleInstance.PerformanceRuleInstanc
 join vPerformanceRule on vPerformanceRule.RuleRowId=vPerformanceRuleInstance.RuleRowId
 join vManagedEntity on vManagedEntity.ManagedEntityRowid=Perf.vPerfDaily.ManagedEntityRowId
 join vRule on vRule.RuleRowId=vPerformanceRuleInstance.RuleRowId
-where Perf.vPerfDaily.Datetime between '2020-01-01' and '2020-07-30'
+where Perf.vPerfDaily.Datetime between '2020-01-01' and '$now'
 and vPerformanceRule.ObjectName='Memory'
 and vPerformanceRule.CounterName='PercentMemoryUsed'
 and (vRule.RuleDefaultName='Percent Memory Used')
 Order by Path,Name
-'@
+"@
 
 <#	
 $query5 = @'
@@ -125,4 +131,4 @@ $query5 = @'
 #>
 $i = 0
 $query = ($query1, $query2, $query3, $query4)
-$query | % { $i++; Write-Host "Query : $i" -ForegroundColor Cyan; Invoke-Sqlcmd -ServerInstance $SQLServer -Database $db1 -Query $_ -OutputSqlErrors $true | ft * }
+$query | % { $i++; Write-Host "Query : $i" -ForegroundColor Cyan; Invoke-Sqlcmd -ServerInstance $SQLServer -Database $db1 -Query $_ -OutputSqlErrors $true | ft * -AutoSize }
