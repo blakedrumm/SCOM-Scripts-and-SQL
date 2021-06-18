@@ -6,7 +6,7 @@
 		This script removes any BME ID's related to the Display Name provided with the -Servers switch.
 	
 	.PARAMETER SqlServer
-		SQL Server/Instance that hosts OperationsManager Database for SCOM.
+		SQL Server/Instance,Port that hosts OperationsManager Database for SCOM.
 
 	.PARAMETER Database
 		The name of the OperationsManager Database for SCOM.
@@ -35,7 +35,7 @@ param
 (
 	[Parameter(Mandatory = $false,
 			   Position = 1,
-			   HelpMessage = "SQL Server/Instance that hosts OperationsManager Database for SCOM.")]
+			   HelpMessage = "SQL Server/Instance,Port that hosts OperationsManager Database for SCOM.")]
 	[String]$SqlServer,
 	[Parameter(Mandatory = $false,
 			   Position = 2,
@@ -66,7 +66,7 @@ Function Erase-BaseManagedEntity
 	(
 		[Parameter(Mandatory = $false,
 				   Position = 1,
-				   HelpMessage = "SQL Server/Instance that hosts OperationsManager Database for SCOM.")]
+				   HelpMessage = "SQL Server/Instance,Port that hosts OperationsManager Database for SCOM.")]
 		[String]$SqlServer,
 		[Parameter(Mandatory = $false,
 				   Position = 2,
