@@ -21,7 +21,6 @@
 		Remove SCOM BME Related Data from the OperationsManager DB, on every Agent in the in Management Group.
 		PS C:\> Get-SCOMAgent | %{.\Erase-BaseManagedEntity.ps1 -Servers $_}
 		
-		Clear SCOM cache and reboot the Servers specified.
 		PS C:\> .\Erase-BaseManagedEntity.ps1 -Servers IIS-Server.contoso.com, WindowsServer.contoso.com
 	
 	.NOTES
@@ -29,7 +28,7 @@
 		Blake Drumm (v-bldrum@microsoft.com)
 		
 		.MODIFIED
-		May 31st, 2021
+		June 18th, 2021
 #>
 [OutputType([string])]
 param
