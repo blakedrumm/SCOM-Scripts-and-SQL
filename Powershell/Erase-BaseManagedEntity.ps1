@@ -48,7 +48,7 @@ param
 	[Array]$Servers,
 	[Parameter(Mandatory = $false,
 			   Position = 4,
-			   HelpMessage = 'If you dont want to be asked any questions, run with this Switch.')]
+			   HelpMessage = 'Optionally assume yes to any question asked by this script.')]
 	[Alias('yes')]
 	[Switch]$AssumeYes
 )
@@ -79,7 +79,7 @@ Function Erase-BaseManagedEntity
 		[Array]$Servers,
 		[Parameter(Mandatory = $false,
 				   Position = 4,
-				   HelpMessage = 'If you dont want to be asked any questions, run with this Switch.')]
+				   HelpMessage = 'Optionally assume yes to any question asked by this script.')]
 		[Alias('yes')]
 		[Switch]$AssumeYes
 	)
