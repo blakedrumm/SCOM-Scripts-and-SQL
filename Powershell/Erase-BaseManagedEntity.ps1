@@ -48,7 +48,7 @@ param
 	[Array]$Servers,
 	[Parameter(Mandatory = $false,
 			   Position = 4,
-			   HelpMessage = 'Optionally reboot the server after stopping the SCOM Services and clearing SCOM Cache. This will always perform on the local server last.')]
+			   HelpMessage = 'If you dont want to be asked any questions, run with this Switch.')]
 	[Alias('yes')]
 	[Switch]$AssumeYes
 )
@@ -79,7 +79,7 @@ Function Erase-BaseManagedEntity
 		[Array]$Servers,
 		[Parameter(Mandatory = $false,
 				   Position = 4,
-				   HelpMessage = 'Optionally reboot the server after stopping the SCOM Services and clearing SCOM Cache. This will always perform on the local server last.')]
+				   HelpMessage = 'If you dont want to be asked any questions, run with this Switch.')]
 		[Alias('yes')]
 		[Switch]$AssumeYes
 	)
