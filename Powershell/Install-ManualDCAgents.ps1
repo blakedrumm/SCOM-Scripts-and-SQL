@@ -1,9 +1,13 @@
 cls
 
 <#
-$Forest = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
-$AllComputers = ($Forest.Sites | % { $_.Servers } | SORT Domain,name).Name 
+Get All Domain Controllers in AD:
+
+    $Forest = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
+    $AllComputers = ($Forest.Sites | % { $_.Servers } | SORT Domain,name).Name 
 #>
+$AllComputers = 'DC01.contoso.com'
+
 function Time-Stamp
 {
 	$TimeStamp = Get-Date -Format "MM/dd/yyy hh:mm:ss tt"
@@ -14,8 +18,6 @@ Write-Host @"
 Updating SCOM Agents
 ====================
 "@
-# The Domain Controller you want to Install an Agent on
-$AllComputers = 'DC01.contoso.com'
 ForEach ($Computer in $AllComputers)
 {
 	Time-Stamp
