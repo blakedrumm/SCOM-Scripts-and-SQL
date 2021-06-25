@@ -39,7 +39,7 @@ ForEach ($Computer in $AllComputers)
 		$args = "/i " + $path_to_install + " /quiet /qn /l*v C:\Temp\SCOMAgentInstall.log " + $args
 		# Install Ops Manager Agent
 		Time-Stamp
-		Write-Host "`t - Installing MOMAgent.msi" -ForegroundColor Cyan -NoNewLine
+		Write-Host "`t - Installing MOMAgent.msi" -ForegroundColor Cyan
 		start-process -FilePath "msiexec.exe" -ArgumentList $args -Wait -ErrorAction Stop
 		
 		sleep 1
@@ -54,7 +54,7 @@ ForEach ($Computer in $AllComputers)
 		$path_to_install = 'C:\Temp\KB4580254-amd64-Agent.msp'
 		$msiArgs = "/update `"$path_to_install`" /quiet"
 		Time-Stamp
-		Write-Host "`t - Installing Agent Update Rollup" -ForegroundColor Cyan -NoNewLine
+		Write-Host "`t - Installing Agent Update Rollup" -ForegroundColor Cyan
 		Start-Process -FilePath msiexec -ArgumentList $msiArgs -Wait -ErrorAction Stop
 		Time-Stamp
 		Write-Host "`t -- Complete!" -ForegroundColor Green
