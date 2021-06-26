@@ -18,7 +18,7 @@ The script will perform the following, in this order:
 
 ## Examples
 Open Powershell Prompt as Administrator:
-##All Available Commands
+## All Available Commands
     .\Start-ScomETLTrace.ps1 -GetAdvisor -GetApmConnector -GetBID -GetConfigService -GetDAS -GetFailover -GetManaged -GetNASM -GetNative -GetScript -GetUI -VerboseTracing -DebugTracing -NetworkTrace -SleepSeconds -RestartSCOMServices -DetectOpsMgrEventID
 
 ###### Get Verbose Native ETL Trace
