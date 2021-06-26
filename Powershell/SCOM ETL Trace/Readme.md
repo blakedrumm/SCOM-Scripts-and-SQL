@@ -13,24 +13,24 @@ The script will perform the following, in this order:
 7. Formats ETL Trace
 8. Zips Up Output and Opens Explorer Window for Viewing File
 
-## Example
+## Examples
 Open Powershell Prompt as Administrator:
 ##All Available Commands
     .\Start-ScomETLTrace.ps1 -GetAdvisor -GetApmConnector -GetBID -GetConfigService -GetDAS -GetFailover -GetManaged -GetNASM -GetNative -GetScript -GetUI -VerboseTracing -DebugTracing -NetworkTrace -SleepSeconds -RestartSCOMServices -DetectOpsMgrEventID
 
-### Get Verbose Native ETL Trace
+###### Get Verbose Native ETL Trace
     .\Start-ScomETLTrace.ps1 -GetNative -VerboseTracing
 
-### Gather Verbose ETL Trace and detect for 1210 Event ID (Sleep for 30 Seconds between checks)
+###### Gather Verbose ETL Trace and detect for 1210 Event ID (Sleep for 30 Seconds between checks)
     .\Start-ScomETLTrace.ps1 -VerboseTracing -DetectOpsMgrEventID 1210 -SleepSeconds 30
 
-### Restart SCOM Services after starting an ETL Trace. Sleep for 2 Minutes and stop the Trace Automatically
+###### Restart SCOM Services after starting an ETL Trace. Sleep for 2 Minutes and stop the Trace Automatically
     .\Start-ScomETLTrace.ps1 -Sleep 120 -RestartSCOMServices
 
-### Get All ETL Tracing
-#### Get Verbose Tracing for all the Default Tracing Available (just like running this: -GetAdvisor -GetApmConnector -GetBID -GetConfigService -GetDAS -GetFailover -GetManaged -GetNASM -GetNative -GetScript -GetUI)
+#### Get All ETL Traces
+###### Get Verbose Tracing for all the Default Tracing Available (just like running this: -GetAdvisor -GetApmConnector -GetBID -GetConfigService -GetDAS -GetFailover -GetManaged -GetNASM -GetNative -GetScript -GetUI)
     .\Start-ScomETLTrace.ps1 -VerboseTracing
-#### Get Debug Tracing for all the Default Tracing Available (just like running this: -GetAdvisor -GetApmConnector -GetBID -GetConfigService -GetDAS -GetFailover -GetManaged -GetNASM -GetNative -GetScript -GetUI)
+###### Get Debug Tracing for all the Default Tracing Available (just like running this: -GetAdvisor -GetApmConnector -GetBID -GetConfigService -GetDAS -GetFailover -GetManaged -GetNASM -GetNative -GetScript -GetUI)
     .\Start-ScomETLTrace.ps1 -DebugTracing
-#### Get Verbose Tracing for all the Default Tracing Available and Network Tracing (just like running this: -GetAdvisor -GetApmConnector -GetBID -GetConfigService -GetDAS -GetFailover -GetManaged -GetNASM -GetNative -GetScript -GetUI)
+###### Get Verbose Tracing for all the Default Tracing Available and Network Tracing (just like running this: -GetAdvisor -GetApmConnector -GetBID -GetConfigService -GetDAS -GetFailover -GetManaged -GetNASM -GetNative -GetScript -GetUI)
     .\Start-ScomETLTrace.ps1 -VerboseTracing -NetworkTrace
