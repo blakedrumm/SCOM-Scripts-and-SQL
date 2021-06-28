@@ -119,7 +119,7 @@ Function Erase-BaseManagedEntity
 <#
 DO NOT EDIT PAST THIS POINT
 #>
-	
+	$querytimeout = '900'
 	if (!(Get-Command Invoke-Sqlcmd -ErrorAction SilentlyContinue))
 	{
 		Write-Warning "Unable to run this script due to missing dependency:`n`t`tSQL Server Powershell Module (https://docs.microsoft.com/en-us/sql/powershell/download-sql-server-ps-module)`n`nTry running this script on a SQL Server if you cannot download the Powershell Module."
@@ -138,7 +138,7 @@ FROM BaseManagedEntity WHERE FullName like @name OR DisplayName like @name
 ORDER BY FullName
 "@
 		
-		$BME_IDs = (Invoke-Sqlcmd -ServerInstance $SqlServer -Database $Database -Query $bme_query -OutputSqlErrors $true)
+		$BME_IDs = (Invoke-Sqlcmd -QueryTimeout $querytimeout -ServerInstance $SqlServer -Database $Database -Query $bme_query -OutputSqlErrors $true)
 		
 		if (!$BME_IDs)
 		{
@@ -187,14 +187,14 @@ BEGIN TRANSACTION
 EXEC dbo.p_TypedManagedEntityDelete @EntityId, @TimeGenerated;
 COMMIT TRANSACTION
 "@
-			Invoke-Sqlcmd -ServerInstance $SqlServer -Database $Database -Query $delete_query -OutputSqlErrors $true
+			Invoke-Sqlcmd -QueryTimeout $querytimeout -ServerInstance $SqlServer -Database $Database -Query $delete_query -OutputSqlErrors $true
 		}
 		
 		$remove_pending_management = @"
 exec p_AgentPendingActionDeleteByAgentName "$machine"
 "@
 		
-		Invoke-Sqlcmd -ServerInstance $SqlServer -Database $Database -Query $remove_pending_management -OutputSqlErrors $true
+		Invoke-Sqlcmd -QueryTimeout $querytimeout -ServerInstance $SqlServer -Database $Database -Query $remove_pending_management -OutputSqlErrors $true
 		
 		Write-Host "Cleared $machine from Pending Management List in SCOM Console." -ForegroundColor DarkGreen
 		
@@ -205,7 +205,7 @@ exec p_AgentPendingActionDeleteByAgentName "$machine"
 SELECT count(*) FROM BaseManagedEntity WHERE IsDeleted = 1
 "@
 	
-	$remove_count = (Invoke-Sqlcmd -ServerInstance $SqlServer -Database $Database -Query $remove_count_query -OutputSqlErrors $true).Column1
+	$remove_count = (Invoke-Sqlcmd -QueryTimeout $querytimeout -ServerInstance $SqlServer -Database $Database -Query $remove_count_query -OutputSqlErrors $true).Column1
 	
 	"OperationsManager DB has " | Write-Host -NoNewline
 	$remove_count | Write-Host -NoNewline -ForegroundColor Green
@@ -241,7 +241,7 @@ EXEC p_DiscoveryDataPurgingByBaseManagedEntity @TimeGenerated, @BatchSize, @RowC
 	
 	try
 	{
-		Invoke-Sqlcmd -ServerInstance $SqlServer -Database $Database -Query $purge_deleted_query -OutputSqlErrors $true
+		Invoke-Sqlcmd -QueryTimeout $querytimeout -ServerInstance $SqlServer -Database $Database -Query $purge_deleted_query -OutputSqlErrors $true
 		Write-Host "Successfully Purged the OperationsManager DB of Deleted Data!" -ForegroundColor Green
 	}
 	catch
