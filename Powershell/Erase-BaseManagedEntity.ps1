@@ -295,13 +295,13 @@ EXEC p_DiscoveryDataPurgingByBaseManagedEntity @TimeGenerated, @BatchSize, @RowC
 
 if ($ManagementServer -or $SqlServer -or $Database -or $Servers -or $AssumeYes)
 {
-	Erase-BaseManagedEntity -SqlServer $SqlServer -Database $Database -Servers $Servers -AssumeYes:$AssumeYes
+	Erase-BaseManagedEntity -ManagementServer $ManagementServer -SqlServer $SqlServer -Database $Database -Servers $Servers -AssumeYes:$AssumeYes
 }
 else
 {
 <# Edit line 306 to modify the default command run when this script is executed.
    Example: 
-   Erase-BaseManagedEntity -SqlServer SQL-2019\SCOM2019 -Database OperationsManager -Servers Agent1.contoso.com, Agent2.contoso.com
+   Erase-BaseManagedEntity -ManagementServer MS1-2019.contoso.com -SqlServer SQL-2019\SCOM2019 -Database OperationsManager -Servers Agent1.contoso.com, Agent2.contoso.com
    #>
 	Erase-BaseManagedEntity
 }
