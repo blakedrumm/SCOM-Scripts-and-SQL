@@ -145,7 +145,7 @@ DO NOT EDIT PAST THIS POINT
 			$agentList = new-object $genericList.FullName
 			foreach ($serv in $using:Servers)
 			{
-				Write-Host "Deleting SCOM Agent: `'$serv`' from Agent Managed Computer"
+				Write-Host "Deleting SCOM Agent: `'$serv`' from Agent Managed Computers"
 				$agent = Get-SCOMAgent *$serv*
 				$agentList.Add($agent);
 			}
