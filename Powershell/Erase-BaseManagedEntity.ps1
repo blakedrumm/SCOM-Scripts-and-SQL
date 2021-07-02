@@ -5,19 +5,22 @@
 	.DESCRIPTION
 		This script removes any BME ID's related to the Display Name provided with the -Servers switch.
 	
+	.PARAMETER ManagementServer
+		A description of the ManagementServer parameter.
+	
 	.PARAMETER SqlServer
 		SQL Server/Instance,Port that hosts OperationsManager Database for SCOM.
-
+	
 	.PARAMETER Database
 		The name of the OperationsManager Database for SCOM.
-
+	
 	.PARAMETER Servers
 		Each Server (comma seperated) you want to Remove related BME ID's related to the Display Name in the OperationsManager Database.
 	
 	.PARAMETER AssumeYes
 		Optionally assume yes to any question asked by this script.
 	
-	.EXAMPLE		
+	.EXAMPLE
 		Remove SCOM BME Related Data from the OperationsManager DB, on every Agent in the in Management Group.
 		PS C:\> Get-SCOMAgent | %{.\Erase-BaseManagedEntity.ps1 -Servers $_}
 		
@@ -28,27 +31,31 @@
 		Blake Drumm (v-bldrum@microsoft.com)
 		
 		.MODIFIED
-		June 28th, 2021
+		July 2nd, 2021
 #>
 [OutputType([string])]
 param
 (
 	[Parameter(Mandatory = $false,
 			   Position = 1,
+			   HelpMessage = "SCOM Management Server that we will remotely or locally connect to.")]
+	[String]$ManagementServer,
+	[Parameter(Mandatory = $false,
+			   Position = 2,
 			   HelpMessage = "SQL Server/Instance,Port that hosts OperationsManager Database for SCOM.")]
 	[String]$SqlServer,
 	[Parameter(Mandatory = $false,
-			   Position = 2,
+			   Position = 3,
 			   HelpMessage = "The name of the OperationsManager Database for SCOM.")]
 	[String]$Database,
 	[Parameter(Mandatory = $false,
 			   ValueFromPipeline = $true,
-			   Position = 3,
+			   Position = 4,
 			   HelpMessage = "Each Server (comma seperated) you want to Remove related BME ID's related to the Display Name in the OperationsManager Database.")]
 	[Array]$Servers,
 	[Parameter(Mandatory = $false,
-			   Position = 4,
-			   HelpMessage = 'Optionally assume yes to any question asked by this script.')]
+			   Position = 5,
+			   HelpMessage = "Optionally assume yes to any question asked by this script.")]
 	[Alias('yes')]
 	[Switch]$AssumeYes
 )
@@ -66,20 +73,24 @@ Function Erase-BaseManagedEntity
 	(
 		[Parameter(Mandatory = $false,
 				   Position = 1,
+				   HelpMessage = "SCOM Management Server that we will remotely or locally connect to.")]
+		[String]$ManagementServer,
+		[Parameter(Mandatory = $false,
+				   Position = 2,
 				   HelpMessage = "SQL Server/Instance,Port that hosts OperationsManager Database for SCOM.")]
 		[String]$SqlServer,
 		[Parameter(Mandatory = $false,
-				   Position = 2,
+				   Position = 3,
 				   HelpMessage = "The name of the OperationsManager Database for SCOM.")]
 		[String]$Database,
 		[Parameter(Mandatory = $false,
 				   ValueFromPipeline = $true,
-				   Position = 3,
+				   Position = 4,
 				   HelpMessage = "Each Server (comma seperated) you want to Remove related BME ID's related to the Display Name in the OperationsManager Database.")]
 		[Array]$Servers,
 		[Parameter(Mandatory = $false,
-				   Position = 4,
-				   HelpMessage = 'Optionally assume yes to any question asked by this script.')]
+				   Position = 5,
+				   HelpMessage = "Optionally assume yes to any question asked by this script.")]
 		[Alias('yes')]
 		[Switch]$AssumeYes
 	)
@@ -88,9 +99,13 @@ Function Erase-BaseManagedEntity
 	#-----------------------------------------------------------
 	#In the format of: ServerName\SQLInstance
 	#ex: SQL01\SCOM2019
+	if (!$ManagementServer)
+	{
+		$ManagementServer = 'MS1-2016'
+	}
 	if (!$SqlServer)
 	{
-		$SqlServer = "SQL-2019\SCOM2019"
+		$SqlServer = "SQL-2016\SCOM2016"
 	}
 	
 	if (!$Database)
@@ -102,7 +117,7 @@ Function Erase-BaseManagedEntity
 	{
 		#Name of Agent to Erase from SCOM
 		#Fully Qualified (FQDN)
-		[array]$Servers = "Agent1.contoso.com", "Agent2.contoso.com"
+		[array]$Servers = "IIS-Server", "SQL-2016"
 	}
 	if (!$AssumeYes)
 	{
@@ -119,6 +134,33 @@ Function Erase-BaseManagedEntity
 <#
 DO NOT EDIT PAST THIS POINT
 #>
+	try
+	{
+		Invoke-Command -ComputerName $ManagementServer -ScriptBlock {
+			Import-Module OperationsManager
+			$administration = (Get-SCOMManagementGroup).GetAdministration();
+			$agentManagedComputerType = [Microsoft.EnterpriseManagement.Administration.AgentManagedComputer];
+			$genericListType = [System.Collections.Generic.List``1]
+			$genericList = $genericListType.MakeGenericType($agentManagedComputerType)
+			$agentList = new-object $genericList.FullName
+			foreach ($serv in $using:Servers)
+			{
+				Write-Host "Deleting SCOM Agent: `'$serv`' from Agent Managed Computer"
+				$agent = Get-SCOMAgent *$serv*
+				$agentList.Add($agent);
+			}
+			$genericReadOnlyCollectionType = [System.Collections.ObjectModel.ReadOnlyCollection``1]
+			$genericReadOnlyCollection = $genericReadOnlyCollectionType.MakeGenericType($agentManagedComputerType)
+			$agentReadOnlyCollection = new-object $genericReadOnlyCollection.FullName @( ,$agentList);
+			$administration.DeleteAgentManagedComputers($agentReadOnlyCollection);
+		} -ErrorAction Stop
+	}
+	catch
+	{
+		Write-Warning $_
+		break
+	}
+	
 	$querytimeout = '900'
 	if (!(Get-Command Invoke-Sqlcmd -ErrorAction SilentlyContinue))
 	{
@@ -251,13 +293,13 @@ EXEC p_DiscoveryDataPurgingByBaseManagedEntity @TimeGenerated, @BatchSize, @RowC
 	break
 }
 
-if ($SqlServer -or $Database -or $Servers -or $AssumeYes)
+if ($ManagementServer -or $SqlServer -or $Database -or $Servers -or $AssumeYes)
 {
 	Erase-BaseManagedEntity -SqlServer $SqlServer -Database $Database -Servers $Servers -AssumeYes:$AssumeYes
 }
 else
 {
-<# Edit line 265 to modify the default command run when this script is executed.
+<# Edit line 306 to modify the default command run when this script is executed.
    Example: 
    Erase-BaseManagedEntity -SqlServer SQL-2019\SCOM2019 -Database OperationsManager -Servers Agent1.contoso.com, Agent2.contoso.com
    #>
