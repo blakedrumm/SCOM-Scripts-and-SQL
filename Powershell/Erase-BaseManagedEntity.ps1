@@ -3,7 +3,7 @@
 		Erase-BaseManagedEntity
 	
 	.DESCRIPTION
-		This script removes any BME ID's related to the Display Name provided with the -Servers switch.
+		This script removes any BME ID's related to the Display Name provided with the -Agents switch.
 	
 	.PARAMETER ManagementServer
 		A description of the ManagementServer parameter.
@@ -14,7 +14,7 @@
 	.PARAMETER Database
 		The name of the OperationsManager Database for SCOM.
 	
-	.PARAMETER Servers
+	.PARAMETER Agents
 		Each Server (comma seperated) you want to Remove related BME ID's related to the Display Name in the OperationsManager Database.
 	
 	.PARAMETER AssumeYes
@@ -22,9 +22,9 @@
 	
 	.EXAMPLE
 		Remove SCOM BME Related Data from the OperationsManager DB, on every Agent in the in Management Group.
-		PS C:\> Get-SCOMAgent | %{.\Erase-BaseManagedEntity.ps1 -Servers $_}
+		PS C:\> Get-SCOMAgent | %{.\Erase-BaseManagedEntity.ps1 -Agents $_}
 		
-		PS C:\> .\Erase-BaseManagedEntity.ps1 -Servers IIS-Server.contoso.com, WindowsServer.contoso.com
+		PS C:\> .\Erase-BaseManagedEntity.ps1 -Agents IIS-Server.contoso.com, WindowsServer.contoso.com
 	
 	.NOTES
 		.AUTHOR
@@ -52,7 +52,7 @@ param
 			   ValueFromPipeline = $true,
 			   Position = 4,
 			   HelpMessage = "Each Server (comma seperated) you want to Remove related BME ID's related to the Display Name in the OperationsManager Database.")]
-	[Array]$Servers,
+	[Array]$Agents,
 	[Parameter(Mandatory = $false,
 			   Position = 5,
 			   HelpMessage = "Optionally assume yes to any question asked by this script.")]
@@ -71,23 +71,23 @@ Function Erase-BaseManagedEntity
 	[OutputType([string])]
 	param
 	(
-		[Parameter(Mandatory = $false,
+		[Parameter(Mandatory = $true,
 				   Position = 1,
 				   HelpMessage = "SCOM Management Server that we will remotely or locally connect to.")]
 		[String]$ManagementServer,
-		[Parameter(Mandatory = $false,
+		[Parameter(Mandatory = $true,
 				   Position = 2,
 				   HelpMessage = "SQL Server/Instance,Port that hosts OperationsManager Database for SCOM.")]
 		[String]$SqlServer,
-		[Parameter(Mandatory = $false,
+		[Parameter(Mandatory = $true,
 				   Position = 3,
 				   HelpMessage = "The name of the OperationsManager Database for SCOM.")]
 		[String]$Database,
-		[Parameter(Mandatory = $false,
+		[Parameter(Mandatory = $true,
 				   ValueFromPipeline = $true,
 				   Position = 4,
 				   HelpMessage = "Each Server (comma seperated) you want to Remove related BME ID's related to the Display Name in the OperationsManager Database.")]
-		[Array]$Servers,
+		[Array]$Agents,
 		[Parameter(Mandatory = $false,
 				   Position = 5,
 				   HelpMessage = "Optionally assume yes to any question asked by this script.")]
@@ -113,11 +113,11 @@ Function Erase-BaseManagedEntity
 		$Database = "OperationsManager"
 	}
 	
-	if (!$Servers)
+	if (!$Agents)
 	{
 		#Name of Agent to Erase from SCOM
 		#Fully Qualified (FQDN)
-		[array]$Servers = "IIS-Server", "SQL-2016"
+		[array]$Agents = "IIS-Server", "SQL-2016"
 	}
 	if (!$AssumeYes)
 	{
@@ -143,7 +143,7 @@ DO NOT EDIT PAST THIS POINT
 			$genericListType = [System.Collections.Generic.List``1]
 			$genericList = $genericListType.MakeGenericType($agentManagedComputerType)
 			$agentList = new-object $genericList.FullName
-			foreach ($serv in $using:Servers)
+			foreach ($serv in $using:Agents)
 			{
 				Write-Host "Deleting SCOM Agent: `'$serv`' from Agent Managed Computers"
 				$agent = Get-SCOMAgent *$serv*
@@ -167,7 +167,7 @@ DO NOT EDIT PAST THIS POINT
 		Write-Warning "Unable to run this script due to missing dependency:`n`t`tSQL Server Powershell Module (https://docs.microsoft.com/en-us/sql/powershell/download-sql-server-ps-module)`n`nTry running this script on a SQL Server if you cannot download the Powershell Module."
 		break
 	}
-	foreach ($machine in $Servers)
+	foreach ($machine in $Agents)
 	{
 		$bme_query = @"
 --Query 1
@@ -293,15 +293,15 @@ EXEC p_DiscoveryDataPurgingByBaseManagedEntity @TimeGenerated, @BatchSize, @RowC
 	break
 }
 
-if ($ManagementServer -or $SqlServer -or $Database -or $Servers -or $AssumeYes)
+if ($ManagementServer -or $SqlServer -or $Database -or $Agents -or $AssumeYes)
 {
-	Erase-BaseManagedEntity -ManagementServer $ManagementServer -SqlServer $SqlServer -Database $Database -Servers $Servers -AssumeYes:$AssumeYes
+	Erase-BaseManagedEntity -ManagementServer $ManagementServer -SqlServer $SqlServer -Database $Database -Agents $Agents -AssumeYes:$AssumeYes
 }
 else
 {
 <# Edit line 306 to modify the default command run when this script is executed.
    Example: 
-   Erase-BaseManagedEntity -ManagementServer MS1-2019.contoso.com -SqlServer SQL-2019\SCOM2019 -Database OperationsManager -Servers Agent1.contoso.com, Agent2.contoso.com
+   Erase-BaseManagedEntity -ManagementServer MS1-2019.contoso.com -SqlServer SQL-2019\SCOM2019 -Database OperationsManager -Agents Agent1.contoso.com, Agent2.contoso.com
    #>
 	Erase-BaseManagedEntity
 }
