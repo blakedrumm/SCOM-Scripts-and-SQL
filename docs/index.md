@@ -1,4 +1,4 @@
-![Data Collector](https://github.com/v-bldrum/SCOM-Scripts-and-SQL/blob/master/media/git-guidance/scom-data-collector.png)
+![Data Collector](https://raw.githubusercontent.com/v-bldrum/SCOM-Scripts-and-SQL/master/media/git-guidance/scom-data-collector.png)
 
 # Download Link
 https://aka.ms/SCOM-DataCollector
@@ -13,7 +13,7 @@ Administrator Privileges
 
 Powershell 4+ (will still run on Powershell 3)
 
-#Instructions
+# Instructions
 
 Download Zip file (More Actions - Download Zip File) and extract tool to a directory (ex. C:\Data Collector)
 
