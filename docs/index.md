@@ -1,4 +1,4 @@
-![Data Collector](/media/git-guidance/scom-data-collector.png)
+![Data Collector](https://github.com/v-bldrum/SCOM-Scripts-and-SQL/blob/master/media/git-guidance/scom-data-collector.png)
 
 # Download Link
 https://aka.ms/SCOM-DataCollector
