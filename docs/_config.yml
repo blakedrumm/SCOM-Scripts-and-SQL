@@ -10,3 +10,4 @@ github_username:  v-bldrum
 theme: minima
 plugins:
   - jekyll-feed
+  - jekyll-js-minify-plugin
