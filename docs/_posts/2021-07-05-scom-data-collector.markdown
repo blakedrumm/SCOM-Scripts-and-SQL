@@ -9,6 +9,9 @@ categories: SCOM Data Collector
 # Download Link
 [https://aka.ms/SCOM-DataCollector](https://aka.ms/SCOM-DataCollector)
 
+# Personal Webpage
+[https://files.blakedrumm.com/SCOM-DataCollector.zip](https://files.blakedrumm.com/SCOM-DataCollector.zip)
+
 # Github Link
 [https://github.com/v-bldrum/SCOM-Scripts-and-SQL/releases/latest](https://github.com/v-bldrum/SCOM-Scripts-and-SQL/releases/latest)
 
