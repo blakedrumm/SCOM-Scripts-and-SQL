@@ -8,4 +8,4 @@ Welcome to my Blog! I have never done this before, but this seems like a good ti
 
 Today is my first day as a Microsoft FTE converting from a contractor. I had been working as a contractor since January 2020 (1 year, 5 months, 22 days)!
 
-![Hits](https://hitcounter.pythonanywhere.com/count/tag.svg?url=https%3A%2F%2Fblakedrumm.com)
+![Page Views](https://hitcounter.pythonanywhere.com/count/tag.svg?url=https%3A%2F%2Fblakedrumm.com)
