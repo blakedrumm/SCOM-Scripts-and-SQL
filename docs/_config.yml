@@ -1,9 +1,8 @@
-title: System Center Operations Manager - Data Collector
+title: Blake Drumm - Tech Blog
 email: blakedrumm@microsoft.com
 description: >- # this means to ignore newlines until "baseurl:"
-  With the SCOM Data Collector you can collect a lot of useful data to analyze and troubleshoot
-  your System Center Operations Manager Environment! This is a go to Tool for any SCOM Admin 
-  that wants a wholistic view of their configuration and setup. Written in Powershell!
+  This is the personal technicial blog for Blake Drumm.
+  Currently primarly focused towards System Center Enterprise Management Products.
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://blakedrumm.com" # the base hostname & protocol for your site, e.g. http://example.com
 github_username:  v-bldrum
