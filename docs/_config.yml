@@ -6,9 +6,11 @@ description: >- # this means to ignore newlines until "baseurl:"
   I am an Microsoft Support Engineer on the System Center North America Support Team.
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://blakedrumm.com" # the base hostname & protocol for your site, e.g. http://example.com
-social_links:
-    github:  blakedrumm
-    linkedin: blakedrumm
+minima:
+  date_format: "%b %-d, %Y"
+  social_links:
+      github:  blakedrumm
+      linkedin: blakedrumm
 theme: minima
 plugins:
   - jekyll-feed
