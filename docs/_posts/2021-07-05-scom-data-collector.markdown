@@ -3,6 +3,11 @@ layout: post
 title:  "SCOM Data Collector"
 date:   2021-07-05 15:19:23 -0500
 categories: SCOM Data Collector
+title: System Center Operations Manager - Data Collector
+description: >- # this means to ignore newlines
+  With the SCOM Data Collector you can collect a lot of useful data to analyze and troubleshoot
+  your System Center Operations Manager Environment! This is a go to Tool for any SCOM Admin 
+  that wants a wholistic view of their configuration and setup. Written in Powershell!
 ---
 ![Data Collector](https://raw.githubusercontent.com/v-bldrum/SCOM-Scripts-and-SQL/master/media/git-guidance/scom-data-collector.png)
 
