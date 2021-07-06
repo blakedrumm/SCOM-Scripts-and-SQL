@@ -1,10 +1,10 @@
 ![Data Collector](https://raw.githubusercontent.com/v-bldrum/SCOM-Scripts-and-SQL/master/media/git-guidance/scom-data-collector.png)
 
 # Download Link
-https://aka.ms/SCOM-DataCollector
+[https://aka.ms/SCOM-DataCollector](https://aka.ms/SCOM-DataCollector)
 
 # Github Link
-https://github.com/v-bldrum/SCOM-Scripts-and-SQL/releases/latest
+[https://github.com/v-bldrum/SCOM-Scripts-and-SQL/releases/latest](https://github.com/v-bldrum/SCOM-Scripts-and-SQL/releases/latest)
 
 # Requirements
 System Center Operations Manager - Management Server
