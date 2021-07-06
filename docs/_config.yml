@@ -1,22 +1,14 @@
 title: Blake Drumm - Tech Blog
-author:
-  name: blakedrumm
-  email: blakedrumm@microsoft.com
 email: blakedrumm@microsoft.com
 description: >- # this means to ignore newlines until "baseurl:"
   This is the personal technicial blog for Blake Drumm.
   Currently primarly focused towards System Center Enterprise Management Products.
   I am an Microsoft Support Engineer on the System Center North America Support Team.
-show_excerpts: false # set to true to show excerpts on the homepage
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://blakedrumm.com" # the base hostname & protocol for your site, e.g. http://example.com
-minima:
-  date_format: "%b %-d, %Y"
-  social_links:
-      github:  blakedrumm
-      linkedin: blakedrumm
+github_username:  blakedrumm
+linkedin_username: blakedrumm
 theme: minima
 plugins:
   - jekyll-feed
   - jekyll-js-minify-plugin
-  - jekyll-seo-tag
