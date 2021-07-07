@@ -1,5 +1,6 @@
 # System Center Operations Manager Script / Guide Repository
-This is where all scripts and SQL Queries I find useful for SCOM and SQL will be stored.
+This is where all scripts and SQL Queries I find useful for SCOM and SQL will be stored. \
+![Hits](https://counter.blakedrumm.com/count/tag.svg?url=https%3A%2F%2Fgithub.com%2Fblakedrumm%2FSCOM-Scripts-and-SQL)
 
 ___
 
