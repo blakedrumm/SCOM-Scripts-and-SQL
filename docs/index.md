@@ -10,4 +10,4 @@ Today is my first day as a Microsoft FTE converting from a contractor. I had bee
 
 Keep checking back for more information, this will be continually updated as time permits.
 
-![Page Views](http://counter.blakedrumm.com/count/tag.svg?url=blakedrumm.com)
+![Page Views](https://counter.blakedrumm.com/count/tag.svg?url=blakedrumm.com)
