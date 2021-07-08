@@ -9,6 +9,7 @@ ___
 
 ### SCOM Data Collector
 ![DataCollector](/media/git-guidance/scom-data-collector.png) \
+[![Updated Badge](https://badges.pufler.dev/updated/blakedrumm/SCOM-Scripts-and-SQL)](https://badges.pufler.dev) \
 [![Latest Version](https://img.shields.io/github/v/release/v-bldrum/SCOM-Scripts-and-SQL)](https://github.com/v-bldrum/SCOM-Scripts-and-SQL/releases/latest) \
 [![Direct Download Link](https://img.shields.io/badge/Download%20Link-Download-blue?style=for-the-badge&color=blue)](https://github.com/v-bldrum/SCOM-Scripts-and-SQL/releases/latest/download/SCOM-DataCollector.zip) \
 [![Alternative Download Link](https://img.shields.io/badge/Download%20Link-Alternative%20Download-blue?style=for-the-badge&color=blue)](https://files.blakedrumm.com/SCOM-DataCollector.zip) \
