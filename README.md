@@ -1,7 +1,7 @@
 # System Center Operations Manager Script / Guide Repository
 This is where all scripts and SQL Queries I find useful for SCOM and SQL will be stored. \
-[![Updated Badge](https://badges.pufler.dev/updated/blakedrumm/SCOM-Scripts-and-SQL)](https://badges.pufler.dev) \
 [![Visits Badge](https://badges.pufler.dev/visits/blakedrumm/SCOM-Scripts-and-SQL)](https://badges.pufler.dev)
+<!--[![Updated Badge](https://badges.pufler.dev/updated/blakedrumm/SCOM-Scripts-and-SQL)](https://badges.pufler.dev) -->
 
 ___
 
