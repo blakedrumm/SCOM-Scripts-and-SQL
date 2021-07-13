@@ -60,7 +60,7 @@ param
 	[Switch]$AssumeYes,
 	[Parameter(Mandatory = $false,
 			   Position = 5,
-			   HelpMessage = "Optionally force the script to not stop when an error occurs.")]
+			   HelpMessage = "Optionally force the script to not stop when an error occurs connecting to the Management Server.")]
 	[Alias('ds')]
 	[Switch]$DontStop
 )
@@ -318,7 +318,12 @@ Function Erase-BaseManagedEntity
 				   Position = 5,
 				   HelpMessage = "Optionally assume yes to any question asked by this script.")]
 		[Alias('yes')]
-		[Switch]$AssumeYes
+		[Switch]$AssumeYes,
+		[Parameter(Mandatory = $false,
+				   Position = 5,
+				   HelpMessage = "Optionally force the script to not stop when an error occurs.")]
+		[Alias('ds')]
+		[Switch]$DontStop
 	)
 	#-----------------------------------------------------------
 	#region ScriptVariables
@@ -400,11 +405,11 @@ DO NOT EDIT PAST THIS POINT
 DECLARE @name varchar(255) = '%$machine%'
 --
 SELECT BaseManagedEntityId, FullName, DisplayName, IsDeleted, Path, Name
-FROM BaseManagedEntity WHERE FullName like @name OR DisplayName like @name
+FROM BaseManagedEntity WHERE IsDeleted = '0' AND FullName like @name OR DisplayName like @name
 ORDER BY FullName
 "@
 		
-		$BME_IDs = (Invoke-SqlCommand -Timeout $Timeout -Server $SqlServer -Database $Database -Query $bme_query)
+		$BME_IDs = (Invoke-SqlCommand -Timeout $Timeout -Server $SqlServer -Database $Database -Query $bme_query) | Where { $_.IsDeleted = $false }
 		
 		if (!$BME_IDs)
 		{
@@ -513,7 +518,7 @@ EXEC p_DiscoveryDataPurgingByBaseManagedEntity @TimeGenerated, @BatchSize, @RowC
 	{
 		Write-Error "Unable to Purge the Deleted Items from the OperationsManager DB`n`nCould not run the following command against the OperationsManager DB:`n$purge_deleted_query"
 	}
-	Write-Host "After running this script, attempt to Rediscover the Agent from the SCOM Console. Once you discover it, it may go into Pending Management, if so run the following command:`nGet-SCOMPendingManagement | Approve-SCOMPendingManagement"
+	Write-Host "After running this script, attempt to Rediscover the Agent from the SCOM Console. Once you discover it`nthe server may go into Pending Management, if so run the following command:`nGet-SCOMPendingManagement | Approve-SCOMPendingManagement"
 	break
 }
 
