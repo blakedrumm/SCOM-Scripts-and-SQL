@@ -30,6 +30,8 @@
 		.AUTHOR
 		Blake Drumm (blakedrumm@microsoft.com)
 		
+		This script will run the Kevin Holman steps to Purge Agent Data from the OperationsManager DB: https://kevinholman.com/2018/05/03/deleting-and-purging-data-from-the-scom-database/
+		
 		.MODIFIED
 		July 2nd, 2021
 #>
@@ -59,10 +61,7 @@ param
 	[Alias('yes')]
 	[Switch]$AssumeYes
 )
-#This script will run the Kevin Holman steps to Purge Agent Data from the OperationsManager DB: https://kevinholman.com/2018/05/03/deleting-and-purging-data-from-the-scom-database/
 #----------------------------------------------------------------------------------------------------------------------------------
-#-Requires: SQL Server Powershell Module (https://docs.microsoft.com/en-us/sql/powershell/download-sql-server-ps-module)
-#Author: Blake Drumm (v-bldrum@microsoft.com)
 #Date Created: 4/10/2021
 cls
 function Invoke-SqlCommand
