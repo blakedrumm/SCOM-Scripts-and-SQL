@@ -28,7 +28,7 @@
 	
 	.NOTES
 		.AUTHOR
-		Blake Drumm (v-bldrum@microsoft.com)
+		Blake Drumm (blakedrumm@microsoft.com)
 		
 		.MODIFIED
 		July 2nd, 2021
