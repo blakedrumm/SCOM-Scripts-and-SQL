@@ -517,7 +517,7 @@ EXEC p_DiscoveryDataPurgingByBaseManagedEntity @TimeGenerated, @BatchSize, @RowC
 	{
 		Write-Error "Unable to Purge the Deleted Items from the OperationsManager DB`n`nCould not run the following command against the OperationsManager DB:`n$purge_deleted_query"
 	}
-	Write-Host "After running this script, attempt to Rediscover the Agent from the SCOM Console. Once you discover it`nthe server may go into Pending Management, if so run the following command:`nGet-SCOMPendingManagement | Approve-SCOMPendingManagement"
+	Write-Host "After running this script, attempt to Rediscover the Agent from the SCOM Console. Once you discover it`nthe server may go into Pending Management, if so run the following command:`nGet-SCOMPendingManagement | Approve-SCOMPendingManagement`n`nAlso run this Clear Cache Script on the Agent (do not modify, just copy to Powershell ISE on the Agent):`nhttps://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Clear-SCOMCache.ps1"
 	break
 }
 
