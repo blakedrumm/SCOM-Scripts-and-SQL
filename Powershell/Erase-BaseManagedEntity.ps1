@@ -362,7 +362,35 @@ DO NOT EDIT PAST THIS POINT
 #>
 	
 	$Timeout = '900'
-	
+	try
+	{
+		Invoke-Command -ComputerName $ManagementServer -ScriptBlock {
+			Import-Module OperationsManager
+			$administration = (Get-SCOMManagementGroup).GetAdministration();
+			$agentManagedComputerType = [Microsoft.EnterpriseManagement.Administration.AgentManagedComputer];
+			$genericListType = [System.Collections.Generic.List``1]
+			$genericList = $genericListType.MakeGenericType($agentManagedComputerType)
+			$agentList = new-object $genericList.FullName
+			foreach ($serv in $using:Agents)
+			{
+				Write-Host "Deleting SCOM Agent: `'$serv`' from Agent Managed Computers"
+				$agent = Get-SCOMAgent *$serv*
+				$agentList.Add($agent);
+			}
+			$genericReadOnlyCollectionType = [System.Collections.ObjectModel.ReadOnlyCollection``1]
+			$genericReadOnlyCollection = $genericReadOnlyCollectionType.MakeGenericType($agentManagedComputerType)
+			$agentReadOnlyCollection = new-object $genericReadOnlyCollection.FullName @( ,$agentList);
+			$administration.DeleteAgentManagedComputers($agentReadOnlyCollection);
+		} -ErrorAction Stop
+	}
+	catch
+	{
+		Write-Warning "$_`n`nNo Changes have been made."
+		if (!$DontStop)
+		{
+			break
+		}
+	}
 	foreach ($machine in $Agents)
 	{
 		$bme_query = @"
@@ -400,35 +428,6 @@ ORDER BY FullName
 		{ $answer1 = 'y' }
 		if ($answer1 -eq "n")
 		{ continue }
-		try
-		{
-			Invoke-Command -ComputerName $ManagementServer -ScriptBlock {
-				Import-Module OperationsManager
-				$administration = (Get-SCOMManagementGroup).GetAdministration();
-				$agentManagedComputerType = [Microsoft.EnterpriseManagement.Administration.AgentManagedComputer];
-				$genericListType = [System.Collections.Generic.List``1]
-				$genericList = $genericListType.MakeGenericType($agentManagedComputerType)
-				$agentList = new-object $genericList.FullName
-				foreach ($serv in $using:Agents)
-				{
-					Write-Host "Deleting SCOM Agent: `'$serv`' from Agent Managed Computers"
-					$agent = Get-SCOMAgent *$serv*
-					$agentList.Add($agent);
-				}
-				$genericReadOnlyCollectionType = [System.Collections.ObjectModel.ReadOnlyCollection``1]
-				$genericReadOnlyCollection = $genericReadOnlyCollectionType.MakeGenericType($agentManagedComputerType)
-				$agentReadOnlyCollection = new-object $genericReadOnlyCollection.FullName @( ,$agentList);
-				$administration.DeleteAgentManagedComputers($agentReadOnlyCollection);
-			} -ErrorAction Stop
-		}
-		catch
-		{
-			Write-Warning "$_`n`nNo Changes have been made."
-			if (!$DontStop)
-			{
-				break
-			}
-		}
 		foreach ($BaseManagedEntityID in $BME_IDs)
 		{
 			Write-Host " Gracefully deleting the following from OperationsManager Database:`n`tName: " -NoNewline
@@ -514,12 +513,13 @@ EXEC p_DiscoveryDataPurgingByBaseManagedEntity @TimeGenerated, @BatchSize, @RowC
 	{
 		Write-Error "Unable to Purge the Deleted Items from the OperationsManager DB`n`nCould not run the following command against the OperationsManager DB:`n$purge_deleted_query"
 	}
+	Write-Host "After running this script, attempt to Rediscover the Agent from the SCOM Console. Once you discover it, it may go into Pending Management, if so run the following command:`nGet-SCOMPendingManagement | Approve-SCOMPendingManagement"
 	break
 }
 
-if ($ManagementServer -or $SqlServer -or $Database -or $Agents -or $AssumeYes)
+if ($ManagementServer -or $SqlServer -or $Database -or $Agents -or $AssumeYes -or $DontStop)
 {
-	Erase-BaseManagedEntity -ManagementServer $ManagementServer -SqlServer $SqlServer -Database $Database -Agents $Agents -AssumeYes:$AssumeYes
+	Erase-BaseManagedEntity -ManagementServer $ManagementServer -SqlServer $SqlServer -Database $Database -Agents $Agents -AssumeYes:$AssumeYes -DontStop:$DontStop
 }
 else
 {
