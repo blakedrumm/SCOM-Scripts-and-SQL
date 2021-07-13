@@ -31,7 +31,7 @@
 		Blake Drumm (v-bldrum@microsoft.com)
 		
 		.MODIFIED
-		July 2nd, 2021
+		July 12nd, 2021
 #>
 [OutputType([string])]
 param
@@ -65,25 +65,243 @@ param
 #Author: Blake Drumm (v-bldrum@microsoft.com)
 #Date Created: 4/10/2021
 cls
+function Invoke-SqlCommand
+{
+    <#
+        .SYNOPSIS
+            Executes an SQL statement. Executes using Windows Authentication unless the Username and Password are provided.
+
+        .PARAMETER Server
+            The SQL Server instance name.
+
+        .PARAMETER Database
+            The SQL Server database name where the query will be executed.
+
+        .PARAMETER Timeout
+            The connection timeout.
+
+        .PARAMETER Connection
+            The System.Data.SqlClient.SQLConnection instance used to connect.
+
+        .PARAMETER Username
+            The SQL Authentication Username.
+
+        .PARAMETER Password
+            The SQL Authentication Password.
+
+        .PARAMETER CommandType
+            The System.Data.CommandType value specifying Text or StoredProcedure.
+
+        .PARAMETER Query
+            The SQL query to execute.
+
+         .PARAMETER Path
+            The path to an SQL script.
+
+        .PARAMETER Parameters
+            Hashtable containing the key value pairs used to generate as collection of System.Data.SqlParameter.
+
+        .PARAMETER As
+            Specifies how to return the result.
+
+            PSCustomObject
+             - Returns the result set as an array of System.Management.Automation.PSCustomObject objects.
+            DataSet
+             - Returns the result set as an System.Data.DataSet object.
+            DataTable
+             - Returns the result set as an System.Data.DataTable object.
+            DataRow
+             - Returns the result set as an array of System.Data.DataRow objects.
+            Scalar
+             - Returns the first column of the first row in the result set. Should be used when a value with no column name is returned (i.e. SELECT COUNT(*) FROM Test.Sample).
+            NonQuery
+             - Returns the number of rows affected. Should be used for INSERT, UPDATE, and DELETE.
+
+        .EXAMPLE
+            PS C:\> Invoke-SqlCommand -Server "DATASERVER" -Database "Web" -Query "SELECT TOP 1 * FROM Test.Sample"
+
+            datetime2         : 1/17/2013 8:46:22 AM
+            ID                : 202507
+            uniqueidentifier1 : 1d0cf1c0-9fb1-4e21-9d5a-b8e9365400fc
+            bool1             : False
+            datetime1         : 1/17/2013 12:00:00 AM
+            double1           : 1
+            varchar1          : varchar11
+            decimal1          : 1
+            int1              : 1
+
+            Returned the first row as a System.Management.Automation.PSCustomObject.
+
+        .EXAMPLE
+            PS C:\> Invoke-SqlCommand -Server "DATASERVER" -Database "Web" -Query "SELECT COUNT(*) FROM Test.Sample" -As Scalar
+
+            9544            
+    #>
+	[CmdletBinding(DefaultParameterSetName = "Default")]
+	param (
+		[Parameter(Mandatory = $true, Position = 0)]
+		[string]$Server,
+		[Parameter(Mandatory = $true, Position = 1)]
+		[string]$Database,
+		[Parameter(Mandatory = $false, Position = 2)]
+		[int]$Timeout = 30,
+		[System.Data.SqlClient.SQLConnection]$Connection,
+		[string]$Username,
+		[string]$Password,
+		[System.Data.CommandType]$CommandType = [System.Data.CommandType]::Text,
+		[string]$Query,
+		[ValidateScript({ Test-Path -Path $_ })]
+		[string]$Path,
+		[hashtable]$Parameters,
+		[ValidateSet("DataSet", "DataTable", "DataRow", "PSCustomObject", "Scalar", "NonQuery")]
+		[string]$As = "PSCustomObject"
+	)
+	
+	begin
+	{
+		if ($Path)
+		{
+			$Query = [System.IO.File]::ReadAllText("$((Resolve-Path -Path $Path).Path)")
+		}
+		else
+		{
+			if (-not $Query)
+			{
+				throw (New-Object System.ArgumentNullException -ArgumentList "Query", "The query statement is missing.")
+			}
+		}
+		
+		$createConnection = (-not $Connection)
+		
+		if ($createConnection)
+		{
+			$Connection = New-Object System.Data.SqlClient.SQLConnection
+			if ($Username -and $Password)
+			{
+				$Connection.ConnectionString = "Server=$($Server);Database=$($Database);User Id=$($Username);Password=$($Password);"
+			}
+			else
+			{
+				$Connection.ConnectionString = "Server=$($Server);Database=$($Database);Integrated Security=SSPI;"
+			}
+			if ($PSBoundParameters.Verbose)
+			{
+				$Connection.FireInfoMessageEventOnUserErrors = $true
+				$Connection.Add_InfoMessage([System.Data.SqlClient.SqlInfoMessageEventHandler] { Write-Verbose "$($_)" })
+			}
+		}
+		
+		if (-not ($Connection.State -like "Open")) { try { $Connection.Open() }
+			catch [Exception] { throw $_ } }
+	}
+	
+	process
+	{
+		$command = New-Object System.Data.SqlClient.SqlCommand ($query, $Connection)
+		$command.CommandTimeout = $Timeout
+		$command.CommandType = $CommandType
+		if ($Parameters)
+		{
+			foreach ($p in $Parameters.Keys)
+			{
+				$command.Parameters.AddWithValue($p, $Parameters[$p]) | Out-Null
+			}
+		}
+		
+		$scriptBlock = {
+			$result = @()
+			$reader = $command.ExecuteReader()
+			if ($reader)
+			{
+				$counter = $reader.FieldCount
+				$columns = @()
+				for ($i = 0; $i -lt $counter; $i++)
+				{
+					$columns += $reader.GetName($i)
+				}
+				
+				if ($reader.HasRows)
+				{
+					while ($reader.Read())
+					{
+						$row = @{ }
+						for ($i = 0; $i -lt $counter; $i++)
+						{
+							$row[$columns[$i]] = $reader.GetValue($i)
+						}
+						$result += [PSCustomObject]$row
+					}
+				}
+			}
+			$result
+		}
+		
+		if ($As)
+		{
+			switch ($As)
+			{
+				"Scalar" {
+					$scriptBlock = {
+						$result = $command.ExecuteScalar()
+						$result
+					}
+				}
+				"NonQuery" {
+					$scriptBlock = {
+						$result = $command.ExecuteNonQuery()
+						$result
+					}
+				}
+				default {
+					if ("DataSet", "DataTable", "DataRow" -contains $As)
+					{
+						$scriptBlock = {
+							$ds = New-Object System.Data.DataSet
+							$da = New-Object System.Data.SqlClient.SqlDataAdapter($command)
+							$da.Fill($ds) | Out-Null
+							switch ($As)
+							{
+								"DataSet" { $result = $ds }
+								"DataTable" { $result = $ds.Tables }
+								default { $result = $ds.Tables | ForEach-Object -Process { $_.Rows } }
+							}
+							$result
+						}
+					}
+				}
+			}
+		}
+		
+		$result = Invoke-Command -ScriptBlock $ScriptBlock
+		$command.Parameters.Clear()
+	}
+	
+	end
+	{
+		if ($createConnection) { $Connection.Close() }
+		
+		$result
+	}
+}
 
 Function Erase-BaseManagedEntity
 {
 	[OutputType([string])]
 	param
 	(
-		[Parameter(Mandatory = $true,
+		[Parameter(Mandatory = $false,
 				   Position = 1,
 				   HelpMessage = "SCOM Management Server that we will remotely or locally connect to.")]
 		[String]$ManagementServer,
-		[Parameter(Mandatory = $true,
+		[Parameter(Mandatory = $false,
 				   Position = 2,
 				   HelpMessage = "SQL Server/Instance,Port that hosts OperationsManager Database for SCOM.")]
 		[String]$SqlServer,
-		[Parameter(Mandatory = $true,
+		[Parameter(Mandatory = $false,
 				   Position = 3,
 				   HelpMessage = "The name of the OperationsManager Database for SCOM.")]
 		[String]$Database,
-		[Parameter(Mandatory = $true,
+		[Parameter(Mandatory = $false,
 				   ValueFromPipeline = $true,
 				   Position = 4,
 				   HelpMessage = "Each Server (comma seperated) you want to Remove related BME ID's related to the Display Name in the OperationsManager Database.")]
@@ -101,11 +319,11 @@ Function Erase-BaseManagedEntity
 	#ex: SQL01\SCOM2019
 	if (!$ManagementServer)
 	{
-		$ManagementServer = 'MS1-2016'
+		$ManagementServer = 'MS1-2019'
 	}
 	if (!$SqlServer)
 	{
-		$SqlServer = "SQL-2016\SCOM2016"
+		$SqlServer = "SQL-2019\SCOM2019"
 	}
 	
 	if (!$Database)
@@ -117,7 +335,7 @@ Function Erase-BaseManagedEntity
 	{
 		#Name of Agent to Erase from SCOM
 		#Fully Qualified (FQDN)
-		[array]$Agents = "IIS-Server", "SQL-2016"
+		[array]$Agents = "IIS-Server"
 	}
 	if (!$AssumeYes)
 	{
@@ -158,15 +376,10 @@ DO NOT EDIT PAST THIS POINT
 	catch
 	{
 		Write-Warning $_
-		break
 	}
 	
-	$querytimeout = '900'
-	if (!(Get-Command Invoke-Sqlcmd -ErrorAction SilentlyContinue))
-	{
-		Write-Warning "Unable to run this script due to missing dependency:`n`t`tSQL Server Powershell Module (https://docs.microsoft.com/en-us/sql/powershell/download-sql-server-ps-module)`n`nTry running this script on a SQL Server if you cannot download the Powershell Module."
-		break
-	}
+	$Timeout = '900'
+	
 	foreach ($machine in $Agents)
 	{
 		$bme_query = @"
@@ -180,7 +393,7 @@ FROM BaseManagedEntity WHERE FullName like @name OR DisplayName like @name
 ORDER BY FullName
 "@
 		
-		$BME_IDs = (Invoke-Sqlcmd -QueryTimeout $querytimeout -ServerInstance $SqlServer -Database $Database -Query $bme_query -OutputSqlErrors $true)
+		$BME_IDs = (Invoke-SqlCommand -Timeout $Timeout -Server $SqlServer -Database $Database -Query $bme_query)
 		
 		if (!$BME_IDs)
 		{
@@ -229,14 +442,14 @@ BEGIN TRANSACTION
 EXEC dbo.p_TypedManagedEntityDelete @EntityId, @TimeGenerated;
 COMMIT TRANSACTION
 "@
-			Invoke-Sqlcmd -QueryTimeout $querytimeout -ServerInstance $SqlServer -Database $Database -Query $delete_query -OutputSqlErrors $true
+			Invoke-SqlCommand -Timeout $Timeout -Server $SqlServer -Database $Database -Query $delete_query
 		}
 		
 		$remove_pending_management = @"
 exec p_AgentPendingActionDeleteByAgentName "$machine"
 "@
 		
-		Invoke-Sqlcmd -QueryTimeout $querytimeout -ServerInstance $SqlServer -Database $Database -Query $remove_pending_management -OutputSqlErrors $true
+		Invoke-SqlCommand -Timeout $Timeout -Server $SqlServer -Database $Database -Query $remove_pending_management
 		
 		Write-Host "Cleared $machine from Pending Management List in SCOM Console." -ForegroundColor DarkGreen
 		
@@ -247,7 +460,7 @@ exec p_AgentPendingActionDeleteByAgentName "$machine"
 SELECT count(*) FROM BaseManagedEntity WHERE IsDeleted = 1
 "@
 	
-	$remove_count = (Invoke-Sqlcmd -QueryTimeout $querytimeout -ServerInstance $SqlServer -Database $Database -Query $remove_count_query -OutputSqlErrors $true).Column1
+	$remove_count = (Invoke-SqlCommand -Timeout $Timeout -Server $SqlServer -Database $Database -Query $remove_count_query).Column1
 	
 	"OperationsManager DB has " | Write-Host -NoNewline
 	$remove_count | Write-Host -NoNewline -ForegroundColor Green
@@ -283,7 +496,7 @@ EXEC p_DiscoveryDataPurgingByBaseManagedEntity @TimeGenerated, @BatchSize, @RowC
 	
 	try
 	{
-		Invoke-Sqlcmd -QueryTimeout $querytimeout -ServerInstance $SqlServer -Database $Database -Query $purge_deleted_query -OutputSqlErrors $true
+		Invoke-SqlCommand -Timeout $Timeout -Server $SqlServer -Database $Database -Query $purge_deleted_query
 		Write-Host "Successfully Purged the OperationsManager DB of Deleted Data!" -ForegroundColor Green
 	}
 	catch
