@@ -28,9 +28,7 @@
 	
 	.NOTES
 		.AUTHOR
-		Blake Drumm (blakedrumm@microsoft.com)
-		
-		This script will run the Kevin Holman steps to Purge Agent Data from the OperationsManager DB: https://kevinholman.com/2018/05/03/deleting-and-purging-data-from-the-scom-database/
+		Blake Drumm (v-bldrum@microsoft.com)
 		
 		.MODIFIED
 		July 2nd, 2021
@@ -59,9 +57,17 @@ param
 			   Position = 5,
 			   HelpMessage = "Optionally assume yes to any question asked by this script.")]
 	[Alias('yes')]
-	[Switch]$AssumeYes
+	[Switch]$AssumeYes,
+	[Parameter(Mandatory = $false,
+			   Position = 5,
+			   HelpMessage = "Optionally force the script to not stop when an error occurs.")]
+	[Alias('DontStop')]
+	[Switch]$DontStop
 )
+#This script will run the Kevin Holman steps to Purge Agent Data from the OperationsManager DB: https://kevinholman.com/2018/05/03/deleting-and-purging-data-from-the-scom-database/
 #----------------------------------------------------------------------------------------------------------------------------------
+#-Requires: SQL Server Powershell Module (https://docs.microsoft.com/en-us/sql/powershell/download-sql-server-ps-module)
+#Author: Blake Drumm (v-bldrum@microsoft.com)
 #Date Created: 4/10/2021
 cls
 function Invoke-SqlCommand
@@ -190,8 +196,11 @@ function Invoke-SqlCommand
 			}
 		}
 		
-		if (-not ($Connection.State -like "Open")) { try { $Connection.Open() }
-			catch [Exception] { throw $_ } }
+		if (-not ($Connection.State -like "Open"))
+		{
+			try { $Connection.Open() }
+			catch [Exception] { throw $_ }
+		}
 	}
 	
 	process
@@ -351,7 +360,7 @@ Function Erase-BaseManagedEntity
 <#
 DO NOT EDIT PAST THIS POINT
 #>
-
+	
 	$Timeout = '900'
 	
 	foreach ($machine in $Agents)
@@ -414,7 +423,11 @@ ORDER BY FullName
 		}
 		catch
 		{
-			Write-Warning $_
+			Write-Warning "$_`n`nNo Changes have been made."
+			if (!$DontStop)
+			{
+				break
+			}
 		}
 		foreach ($BaseManagedEntityID in $BME_IDs)
 		{
@@ -451,7 +464,6 @@ exec p_AgentPendingActionDeleteByAgentName "$machine"
 		Invoke-SqlCommand -Timeout $Timeout -Server $SqlServer -Database $Database -Query $remove_pending_management
 		
 		Write-Host "Cleared $machine from Pending Management List in SCOM Console." -ForegroundColor DarkGreen
-		
 	}
 	$remove_count_query = @"
 --Query 4
@@ -511,7 +523,7 @@ if ($ManagementServer -or $SqlServer -or $Database -or $Agents -or $AssumeYes)
 }
 else
 {
-<# Edit line 519 to modify the default command run when this script is executed.
+<# Edit line 530 to modify the default command run when this script is executed.
    Example: 
    Erase-BaseManagedEntity -ManagementServer MS1-2019.contoso.com -SqlServer SQL-2019\SCOM2019 -Database OperationsManager -Agents Agent1.contoso.com, Agent2.contoso.com
    #>
