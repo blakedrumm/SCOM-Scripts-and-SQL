@@ -59,7 +59,7 @@ param
 	[Alias('yes')]
 	[Switch]$AssumeYes,
 	[Parameter(Mandatory = $false,
-			   Position = 5,
+			   Position = 6,
 			   HelpMessage = "Optionally force the script to not stop when an error occurs connecting to the Management Server.")]
 	[Alias('ds')]
 	[Switch]$DontStop
@@ -319,8 +319,8 @@ Function Erase-BaseManagedEntity
 		[Alias('yes')]
 		[Switch]$AssumeYes,
 		[Parameter(Mandatory = $false,
-				   Position = 5,
-				   HelpMessage = "Optionally force the script to not stop when an error occurs.")]
+				   Position = 6,
+				   HelpMessage = "Optionally force the script to not stop when an error occurs connecting to the Management Server.")]
 		[Alias('ds')]
 		[Switch]$DontStop
 	)
