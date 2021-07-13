@@ -28,10 +28,10 @@
 	
 	.NOTES
 		.AUTHOR
-		Blake Drumm (v-bldrum@microsoft.com)
+		Blake Drumm (blakedrumm@microsoft.com)
 		
 		.MODIFIED
-		July 12th, 2021
+		July 13th, 2021
 #>
 [OutputType([string])]
 param
@@ -67,9 +67,8 @@ param
 #This script will run the Kevin Holman steps to Purge Agent Data from the OperationsManager DB: https://kevinholman.com/2018/05/03/deleting-and-purging-data-from-the-scom-database/
 #----------------------------------------------------------------------------------------------------------------------------------
 #-Requires: SQL Server Powershell Module (https://docs.microsoft.com/en-us/sql/powershell/download-sql-server-ps-module)
-#Author: Blake Drumm (v-bldrum@microsoft.com)
+#Author: Blake Drumm (blakedrumm@microsoft.com)
 #Date Created: 4/10/2021
-cls
 function Invoke-SqlCommand
 {
     <#
@@ -528,7 +527,7 @@ if ($ManagementServer -or $SqlServer -or $Database -or $Agents -or $AssumeYes -o
 }
 else
 {
-<# Edit line 530 to modify the default command run when this script is executed.
+<# Edit line 534 to modify the default command run when this script is executed.
    Example: 
    Erase-BaseManagedEntity -ManagementServer MS1-2019.contoso.com -SqlServer SQL-2019\SCOM2019 -Database OperationsManager -Agents Agent1.contoso.com, Agent2.contoso.com
    #>
