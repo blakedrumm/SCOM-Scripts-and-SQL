@@ -28,10 +28,10 @@
 	
 	.NOTES
 		.AUTHOR
-		Blake Drumm (blakedrumm@microsoft.com)
+		Blake Drumm (v-bldrum@microsoft.com)
 		
 		.MODIFIED
-		July 12th, 2021
+		July 2nd, 2021
 #>
 [OutputType([string])]
 param
@@ -352,32 +352,7 @@ Function Erase-BaseManagedEntity
 <#
 DO NOT EDIT PAST THIS POINT
 #>
-	try
-	{
-		Invoke-Command -ComputerName $ManagementServer -ScriptBlock {
-			Import-Module OperationsManager
-			$administration = (Get-SCOMManagementGroup).GetAdministration();
-			$agentManagedComputerType = [Microsoft.EnterpriseManagement.Administration.AgentManagedComputer];
-			$genericListType = [System.Collections.Generic.List``1]
-			$genericList = $genericListType.MakeGenericType($agentManagedComputerType)
-			$agentList = new-object $genericList.FullName
-			foreach ($serv in $using:Agents)
-			{
-				Write-Host "Deleting SCOM Agent: `'$serv`' from Agent Managed Computers"
-				$agent = Get-SCOMAgent *$serv*
-				$agentList.Add($agent);
-			}
-			$genericReadOnlyCollectionType = [System.Collections.ObjectModel.ReadOnlyCollection``1]
-			$genericReadOnlyCollection = $genericReadOnlyCollectionType.MakeGenericType($agentManagedComputerType)
-			$agentReadOnlyCollection = new-object $genericReadOnlyCollection.FullName @( ,$agentList);
-			$administration.DeleteAgentManagedComputers($agentReadOnlyCollection);
-		} -ErrorAction Stop
-	}
-	catch
-	{
-		Write-Warning $_
-	}
-	
+
 	$Timeout = '900'
 	
 	foreach ($machine in $Agents)
@@ -417,6 +392,31 @@ ORDER BY FullName
 		{ $answer1 = 'y' }
 		if ($answer1 -eq "n")
 		{ continue }
+		try
+		{
+			Invoke-Command -ComputerName $ManagementServer -ScriptBlock {
+				Import-Module OperationsManager
+				$administration = (Get-SCOMManagementGroup).GetAdministration();
+				$agentManagedComputerType = [Microsoft.EnterpriseManagement.Administration.AgentManagedComputer];
+				$genericListType = [System.Collections.Generic.List``1]
+				$genericList = $genericListType.MakeGenericType($agentManagedComputerType)
+				$agentList = new-object $genericList.FullName
+				foreach ($serv in $using:Agents)
+				{
+					Write-Host "Deleting SCOM Agent: `'$serv`' from Agent Managed Computers"
+					$agent = Get-SCOMAgent *$serv*
+					$agentList.Add($agent);
+				}
+				$genericReadOnlyCollectionType = [System.Collections.ObjectModel.ReadOnlyCollection``1]
+				$genericReadOnlyCollection = $genericReadOnlyCollectionType.MakeGenericType($agentManagedComputerType)
+				$agentReadOnlyCollection = new-object $genericReadOnlyCollection.FullName @( ,$agentList);
+				$administration.DeleteAgentManagedComputers($agentReadOnlyCollection);
+			} -ErrorAction Stop
+		}
+		catch
+		{
+			Write-Warning $_
+		}
 		foreach ($BaseManagedEntityID in $BME_IDs)
 		{
 			Write-Host " Gracefully deleting the following from OperationsManager Database:`n`tName: " -NoNewline
@@ -460,7 +460,7 @@ exec p_AgentPendingActionDeleteByAgentName "$machine"
 SELECT count(*) FROM BaseManagedEntity WHERE IsDeleted = 1
 "@
 	
-	$remove_count = (Invoke-SqlCommand -Timeout $Timeout -Server $SqlServer -Database $Database -Query $remove_count_query).Column1
+	$remove_count = (Invoke-SqlCommand -Timeout $Timeout -Server $SqlServer -Database $Database -Query $remove_count_query -As DataTable).Column1
 	
 	"OperationsManager DB has " | Write-Host -NoNewline
 	$remove_count | Write-Host -NoNewline -ForegroundColor Green
@@ -512,7 +512,7 @@ if ($ManagementServer -or $SqlServer -or $Database -or $Agents -or $AssumeYes)
 }
 else
 {
-<# Edit line 306 to modify the default command run when this script is executed.
+<# Edit line 519 to modify the default command run when this script is executed.
    Example: 
    Erase-BaseManagedEntity -ManagementServer MS1-2019.contoso.com -SqlServer SQL-2019\SCOM2019 -Database OperationsManager -Agents Agent1.contoso.com, Agent2.contoso.com
    #>
