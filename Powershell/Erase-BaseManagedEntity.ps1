@@ -61,7 +61,7 @@ param
 	[Parameter(Mandatory = $false,
 			   Position = 5,
 			   HelpMessage = "Optionally force the script to not stop when an error occurs.")]
-	[Alias('DontStop')]
+	[Alias('ds')]
 	[Switch]$DontStop
 )
 #This script will run the Kevin Holman steps to Purge Agent Data from the OperationsManager DB: https://kevinholman.com/2018/05/03/deleting-and-purging-data-from-the-scom-database/
