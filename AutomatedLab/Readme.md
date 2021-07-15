@@ -8,6 +8,8 @@
    `C:\LabSources\ISOs\SQLServer2019-x64-ENU.iso`
  - System Center Operations Manager 2019 executable located here (https://www.microsoft.com/en-US/evalcenter/evaluate-system-center-2019) : \
    `C:\LabSources\SoftwarePackages\SCOM_2019.exe`
+ - SQL Server Powershell Nuget Package located here (https://www.powershellgallery.com/packages/SqlServer/21.0.17099) :
+   `C:\LabSources\SoftwarePackages\SqlServer*.nupkg`
 
 # Introduction
 This will install the following automatically for you in an Hyper-V Environment:
