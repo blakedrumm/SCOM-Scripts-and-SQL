@@ -5,9 +5,9 @@ function Get-SCOMNotificationSubscriptionDetails
 		[Parameter(Mandatory = $false)]
 		[string]$Output
 	)
-    #Originally found here: https://blog.topqore.com/export-scom-subscriptions-using-powershell/
-    # Modified by: Blake Drumm (blakedrumm@microsoft.com)
-    # Date Modified: 07/16/2021
+	#Originally found here: https://blog.topqore.com/export-scom-subscriptions-using-powershell/
+	# Modified by: Blake Drumm (blakedrumm@microsoft.com)
+	# Date Modified: 07/16/2021
 	$finalstring = $null
 	$subs = $null
 	$subs = Get-SCOMNotificationSubscription
@@ -38,7 +38,7 @@ function Get-SCOMNotificationSubscriptionDetails
 		$val = Select-Xml -Content $templatesub -XPath "//Value" | foreach { $_.node.InnerXML }
 		$operators = Select-Xml -Content $templatesub -XPath "//Operator" | foreach { $_.node.InnerXML }
 		$property = Select-Xml -Content $templatesub -XPath "//Property" | foreach { $_.node.InnerXML }
-
+		
 		for ($i = 0; $i -lt $property.length; $i++)
 		{
 			if ($property[$i] -eq "ProblemId")
@@ -155,29 +155,39 @@ function Get-SCOMNotificationSubscriptionDetails
 			$MainObject | Add-Member -MemberType NoteProperty -Name "   Subscriber Address Name      $i-" -Value $subscriber.Devices.Name
 		}
 		$i = 0
-        $MainObject | Add-Member -MemberType NoteProperty -Name '     ' -Value "`n`n-------- Channel Information --------"
+		$MainObject | Add-Member -MemberType NoteProperty -Name '     ' -Value "`n`n-------- Channel Information --------"
 		foreach ($action in $sub.Actions)
 		{
 			$i = $i
-			$MainObject | Add-Member -MemberType NoteProperty -Name ("               Channel Name        " + ($i + 1)) -Value ($action.Displayname)
-			$MainObject | Add-Member -MemberType NoteProperty -Name ("               ID                  " + ($i + 1)) -Value ($action.ID)
-			$MainObject | Add-Member -MemberType NoteProperty -Name ("               Channel Description " + ($i + 1)) -Value ($action.description)
+			$MainObject | Add-Member -MemberType NoteProperty -Name ("       Channel Name                         " + ($i + 1)) -Value ($action.Displayname)
+			$MainObject | Add-Member -MemberType NoteProperty -Name ("       ID                                   " + ($i + 1)) -Value ($action.ID)
+			$MainObject | Add-Member -MemberType NoteProperty -Name ("       Channel Description                  " + ($i + 1)) -Value ($action.description)
 			if ($action.Endpoint -like "Smtp*")
 			{
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("               From                " + ($i + 1)) -Value ($action.From)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("               Subject             " + ($i + 1)) -Value ($action.Subject)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("               Endpoint            " + ($i + 1)) -Value ($action.Endpoint)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("               Body Encoding       " + ($i + 1)) -Value ($action.BodyEncoding)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("               Reply To            " + ($i + 1)) -Value ($action.ReplyTo)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("               Headers             " + ($i + 1)) -Value ($action.Headers)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("               Body                " + ($i + 1)) -Value ($action.body)
+				#Get the SMTP channel endpoint
+				$action.Endpoint.PrimaryServer
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Primary SMTP Server                  " + ($i + 1)) -Value ($action.Endpoint.PrimaryServer.Address)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Primary SMTP Port                    " + ($i + 1)) -Value ($action.Endpoint.PrimaryServer.PortNumber)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Primary SMTP Authentication Type     " + ($i + 1)) -Value ($action.Endpoint.PrimaryServer.AuthenticationType)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Primary SMTP ExternalEmailProfile    " + ($i + 1)) -Value ($action.Endpoint.PrimaryServer.ExternalEmailProfile)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Secondary SMTP Server                " + ($i + 1)) -Value ($action.Endpoint.SecondaryServers.Address)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Secondary SMTP Port                  " + ($i + 1)) -Value ($action.Endpoint.SecondaryServers.PortNumber)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Secondary SMTP Authentication Type   " + ($i + 1)) -Value ($action.Endpoint.SecondaryServers.AuthenticationType)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Secondary SMTP ExternalEmailProfile  " + ($i + 1)) -Value ($action.Endpoint.SecondaryServers.ExternalEmailProfile)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       From                                 " + ($i + 1)) -Value ($action.From)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Subject                              " + ($i + 1)) -Value ($action.Subject)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Endpoint                             " + ($i + 1)) -Value ($action.Endpoint)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Body Encoding                        " + ($i + 1)) -Value ($action.BodyEncoding)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Reply To                             " + ($i + 1)) -Value ($action.ReplyTo)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Headers                              " + ($i + 1)) -Value ($action.Headers)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Body                                 " + ($i + 1)) -Value ($action.body)
 			}
 			elseif ($action.RecipientProtocol -like "Cmd*")
 			{
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("               Application Name    " + ($i + 1)) -Value ($action.ApplicationName)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("               Working Directory   " + ($i + 1)) -Value ($action.WorkingDirectory)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("               Command Line        " + ($i + 1)) -Value ($action.CommandLine)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("               Timeout             " + ($i + 1)) -Value ($action.Timeout)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Application Name        " + ($i + 1)) -Value ($action.ApplicationName)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Working Directory       " + ($i + 1)) -Value ($action.WorkingDirectory)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Command Line            " + ($i + 1)) -Value ($action.CommandLine)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Timeout                 " + ($i + 1)) -Value ($action.Timeout)
 			}
 			$i++
 		}
