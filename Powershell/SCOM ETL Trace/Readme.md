@@ -9,7 +9,7 @@ The script will perform the following, in this order:
 2. Starts the ETL Trace
  - *Optional:* Starts the SCOM Services back up
 3. Script will wait for issue to occur
- - *Optional:* Pauses Script, waits until you press Enter
+ - *Default:* Pauses Script, waits until you press Enter
  - *Optional:* Sleeps for x Seconds (`-SleepSeconds 10`)
  - *Optional:* Script will loop until an Event ID is detected  (`-DetectOpsMgrEventID`)
 4. Stops ETL Trace
