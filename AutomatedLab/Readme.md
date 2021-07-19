@@ -13,7 +13,7 @@
  - SQL Server Management Studio (https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms) : \
    `C:\LabSources\SoftwarePackages\SQL2019\SSMS-Setup-ENU.exe`
  - SQL Server 2019 Latest Cumulative Update (https://www.microsoft.com/en-us/download/confirmation.aspx?id=100809) : \
-   `C:\LabSources\SoftwarePackages\SQLServer2019-KB5001090-x64.exe`
+   `C:\LabSources\SoftwarePackages\SQLServer2019-KB*-x64.exe`
  - SQL Server Reporting Services (https://www.microsoft.com/en-us/download/details.aspx?id=100122) : \
    `C:\LabSources\SoftwarePackages\SQLServer2019_ReportingServices.exe`
  - *OPTIONAL:* Notepad++ (https://notepad-plus-plus.org/) : \
