@@ -8,15 +8,15 @@
    `C:\LabSources\ISOs\SQLServer2019-x64-ENU.iso`
  - System Center Operations Manager 2019 executable located here (https://www.microsoft.com/en-US/evalcenter/evaluate-system-center-2019) : \
    `C:\LabSources\SoftwarePackages\SCOM_2019.exe`
- - SQL Server Powershell Nuget Package located here (https://www.powershellgallery.com/packages/SqlServer/21.0.17099) :
+ - SQL Server Powershell Nuget Package located here (https://www.powershellgallery.com/packages/SqlServer/21.0.17099) : \
    `C:\LabSources\SoftwarePackages\SqlServer*.nupkg`
- - SQL Server Management Studio (https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms)
+ - SQL Server Management Studio (https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms) : \
    `C:\LabSources\SoftwarePackages\SQL Server Management Studio\SSMS-Setup-ENU.exe`
- - SQL Server 2019 Latest Cumulative Update (https://www.microsoft.com/en-us/download/confirmation.aspx?id=100809)
+ - SQL Server 2019 Latest Cumulative Update (https://www.microsoft.com/en-us/download/confirmation.aspx?id=100809) : \
    `C:\LabSources\SoftwarePackages\SQLServer2019-KB5001090-x64.exe`
- - SQL Server Reporting Services (https://www.microsoft.com/en-us/download/details.aspx?id=100122)
+ - SQL Server Reporting Services (https://www.microsoft.com/en-us/download/details.aspx?id=100122) : \
    `C:\LabSources\SoftwarePackages\SQLServer2019_ReportingServices.exe`
- - *OPTIONAL:* Notepad++ (https://notepad-plus-plus.org/)
+ - *OPTIONAL:* Notepad++ (https://notepad-plus-plus.org/) : \
    `C:\LabSources\SoftwarePackages\npp.*.*.*.Installer.x64.exe`
 
 # Introduction
