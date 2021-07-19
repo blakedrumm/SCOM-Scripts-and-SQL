@@ -53,16 +53,20 @@
 		A description of the NetworkTrace parameter.
 	
 	.PARAMETER RestartSCOMServices
-		If you want to restart the SCOM Services right after starting the ETL Trace.
+		If you want to stop the SCOM Services / start the SCOM Services back up when the ETL Trace starts running.
 	
 	.PARAMETER DetectOpsMgrEventID
 		Detect in the Operations Manager Event Logs for an specific Event Id.
 	
 	.PARAMETER SleepSeconds
-		How often to wait between checks for Event Ids. Or use this switch to automate the ETL Trace.
+		How often to wait between checks for Event Ids. Or how long to wait until Automatic stop.
 	
 	.EXAMPLE
+		Gather Verbose ETL Trace while detecting for Event ID 1210, sleep 60 seconds between each check for the Event ID.
 		PS C:\> .\Start-ScomETLTrace.ps1 -VerboseTrace -DetectOpsMgrEventID 1210 -SleepSeconds 60
+		
+		Gather ETL Trace with all the traces gathered by default, wait 300 seconds (5 minutes) and then automatically stop the ETL Trace and zip up the output folder:
+		.\Start-ScomETLTrace.ps1 -SleepSeconds 300
 	
 	.NOTES
 		.AUTHOR
@@ -72,7 +76,7 @@
 		September 3rd 2020
 		
 		.MODIFIED
-		June 11th, 2021
+		July 19th, 2021
 #>
 [CmdletBinding()]
 [OutputType([string])]
