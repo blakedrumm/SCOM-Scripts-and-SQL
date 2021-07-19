@@ -11,7 +11,7 @@
  - SQL Server Powershell Nuget Package located here (https://www.powershellgallery.com/packages/SqlServer/21.0.17099) : \
    `C:\LabSources\SoftwarePackages\SqlServer*.nupkg`
  - SQL Server Management Studio (https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms) : \
-   `C:\LabSources\SoftwarePackages\SQL Server Management Studio\SSMS-Setup-ENU.exe`
+   `C:\LabSources\SoftwarePackages\SQL2019\SSMS-Setup-ENU.exe`
  - SQL Server 2019 Latest Cumulative Update (https://www.microsoft.com/en-us/download/confirmation.aspx?id=100809) : \
    `C:\LabSources\SoftwarePackages\SQLServer2019-KB5001090-x64.exe`
  - SQL Server Reporting Services (https://www.microsoft.com/en-us/download/details.aspx?id=100122) : \
