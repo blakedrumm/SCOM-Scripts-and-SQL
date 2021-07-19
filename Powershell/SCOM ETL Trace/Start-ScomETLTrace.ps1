@@ -70,7 +70,7 @@
 	
 	.NOTES
 		.AUTHOR
-		Blake Drumm (https://github.com/v-bldrum)
+		Blake Drumm (https://github.com/blakedrumm)
 		
 		.CREATED
 		September 3rd 2020
@@ -141,6 +141,12 @@ trap
 {
 	Write-Warning "Encountered an Exception: $_"
 }
+Write-Host @"
+===============================================================
+System Center Operations Manager ETL / Network Trace Gathering
+===============================================================
+
+"@
 Function Start-ETLTrace
 {
 	[CmdletBinding()]
@@ -431,12 +437,14 @@ exit 0
 	Function Start-ScomETLTrace
 	{
 		Time-Stamp
-		write-host "Stopping any existing Trace(s)" -ForegroundColor DarkCyan -NoNewline
+		write-host "Stopping any existing Trace(s)" -ForegroundColor DarkCyan
 		try
 		{
-			Start-Process "$env:SystemRoot\SYSWOW64\cmd.exe" "/c `"$installdir`\StopTracing.cmd`"" -WorkingDirectory $installdir -NoNewWindow -Wait | out-null
+			Start-Process "$env:SystemRoot\SYSWOW64\cmd.exe" "/c `"$installdir`\StopTracing.cmd`"" -WorkingDirectory $installdir -Wait | out-null
 			if ($NetworkTrace)
 			{
+				Time-Stamp
+				write-host "  Stopping any existing Network Trace" -ForegroundColor Gray
 				do { Write-Host "." -NoNewline -ForegroundColor DarkCyan; sleep 1 }
 				until (Netsh trace stop)
 			}
@@ -451,8 +459,9 @@ exit 0
 		{
 			if (!$VerboseTrace -and !$DebugTrace)
 			{
-				$answer = $null
-				$answer = Read-Host -Prompt "Would you like to perform a Verbose or Debug Trace? (V/D)"
+				Time-Stamp
+				Write-Host "No Trace Type Selected (Verbose / Debug), will proceed with Verbose as default." -ForegroundColor DarkGray
+				$answer = "verbose"
 			}
 			if ($VerboseTrace)
 			{
@@ -508,7 +517,7 @@ exit 0
 			{
 				Time-Stamp
 				write-host "Starting ETL trace at Verbose level" -ForegroundColor Cyan
-				Start-Process "$env:SystemRoot\SYSWOW64\cmd.exe" "/c `"$installdir`\StartTracing.cmd`" VER" -WorkingDirectory $installdir -NoNewWindow -Wait | out-null
+				Start-Process "$env:SystemRoot\SYSWOW64\cmd.exe" "/c `"$installdir`\StartTracing.cmd`" VER" -WorkingDirectory $installdir -Wait | out-null
 				#[string] $Out = $ps.StandardOutput.ReadToEnd();
 				#[void](Invoke-Item "" 'VER' -)
 				Time-Stamp
@@ -526,7 +535,7 @@ exit 0
 			{
 				Time-Stamp
 				write-host "Starting ETL trace at Debug level" -ForegroundColor Cyan
-				Start-Process "$env:SystemRoot\SYSWOW64\cmd.exe" "/c `"$installdir`\StartTracing.cmd`" DBG" -WorkingDirectory $installdir -NoNewWindow -Wait | out-null
+				Start-Process "$env:SystemRoot\SYSWOW64\cmd.exe" "/c `"$installdir`\StartTracing.cmd`" DBG" -WorkingDirectory $installdir -Wait | out-null
 				Time-Stamp
 				write-host "Process Completed!" -ForegroundColor DarkCyan
 			}
@@ -599,7 +608,7 @@ exit 0
 	
 	Time-Stamp
 	Write-Host "Stopping ETL Trace" -ForegroundColor Cyan
-	Start-Process "$env:SystemRoot\SYSWOW64\cmd.exe" "/c `"$installdir`\StopTracing.cmd`"" -WorkingDirectory $installdir -NoNewWindow -Wait | out-null
+	Start-Process "$env:SystemRoot\SYSWOW64\cmd.exe" "/c `"$installdir`\StopTracing.cmd`"" -WorkingDirectory $installdir -Wait | out-null
 	if ($NetworkTrace)
 	{
 		Time-Stamp
@@ -619,7 +628,7 @@ exit 0
 	
 	#Start-Process -FilePath cmd.exe -ArgumentList '/c', "`"$installdir`\FormatTracing.cmd`"" -WorkingDirectory $installdir -Wait -WorkingDirectory $installdir -NoNewWindow -Wait
 	
-	Start-Process "$env:SystemRoot\SYSWOW64\cmd.exe" "/c `"$installdir`\FormatTracing.cmd`"" -WorkingDirectory $installdir -NoNewWindow -Wait | out-null
+	Start-Process "$env:SystemRoot\SYSWOW64\cmd.exe" "/c `"$installdir`\FormatTracing.cmd`"" -WorkingDirectory $installdir -Wait | out-null
 	
 	#Move Files
 	Time-Stamp
