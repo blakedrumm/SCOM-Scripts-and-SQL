@@ -444,7 +444,7 @@ exit 0
 			if ($NetworkTrace)
 			{
 				Time-Stamp
-				write-host "  Stopping any existing Network Trace" -ForegroundColor Gray
+				write-host "  Stopping any existing Network Trace" -ForegroundColor Gray -NoNewline
 				do { Write-Host "." -NoNewline -ForegroundColor DarkCyan; sleep 1 }
 				until (Netsh trace stop)
 			}
