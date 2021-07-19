@@ -34,6 +34,7 @@ This will install the following automatically for you in an Hyper-V Environment:
 The script will also deploy the following tool(s):
  - Notepad++
 
+# Instructions
 You will need to edit the lines below the `Global variables definition` region of the script.
 
 ### Names of the Hyper-V Servers that can be deployed with this script:
