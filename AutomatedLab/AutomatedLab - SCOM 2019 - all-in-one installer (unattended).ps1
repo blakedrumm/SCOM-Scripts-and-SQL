@@ -890,7 +890,7 @@ Updating SCOM Agents
 		
 	}
 	Get-SCOMPendingManagement | Approve-SCOMPendingManagement
-} -Variable (Get-Variable -Name $ToBecomeAgents, $FQDNDomainName)
+} -Variable (Get-Variable -Name ToBecomeAgents, FQDNDomainName)
 $NotepadPlusPlusLocation = (Get-Item $labSources\SoftwarePackages\npp.*.*.*.Installer.x64.exe)
 if (!$NotepadPlusPlusLocation)
 {
