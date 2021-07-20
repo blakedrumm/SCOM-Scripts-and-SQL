@@ -12,7 +12,7 @@ Based on
 # Author: Blake Drumm (blakedrumm@microsoft.com)
 # Original Author: Laurent VAN ACKER (lavanack) - https://github.com/lavanack/laurentvanacker.com/blob/master/Windows%20Powershell/SCOM/AutomatedLab%20-%20SCOM%20-%202019.ps1
 # Date Created: March 22nd, 2021
-# Date Modified: July 19th, 2021
+# Date Modified: July 20th, 2021
 #requires -Version 5 -Modules AutomatedLab -RunAsAdministrator 
 trap
 {
@@ -889,6 +889,7 @@ Updating SCOM Agents
 		}
 		
 	}
+	Get-SCOMPendingManagement | Approve-SCOMPendingManagement
 } -Variable (Get-Variable -Name $ToBecomeAgents, $FQDNDomainName)
 $NotepadPlusPlusLocation = (Get-Item $labSources\SoftwarePackages\npp.*.*.*.Installer.x64.exe)
 if (!$NotepadPlusPlusLocation)
