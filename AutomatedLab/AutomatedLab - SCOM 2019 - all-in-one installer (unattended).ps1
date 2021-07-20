@@ -308,23 +308,23 @@ Set-DNSClientServerAddress -InterfaceIndex $network_adapters.ifIndex[0] -ServerA
 
 #endregion
 
-$machines = Get-LabVM | Where { $_.OperatingSystem -match "Windows" }
+$WindowsMachines = Get-LabVM | Where { $_.OperatingSystem -match "Windows" }
 $SecurePassword = ConvertTo-SecureString -String $ClearTextPassword -AsPlainText -Force
 $Cred = New-Object System.Management.Automation.PSCredential ($Logon, $SecurePassword)
 
 if ($WindowsDefender_RealtimeDisable)
 {
-	Invoke-LabCommand -UseLocalCredential -ActivityName "Disabling Windows Defender Realtime Protection Component" -ComputerName $machines -ScriptBlock { Set-MpPreference -DisableRealtimeMonitoring $true }
+	Invoke-LabCommand -UseLocalCredential -ActivityName "Disabling Windows Defender Realtime Protection Component" -ComputerName $WindowsMachines -ScriptBlock { Set-MpPreference -DisableRealtimeMonitoring $true }
 }
 #Change from Datacenter Evaluation to Full Version / Register Product Key
 if ($WindowsOperatingSystem -match "evaluation")
 {
 	if ($WindowsProductKey)
 	{
-		Invoke-LabCommand -UseLocalCredential -ActivityName "Changing from Evaluation to Full Version of Windows Server DataCenter." -ComputerName $machines -ScriptBlock {
+		Invoke-LabCommand -UseLocalCredential -ActivityName "Changing from Evaluation to Full Version of Windows Server DataCenter." -ComputerName $WindowsMachines -ScriptBlock {
 			Dism /online /Set-Edition:ServerDatacenter /AcceptEula /ProductKey:$WindowsProductKey /NoRestart /Quiet
 		} -Variable (Get-Variable -Name WindowsProductKey)
-		Restart-LabVM -ComputerName $machines -Wait
+		Restart-LabVM -ComputerName $WindowsMachines -Wait
 	}
 	else
 	{
@@ -396,7 +396,7 @@ Invoke-LabCommand -ActivityName 'Adding the SCOM Admins AD Group to the local Ad
 	Add-LocalGroupMember -Member "$NetBiosDomainName\$SCOMAdmins" -Group Administrators
 } -Variable (Get-Variable -Name NetBiosDomainName, SCOMAdmins) -PassThru
 
-Invoke-LabCommand -UseLocalCredential -ActivityName "Disabling IE ESC" -ComputerName $machines -ScriptBlock {
+Invoke-LabCommand -UseLocalCredential -ActivityName "Disabling IE ESC" -ComputerName $WindowsMachines -ScriptBlock {
 	#Disabling IE ESC
 	$AdminKey = 'HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}'
 	$UserKey = 'HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}'
@@ -896,7 +896,7 @@ if (!$NotepadPlusPlusLocation)
 {
 	$NotepadPlusPlusLocation = Get-LabInternetFile -URI $NotepadPlusPlusURI -Path $labSources\SoftwarePackages -Passthru
 }
-Install-LabSoftwarePackage -ComputerName $machines -Path $NotepadPlusPlusLocation.FullName -CommandLine "/S"
+Install-LabSoftwarePackage -ComputerName $WindowsMachines -Path $NotepadPlusPlusLocation.FullName -CommandLine "/S"
 #endregion
 if ($UseDefaultSwitch)
 {
