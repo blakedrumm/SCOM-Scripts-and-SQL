@@ -824,9 +824,6 @@ Invoke-LabCommand -ActivityName 'Installing Management Packs' -ComputerName MS01
 	Get-ChildItem -Path "${env:ProgramFiles(x86)}\System Center Management Packs\" -File -Filter *.mp? -Recurse | Where-Object -FilterScript { $_.BaseName -in 'Microsoft.Windows.InternetInformationServices.2016' } | Import-SCOMManagementPack
 	#Installing ApplicationInsights ManagementPack.
 	Get-ChildItem -Path "${env:ProgramFiles(x86)}\System Center Management Packs\" -File -Filter *.mp? -Recurse | Where-Object -FilterScript { $_.BaseName -in 'Microsoft.SystemCenter.ApplicationInsights' } | Import-SCOMManagementPack
-	
-	$SCOMAgent = Install-SCOMAgent -PrimaryManagementServer $(Get-SCOMManagementServer) -DNSHostName IIS-2019.contoso.com -PassThru
-	Get-SCOMPendingManagement | Approve-SCOMPendingManagement
 }
 sleep 10
 $ToBecomeAgents = Get-LabVM | Where { $_.OperatingSystem -match "Windows" -and $_.Name -notlike "MS0*" } | % { $_.Name + "." + $_.DomainName }
@@ -834,7 +831,63 @@ Invoke-LabCommand -ActivityName 'Installing SCOM Agent' -ComputerName ($SCOMServ
 	$Cred = New-Object System.Management.Automation.PSCredential ($(whoami), $SecurePassword)
 	foreach ($machine in $ToBecomeAgents)
 	{
-		Install-SCOMAgent -PrimaryManagementServer $(Get-SCOMManagementServer -Name MS01-2019.$FQDNDomainName) -DNSHostName $machine
+		Install-SCOMAgent -PrimaryManagementServer $(Get-SCOMManagementServer -Name "MS01-2019.$FQDNDomainName") -DNSHostName $machine
+	}
+	$DomainControllers = "DC-2019.$FQDNDomainName"
+	<#
+	function Time-Stamp
+	{
+		$TimeStamp = Get-Date -Format "MM/dd/yyy hh:mm:ss tt"
+		Write-Host $TimeStamp -NoNewLine -ForegroundColor DarkGray
+	}
+	Write-Host @"
+====================
+Updating SCOM Agents
+====================
+"@
+	#>
+	ForEach ($Computer in $DomainControllers)
+	{
+		#Time-Stamp
+		#Write-Host "  $Computer" -ForegroundColor DarkCyan
+		#Copy Agent Installer from C:\ to C:\ on remote computer
+		Copy-Item ((Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\System Center Operations Manager\12\Setup\Server').InstallDirectory + "\AgentManagement\amd64\MOMAgent.msi") "\\$Computer\C`$\" -Force -ErrorAction Stop
+		#Copy Agent Update Rollup from C:\ to C:\ on remote computer
+		#Copy-Item "C:\\KB4580254-amd64-Agent.msp" "\\$Computer\C`$\\" -Force -ErrorAction Stop
+		Invoke-Command -ComputerName $Computer -ScriptBlock {
+			Stop-process -Name msiexec -Force
+			<#
+			function Time-Stamp
+			{
+				$TimeStamp = Get-Date -Format "MM/dd/yyy hh:mm:ss tt"
+				Write-Host $TimeStamp -NoNewLine -ForegroundColor DarkGray
+			}
+			#>
+			$path_to_install = 'C:\\MOMAgent.msi'
+			# Uninstall Agent
+			#Time-Stamp
+			#Write-Host "`t - Uninstalling Agent" -ForegroundColor Cyan
+			start-process -FilePath "msiexec.exe" -ArgumentList "/x $path_to_install /qn /l*v C:\\AgentUninstall.log" -Wait -ErrorAction SilentlyContinue
+			Sleep 1
+			$args = "USE_SETTINGS_FROM_AD=0 USE_MANUALLY_SPECIFIED_SETTINGS=1 MANAGEMENT_GROUP=$LabName MANAGEMENT_SERVER_DNS=MS01-2019.$using:FQDNDomainName MANAGEMENT_SERVER_AD_NAME=MS01-2019.$using:FQDNDomainName SECURE_PORT=5723 ACTIONS_USE_COMPUTER_ACCOUNT=1 AcceptEndUserLicenseAgreement=1"
+			$args = "/i " + $path_to_install + " /quiet /qn /l*v C:\\SCOMAgentInstall.log " + $args
+			# Install Ops Manager Agent
+			#Time-Stamp
+			#Write-Host "`t - Installing MOMAgent.msi" -ForegroundColor Cyan
+			start-process -FilePath "msiexec.exe" -ArgumentList $args -Wait -ErrorAction SilentlyContinue
+			sleep 1
+			# Adding 'NT Authority\System' via HSLockdown
+			#Time-Stamp
+			#Write-Host "`t - Adding 'NT Authority\System' via HSLockdown" -ForegroundColor Cyan
+			start-process -FilePath "C:\Program Files\Microsoft Monitoring Agent\Agent\HSLockdown.exe" -ArgumentList "/A `"NT Authority\System`"" -Wait -ErrorAction Stop
+			sleep 1
+			# Restarting Microsoft Monitoring Agent
+			#Time-Stamp
+			#Write-Host "`t - Restarting Microsoft Monitoring Agent" -ForegroundColor Cyan
+			Restart-Service HealthService -Force
+			#Write-Host "`t -- Complete!" -ForegroundColor Green
+		}
+		
 	}
 } -Variable (Get-Variable -Name $ToBecomeAgents, $FQDNDomainName)
 $NotepadPlusPlusLocation = (Get-Item $labSources\SoftwarePackages\npp.*.*.*.Installer.x64.exe)
