@@ -23,10 +23,10 @@
 	
 	.NOTES
 		.AUTHOR
-		Blake Drumm (v-bldrum@microsoft.com)
+		Blake Drumm (blakedrumm@microsoft.com)
 		
 		.MODIFIED
-		May 24th, 2021
+		July 20th, 2021
 #>
 [OutputType([string])]
 param
