@@ -9,10 +9,10 @@ Based on
 - https://www.prajwaldesai.com/install-scom-agent-using-command-line/
 #>
 #
-# Author: Blake Drumm (v-bldrum@microsoft.com)
+# Author: Blake Drumm (blakedrumm@microsoft.com)
 # Original Author: Laurent VAN ACKER (lavanack) - https://github.com/lavanack/laurentvanacker.com/blob/master/Windows%20Powershell/SCOM/AutomatedLab%20-%20SCOM%20-%202019.ps1
 # Date Created: March 22nd, 2021
-# Date Modified: May 4th, 2021
+# Date Modified: July 19th, 2021
 #requires -Version 5 -Modules AutomatedLab -RunAsAdministrator 
 trap
 {
@@ -48,6 +48,7 @@ $SCOM2019_Location = 'SoftwarePackages\SCOM_2019.exe' #Location of the SCOM 2019
 $WindowsDefender_RealtimeDisable = $true #Disable Windows Defender Realtime Protection - (Default: $true)
 $SCOMSetupLocalFolder = 'C:\System Center Operations Manager 2019' #Where you want to extract the SCOM Installation when installing the SCOM Components to the Management Server. (Default: C:\System Center Operations Manager 2019)
 $WindowsOperatingSystem = 'Windows Server 2019 Datacenter Evaluation (Desktop Experience)' #Set the Operating System Type here. Grab the OS with this command: Get-LabAvailableOperatingSystem
+$NumberOfManagementServers = 2
 [double]$HyperV_Memory = 4GB #Default memory for All Servers (Default: 4GB)
 [double]$HyperV_MinMemory = 2GB #Default min memory for All Servers (Default: 2GB)
 [double]$HyperV_MaxMemory = 4GB #Default max memory for All Servers (Default: 4GB)
@@ -59,21 +60,21 @@ $WindowsOperatingSystem = 'Windows Server 2019 Datacenter Evaluation (Desktop Ex
 
 #Names of the Hyper-V Servers that can be deployed with this script:
 # Hostname | Role
-# DC01 : Domain Controller
-# MS1-2019 : System Center Operations Manager 2019 - Management Server
-# SQL-2019 : SQL Server 2019
-# IIS-SERVER : IIS Windows Agent
+# DC-2019 : Domain Controller
+# MS01-2019 : System Center Operations Manager 2019 - Management Server
+# MSSQL-2019 : SQL Server 2019
+# IIS-2019 : IIS Windows Agent
 # RHEL7-9 : Redhat 7.9
 
 ##############################################
 ########### Network / IP Address #############
 ##############################################
 $NetworkID = '192.168.0.0/24' # (Default: 192.168.0.0/24)
-$DC01IPv4Address = '192.168.0.1' # (Default: 192.168.0.1)
+$DC2019IPv4Address = '192.168.0.1' # (Default: 192.168.0.1)
 $GatewayIPv4Address = '192.168.0.2' # Hyper-V Host IP (Default: 192.168.0.2)
 $SQL2019IPv4Address = '192.168.0.11' #SQL 2019 Server (Default: 192.168.0.11)
 $IIS_IPv4Address = '192.168.0.21' #SCOM Web Console (Default: 192.168.0.21)
-$SCOM2019MS1IPv4Address = '192.168.0.31' # (Default: 192.168.0.31)
+$SCOM2019MSIPv4Address = '192.168.0.31' # (Default: 192.168.0.31)
 #Redhat 7.9 - if you dont want this deployed, set $DeployRHEL79 = $false.
 $DeployRHEL79 = $false # (Default: $false)
 $RHEL79IPv4Address = '192.168.0.58' # (Default: 192.168.0.58)
@@ -194,29 +195,42 @@ $PSDefaultParameterValues = @{
 #$GatewayIPv4Address = (Get-NetIPInterface | Where{ $_.InterfaceAlias -like '*SCOM2019*' } | Where{ $_.AddressFamily -eq 'IPv4' } | Get-NetIPAddress).IPAddress
 
 $IISAgentNetAdapter = @()
-$IISAgentNetAdapter += New-LabNetworkAdapterDefinition -VirtualSwitch $LabName -Ipv4Address $IIS_IPv4Address -Ipv4Gateway $GatewayIPv4Address -Ipv4DNSServers $DC01IPv4Address -RegisterInDNS:$true
+$IISAgentNetAdapter += New-LabNetworkAdapterDefinition -VirtualSwitch $LabName -Ipv4Address $IIS_IPv4Address -Ipv4Gateway $GatewayIPv4Address -Ipv4DNSServers $DC2019IPv4Address -RegisterInDNS:$true
 if ($UseDefaultSwitch)
 {
 	$IISAgentNetAdapter += New-LabNetworkAdapterDefinition -VirtualSwitch 'Default Switch' -UseDhcp
 }
 $SQL2019NetAdapter = @()
-$SQL2019NetAdapter += New-LabNetworkAdapterDefinition -VirtualSwitch $LabName -Ipv4Address $SQL2019IPv4Address -Ipv4Gateway $GatewayIPv4Address -Ipv4DNSServers $DC01IPv4Address -RegisterInDNS:$true
+$SQL2019NetAdapter += New-LabNetworkAdapterDefinition -VirtualSwitch $LabName -Ipv4Address $SQL2019IPv4Address -Ipv4Gateway $GatewayIPv4Address -Ipv4DNSServers $DC2019IPv4Address -RegisterInDNS:$true
 if ($UseDefaultSwitch)
 {
 	#Adding an Internet Connection on the SQL Server (Required for the SQL Setup via AutomatedLab)
 	$SQL2019NetAdapter += New-LabNetworkAdapterDefinition -VirtualSwitch 'Default Switch' -UseDhcp
 }
-$SCOM2019MS1NetAdapter = @()
-$SCOM2019MS1NetAdapter += New-LabNetworkAdapterDefinition -VirtualSwitch $LabName -Ipv4Address $SCOM2019MS1IPv4Address -Ipv4Gateway $GatewayIPv4Address -Ipv4DNSServers $DC01IPv4Address -RegisterInDNS:$true
-if ($UseDefaultSwitch)
+
+$SCOM2019MSNetAdapter = @{ }
+$i = 0
+
+do
 {
-	#Adding an Internet Connection on the Management Server
-	$SCOM2019MS1NetAdapter += New-LabNetworkAdapterDefinition -VirtualSwitch 'Default Switch' -UseDhcp
+	$i = $i
+	$i++
+	[string]$i = "{0:D2}" -f $i
+	$SCOM2019MSNetAdapter["var$i"] = @()
+	$MSIPv4Address = ((($SCOM2019MSIPv4Address).Split(".") | Select -First 3) -join '.') + "." + ([int](($SCOM2019MSIPv4Address).Split(".") | Select -Last 1) + $i)
+	$SCOM2019MSNetAdapter["var$i"] += New-LabNetworkAdapterDefinition -VirtualSwitch $LabName -Ipv4Address $MSIPv4Address -Ipv4Gateway $GatewayIPv4Address -Ipv4DNSServers $DC2019IPv4Address -RegisterInDNS:$true
+	if ($UseDefaultSwitch)
+	{
+		#Adding an Internet Connection on the Management Server
+		$SCOM2019MSNetAdapter["var$i"] += New-LabNetworkAdapterDefinition -VirtualSwitch 'Default Switch' -UseDhcp
+	}
+	[int]$i = $i
 }
+until ($i -eq $NumberOfManagementServers)
 if ($DeployRHEL79)
 {
 	$RHEL79NetAdapter = @()
-	$RHEL79NetAdapter += New-LabNetworkAdapterDefinition -VirtualSwitch $LabName -Ipv4Address $RHEL79IPv4Address -Ipv4Gateway $GatewayIPv4Address -Ipv4DNSServers $DC01IPv4Address -RegisterInDNS:$true
+	$RHEL79NetAdapter += New-LabNetworkAdapterDefinition -VirtualSwitch $LabName -Ipv4Address $RHEL79IPv4Address -Ipv4Gateway $GatewayIPv4Address -Ipv4DNSServers $DC2019IPv4Address -RegisterInDNS:$true
 	if ($UseDefaultSwitch)
 	{
 		#Adding an Internet Connection on the RHEL 7.9 Machine
@@ -248,13 +262,22 @@ Add-LabIsoImageDefinition -Name SQLServer2019 -Path $labSources\$SQLServerISO
 
 #region server definitions
 #Root Domain controller
-Add-LabMachineDefinition -Name DC01 -Roles RootDC -IpAddress $DC01IPv4Address -Gateway $GatewayIPv4Address -DnsServer1 $DC01IPv4Address
+Add-LabMachineDefinition -Name DC-2019 -Roles RootDC -IpAddress $DC2019IPv4Address -Gateway $GatewayIPv4Address -DnsServer1 $DC2019IPv4Address
 #SCOM server
-Add-LabMachineDefinition -Name MS1-2019 -NetworkAdapter $SCOM2019MS1NetAdapter -Memory "$HyperV_HighestMemory" -MinMemory "$HyperV_MinMemory" -MaxMemory "$HyperV_HighestMemory" -Processors "$HyperV_MaxProcessors"
+$i = 0
+do
+{
+	$i = $i
+	$i++
+	[string]$i = "{0:D2}" -f $i
+	Add-LabMachineDefinition -Name "MS$i`-2019" -NetworkAdapter $SCOM2019MSNetAdapter["var$i"] -Memory "$HyperV_HighestMemory" -MinMemory "$HyperV_MinMemory" -MaxMemory "$HyperV_HighestMemory" -Processors "$HyperV_MaxProcessors"
+	[int]$i = $i
+}
+until ($i -eq $NumberOfManagementServers)
 #SQL Server
-Add-LabMachineDefinition -Name SQL-2019 -Roles $SQLServer2019Role -NetworkAdapter $SQL2019NetAdapter -Memory "$HyperV_HighestMemory" -MinMemory "$HyperV_MinMemory" -MaxMemory "$HyperV_HighestMemory" -Processors "$HyperV_MaxProcessors"
+Add-LabMachineDefinition -Name MSSQL-2019 -Roles $SQLServer2019Role -NetworkAdapter $SQL2019NetAdapter -Memory "$HyperV_HighestMemory" -MinMemory "$HyperV_MinMemory" -MaxMemory "$HyperV_HighestMemory" -Processors "$HyperV_MaxProcessors"
 #IIS front-end server
-Add-LabMachineDefinition -Name IIS-SERVER -NetworkAdapter $IISAgentNetAdapter
+Add-LabMachineDefinition -Name IIS-2019 -NetworkAdapter $IISAgentNetAdapter
 if ($DeployRHEL79)
 {
 	Add-LabMachineDefinition -Name RHEL7-9 -NetworkAdapter $RHEL79NetAdapter -Memory "$HyperV_Memory" -MinMemory "$HyperV_MinMemory" -MaxMemory "$HyperV_Memory" -OperatingSystem 'Red Hat Enterprise Linux 7.9'
@@ -266,13 +289,13 @@ Install-Lab
 
 if ($SQLProductKey)
 {
-	Restart-LabVM -ComputerName SQL-2019 -Wait
-	$Drive = Mount-LabIsoImage -ComputerName SQL-2019 -IsoPath $labSources\$SQLServerISO -PassThru
-	Invoke-LabCommand -ActivityName 'Upgrading SQL 2019 from Evaluation to Full Version.' -ComputerName SQL-2019 -ScriptBlock {
+	Restart-LabVM -ComputerName MSSQL-2019 -Wait
+	$Drive = Mount-LabIsoImage -ComputerName MSSQL-2019 -IsoPath $labSources\$SQLServerISO -PassThru
+	Invoke-LabCommand -ActivityName 'Upgrading SQL 2019 from Evaluation to Full Version.' -ComputerName MSSQL-2019 -ScriptBlock {
 		. "$($Drive.DriveLetter)\setup.exe" '/q' '/IACCEPTSQLSERVERLICENSETERMS' '/ACTION=EditionUpgrade' "/InstanceName=$LabName" "/PID=$SQLProductKey" '/SkipRules=Engine_SqlEngineHealthCheck'
 	} -Variable (Get-Variable -Name Drive, SQLProductKey, LabName)
-	Dismount-LabIsoImage -ComputerName SQL-2019
-	Restart-LabVM -ComputerName SQL-2019 -Wait
+	Dismount-LabIsoImage -ComputerName MSSQL-2019
+	Restart-LabVM -ComputerName MSSQL-2019 -Wait
 }
 #Grab the network adapter names
 $network_adapters = (Get-NetAdapter) | Where { $_.Name -match "$LabName" } | Where { $_.InterfaceDescription -match 'Hyper-V Virtual' }
@@ -281,7 +304,7 @@ $network_adapters = (Get-NetAdapter) | Where { $_.Name -match "$LabName" } | Whe
 New-NetIPAddress -InterfaceIndex $network_adapters.ifIndex[0] -IPAddress $GatewayIPv4Address -AddressFamily IPv4 -ErrorAction SilentlyContinue
 
 #Set DNS Server to IPv4 of Domain Controller
-Set-DNSClientServerAddress -InterfaceIndex $network_adapters.ifIndex[0] -ServerAddresses $DC01IPv4Address -ErrorAction SilentlyContinue
+Set-DNSClientServerAddress -InterfaceIndex $network_adapters.ifIndex[0] -ServerAddresses $DC2019IPv4Address -ErrorAction SilentlyContinue
 
 #endregion
 
@@ -294,26 +317,35 @@ if ($WindowsDefender_RealtimeDisable)
 	Invoke-LabCommand -UseLocalCredential -ActivityName "Disabling Windows Defender Realtime Protection Component" -ComputerName $machines -ScriptBlock { Set-MpPreference -DisableRealtimeMonitoring $true }
 }
 #Change from Datacenter Evaluation to Full Version / Register Product Key
-if ($WindowsProductKey)
+if ($WindowsOperatingSystem -match "evaluation")
 {
-	Invoke-LabCommand -UseLocalCredential -ActivityName "Changing from Evaluation to Full Version of Windows Server DataCenter." -ComputerName $machines -ScriptBlock {
-		Dism /online /Set-Edition:ServerDatacenter /AcceptEula /ProductKey:$WindowsProductKey /NoRestart /Quiet
-	} -Variable (Get-Variable -Name WindowsProductKey)
-	Restart-LabVM -ComputerName $machines -Wait
+	if ($WindowsProductKey)
+	{
+		Invoke-LabCommand -UseLocalCredential -ActivityName "Changing from Evaluation to Full Version of Windows Server DataCenter." -ComputerName $machines -ScriptBlock {
+			Dism /online /Set-Edition:ServerDatacenter /AcceptEula /ProductKey:$WindowsProductKey /NoRestart /Quiet
+		} -Variable (Get-Variable -Name WindowsProductKey)
+		Restart-LabVM -ComputerName $machines -Wait
+	}
+	else
+	{
+		Restart-LabVM -ComputerName MSSQL-2019 -Wait
+	}
 }
 else
 {
-	Restart-LabVM -ComputerName SQL-2019 -Wait
+	Restart-LabVM -ComputerName MSSQL-2019 -Wait
 }
-
 #Downloading SQL Server 2019 CU8 (or later)
-$SQLServer2019LatestCU = Get-LabInternetFile -Uri $SQLServer2019LatestCUURI -Path $labSources\SoftwarePackages -PassThru
+$SQLServer2019LatestCU = Get-Item $labSources\SoftwarePackages\SQLServer2019-KB*-x64.exe | Sort Name | Select -Last 1
+if (!$SQLServer2019LatestCU)
+{
+	$SQLServer2019LatestCU = Get-LabInternetFile -Uri $SQLServer2019LatestCUURI -Path $labSources\SoftwarePackages -PassThru
+}
 #Installing SQL Server 2019 CU8 (or later)
-Install-LabSoftwarePackage -ComputerName SQL-2019 -Path $SQLServer2019LatestCU.FullName -CommandLine " /QUIET /IACCEPTSQLSERVERLICENSETERMS /ACTION=PATCH /ALLINSTANCES" #-AsJob
+Install-LabSoftwarePackage -ComputerName MSSQL-2019 -Path $SQLServer2019LatestCU.FullName -CommandLine " /QUIET /IACCEPTSQLSERVERLICENSETERMS /ACTION=PATCH /ALLINSTANCES" #-AsJob
 #Get-Job -Name 'Installation of*' | Wait-Job | Out-Null
-
-$SCOMServers = Get-LabVM | Where-Object -FilterScript { $_.Name -eq 'MS1-2019' }
-
+$i = 0
+$SCOMServers = Get-LabVM | Where-Object -FilterScript { $_.Name -like "MS*-2019*" -and $_.Roles -notin "SQLServer2019" }
 #region Installing Required Windows Features
 Install-LabWindowsFeature -FeatureName Telnet-Client -ComputerName $machines -IncludeManagementTools
 #Below is needed to install Web Console
@@ -321,7 +353,7 @@ Install-LabWindowsFeature -ComputerName $SCOMServers -FeatureName NET-WCF-HTTP-A
 #endregion
 
 #Installing and setting up DNS
-Invoke-LabCommand -ActivityName 'Domain Naming Service (DNS) & Active Directory Users / Groups (AD) Setup on Domain Controller (DC)' -ComputerName DC01 -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Domain Naming Service (DNS) & Active Directory Users / Groups (AD) Setup on Domain Controller (DC)' -ComputerName DC-2019 -ScriptBlock {
 	#region DNS management
 	#Reverse lookup zone creation
 	Add-DnsServerPrimaryZone -NetworkID $NetworkID -ReplicationScope 'Forest' -ErrorAction SilentlyContinue
@@ -357,11 +389,12 @@ Invoke-LabCommand -ActivityName 'Domain Naming Service (DNS) & Active Directory 
 	#New-ADUser -Name $SQLSSRS -SamAccountName $SQLSSRS -AccountPassword $SecurePassword -PasswordNeverExpires $true -Enabled $true -Path $ADOrganizationalUnit.DistinguishedName
 	Write-Verbose "The service Accounts and SCOM-Admins group have been added to OU=$OUName,$DistinguishedName"
 } -Variable (Get-Variable -Name DNSServerForwarder, NetworkID, CustomDomainAdmin, SecurePassword, OUName, SQLUser, SCOMDataAccessAccount, SCOMDataWareHouseReader, SCOMDataWareHouseWriter, SCOMServerAction, SCOMAdmins) -PassThru
-
-
-Invoke-LabCommand -ActivityName 'Adding the SCOM Admins AD Group to the local Administrators Group' -ComputerName MS1-2019, SQL-2019, IIS-SERVER -ScriptBlock {
+$LocalAdminServers = Get-LabVM | Where-Object -FilterScript { $_.Name -like "MS*-2019*" -and $_.Roles -notin "SQLServer2019" }
+$LocalAdminServers += 'MSSQL-2019', 'IIS-2019'
+Invoke-LabCommand -ActivityName 'Adding the SCOM Admins AD Group to the local Administrators Group' -ComputerName $LocalAdminServers -ScriptBlock {
+	Write-Host "Adding Local Admin Permissions on: $env:COMPUTERNAME"
 	Add-LocalGroupMember -Member "$NetBiosDomainName\$SCOMAdmins" -Group Administrators
-} -Variable (Get-Variable -Name NetBiosDomainName, SCOMAdmins)
+} -Variable (Get-Variable -Name NetBiosDomainName, SCOMAdmins) -PassThru
 
 Invoke-LabCommand -UseLocalCredential -ActivityName "Disabling IE ESC" -ComputerName $machines -ScriptBlock {
 	#Disabling IE ESC
@@ -379,15 +412,21 @@ Invoke-LabCommand -UseLocalCredential -ActivityName "Disabling IE ESC" -Computer
 	
 	#Renaming the main NIC adapter to Corp
 	Rename-NetAdapter -Name "$labName 0" -NewName 'Internal' -PassThru -ErrorAction SilentlyContinue
+	
 	Rename-NetAdapter -Name "Ethernet" -NewName 'Internal' -PassThru -ErrorAction SilentlyContinue
 	if ($UseDefaultSwitch)
 	{
 		Rename-NetAdapter -Name "Default Switch 0" -NewName 'Internet' -PassThru -ErrorAction SilentlyContinue
 	}
-	
+	try
+	{
+		Set-NetConnectionProfile -InterfaceAlias * -NetworkCategory "Private" -Confirm:$false -ErrorAction Stop
+	}
+	catch { }
+	Write-Verbose "Setting the Network Profile to Private to allow the servers to communicate during installation."
 } -Variable (Get-Variable -Name UseDefaultSwitch, labName)
 
-Invoke-LabCommand -ActivityName 'Installing IIS, ASP and ASP.NET 4.5+' -ComputerName IIS-SERVER -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Installing IIS, ASP and ASP.NET 4.5+' -ComputerName IIS-2019 -ScriptBlock {
 	Install-WindowsFeature Web-Server, Web-Asp, Web-Asp-Net45 -IncludeManagementTools
 	Import-Module -Name WebAdministration
 	$WebSiteName = 'www.contoso.com'
@@ -399,25 +438,29 @@ Invoke-LabCommand -ActivityName 'Installing IIS, ASP and ASP.NET 4.5+' -Computer
 
 #region Install the SQL Powershell Module on SQL Server
 ##SQL Server Management Studio (SSMS), beginning with version 17.0, doesn't install either PowerShell module. To use PowerShell with SSMS, install the SqlServer module from the PowerShell Gallery.
-Write-ScreenInfo -Message "Downloading Latest SQL Powershell Module from the Powershell Gallery Online"
-Get-LabInternetFile https://www.powershellgallery.com/api/v2/package/SqlServer -Path $labSources\SoftwarePackages -File sqlserver_powershell.nupkg
+$sqlserverNupkg = Get-Item $labSources\SoftwarePackages\sqlserver*.nupkg
+if (!$sqlserverNupkg)
+{
+	Write-ScreenInfo -Message "Downloading Latest SQL Powershell Module from the Powershell Gallery Online"
+	Get-LabInternetFile https://www.powershellgallery.com/api/v2/package/SqlServer -Path $labSources\SoftwarePackages -File sqlserver_powershell.nupkg
+}
 try
 {
-	Rename-Item -Path $labSources\SoftwarePackages\sqlserver_powershell.nupkg $labSources\SoftwarePackages\sqlserver_powershell.zip -Force
-	Expand-Archive $labSources\SoftwarePackages\sqlserver_powershell.zip -DestinationPath $labSources\SoftwarePackages\SqlServer_Powershell
+	Rename-Item -Path $sqlserverNupkg.FullName $labSources\SoftwarePackages\sqlserver_powershell.zip -Force
+	Expand-Archive $labSources\SoftwarePackages\sqlserver_powershell.zip -DestinationPath $labSources\SoftwarePackages\SqlServer_Powershell -ErrorAction Stop
 }
 catch { Write-Verbose 'Potentially found the files for SQL Powershell module in the SoftwarePackages Path.' }
 $files_to_remove = $null
 $files_to_remove = Get-ChildItem -Directory -Path $labSources\SoftwarePackages\SqlServer_Powershell | Where { $_.Name -match "_rels|package" }
 $files_to_remove += Get-ChildItem -Path $labSources\SoftwarePackages\SqlServer_Powershell | Where { $_.Name -eq '[Content_Types].xml' }
 $files_to_remove += Get-ChildItem -Path $labSources\SoftwarePackages\SqlServer_Powershell | Where { $_.Name -like "*.nuspec" }
-$files_to_remove | Remove-Item -Recurse -Confirm:$false
+$files_to_remove | Remove-Item -Recurse -Confirm:$false -ErrorAction SilentlyContinue
 
-Copy-LabFileItem -ComputerName SQL-2019 $labSources\SoftwarePackages\SqlServer_Powershell
-Remove-Item $labSources\SoftwarePackages\sqlserver_powershell.nupkg, $labSources\SoftwarePackages\sqlserver_powershell.zip -ErrorAction SilentlyContinue
-Remove-Item $labSources\SoftwarePackages\SqlServer_Powershell -Recurse -Confirm:$false -ErrorAction SilentlyContinue
+Copy-LabFileItem -ComputerName MSSQL-2019 $labSources\SoftwarePackages\SqlServer_Powershell
+#Remove-Item $labSources\SoftwarePackages\sqlserver_powershell.nupkg, $labSources\SoftwarePackages\sqlserver_powershell.zip -ErrorAction SilentlyContinue
+#Remove-Item $labSources\SoftwarePackages\SqlServer_Powershell -Recurse -Confirm:$false -ErrorAction SilentlyContinue
 
-Invoke-LabCommand -ActivityName 'Installing the latest SQL Server Powershell Module' -ComputerName SQL-2019 -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Installing the latest SQL Server Powershell Module' -ComputerName MSSQL-2019 -ScriptBlock {
 	$modules_location = (($env:PSModulePath -split ";") | Where { $_ -like '*Program Files\WindowsPowerShell\Modules' })
 	New-Item -Path $modules_location\SqlServer -ItemType Directory -Confirm:$false
 	$sql_module_version = ((Get-Content -Path C:\SqlServer_Powershell\SqlServer.psd1 | Where { $_ -match 'ModuleVersion' }).Split("'")[1])
@@ -427,34 +470,38 @@ Invoke-LabCommand -ActivityName 'Installing the latest SQL Server Powershell Mod
 #endregion
 
 #region Install the Windows Update Powershell Module on the Lab Machines
-Write-ScreenInfo -Message "Downloading Latest Windows Update Powershell Module from the Powershell Gallery Online"
-Get-LabInternetFile https://www.powershellgallery.com/api/v2/package/PSWindowsUpdate -Path $labSources\SoftwarePackages -File PSWindowsUpdate.nupkg
 try
 {
-	Rename-Item -Path $labSources\SoftwarePackages\PSWindowsUpdate.nupkg $labSources\SoftwarePackages\windowsupdate_powershell.zip -Force
-	Expand-Archive $labSources\SoftwarePackages\windowsupdate_powershell.zip -DestinationPath $labSources\SoftwarePackages\WindowsUpdate_Powershell
+	Invoke-WebRequest -Method GET -Uri 'https://www.powershellgallery.com/api/v2/package/PSWindowsUpdate' -ErrorAction Stop | Out-Null
+	Write-ScreenInfo -Message "Downloading Latest Windows Update Powershell Module from the Powershell Gallery Online"
+	Get-LabInternetFile https://www.powershellgallery.com/api/v2/package/PSWindowsUpdate -Path $labSources\SoftwarePackages -File PSWindowsUpdate.nupkg
+	try
+	{
+		Rename-Item -Path $labSources\SoftwarePackages\PSWindowsUpdate.nupkg $labSources\SoftwarePackages\windowsupdate_powershell.zip -Force
+		Expand-Archive $labSources\SoftwarePackages\windowsupdate_powershell.zip -DestinationPath $labSources\SoftwarePackages\WindowsUpdate_Powershell -ErrorAction Stop
+	}
+	catch { Write-Verbose 'Potentially found the files for Windows Update Powershell module in the SoftwarePackages Path.' }
+	$files_to_remove = $null
+	$files_to_remove = Get-ChildItem -Directory -Path $labSources\SoftwarePackages\WindowsUpdate_Powershell | Where { $_.Name -match "_rels|package" }
+	$files_to_remove += Get-ChildItem -Path $labSources\SoftwarePackages\WindowsUpdate_Powershell | Where { $_.Name -eq '[Content_Types].xml' }
+	$files_to_remove += Get-ChildItem -Path $labSources\SoftwarePackages\WindowsUpdate_Powershell | Where { $_.Name -like "*.nuspec" }
+	$files_to_remove | Remove-Item -Recurse -Confirm:$false
+	
+	Copy-LabFileItem -ComputerName $machines $labSources\SoftwarePackages\WindowsUpdate_Powershell
+	Remove-Item $labSources\SoftwarePackages\PSWindowsUpdate.nupkg, $labSources\SoftwarePackages\windowsupdate_powershell.zip -ErrorAction SilentlyContinue
+	Remove-Item $labSources\SoftwarePackages\WindowsUpdate_Powershell -Recurse -Confirm:$false -ErrorAction SilentlyContinue
+	
+	Invoke-LabCommand -ActivityName 'Installing the latest Windows Update Powershell Module' -ComputerName $machines -ScriptBlock {
+		$modules_location = (($env:PSModulePath -split ";") | Where { $_ -like '*Program Files\WindowsPowerShell\Modules' })
+		New-Item -Path $modules_location\PSWindowsUpdate -ItemType Directory -Confirm:$false
+		$windowsupdate_module_version = ((Get-Content -Path C:\WindowsUpdate_Powershell\PSWindowsUpdate.psd1 | Where { $_ -match 'ModuleVersion' }).Split("'")[1])
+		$new_name = Rename-Item C:\WindowsUpdate_Powershell $windowsupdate_module_version
+		Move-Item C:\$windowsupdate_module_version $modules_location\PSWindowsUpdate
+	}
+	#endregion
 }
-catch { Write-Verbose 'Potentially found the files for Windows Update Powershell module in the SoftwarePackages Path.' }
-$files_to_remove = $null
-$files_to_remove = Get-ChildItem -Directory -Path $labSources\SoftwarePackages\WindowsUpdate_Powershell | Where { $_.Name -match "_rels|package" }
-$files_to_remove += Get-ChildItem -Path $labSources\SoftwarePackages\WindowsUpdate_Powershell | Where { $_.Name -eq '[Content_Types].xml' }
-$files_to_remove += Get-ChildItem -Path $labSources\SoftwarePackages\WindowsUpdate_Powershell | Where { $_.Name -like "*.nuspec" }
-$files_to_remove | Remove-Item -Recurse -Confirm:$false
-
-Copy-LabFileItem -ComputerName $machines $labSources\SoftwarePackages\WindowsUpdate_Powershell
-Remove-Item $labSources\SoftwarePackages\PSWindowsUpdate.nupkg, $labSources\SoftwarePackages\windowsupdate_powershell.zip -ErrorAction SilentlyContinue
-Remove-Item $labSources\SoftwarePackages\WindowsUpdate_Powershell -Recurse -Confirm:$false -ErrorAction SilentlyContinue
-
-Invoke-LabCommand -ActivityName 'Installing the latest Windows Update Powershell Module' -ComputerName $machines -ScriptBlock {
-	$modules_location = (($env:PSModulePath -split ";") | Where { $_ -like '*Program Files\WindowsPowerShell\Modules' })
-	New-Item -Path $modules_location\PSWindowsUpdate -ItemType Directory -Confirm:$false
-	$windowsupdate_module_version = ((Get-Content -Path C:\WindowsUpdate_Powershell\PSWindowsUpdate.psd1 | Where { $_ -match 'ModuleVersion' }).Split("'")[1])
-	$new_name = Rename-Item C:\WindowsUpdate_Powershell $windowsupdate_module_version
-	Move-Item C:\$windowsupdate_module_version $modules_location\PSWindowsUpdate
-}
-#endregion
-
-Invoke-LabCommand -ActivityName "Adding users to the SQL SysAdmin Group / Modifying Windows Firewall" -ComputerName SQL-2019 -ScriptBlock {
+catch { Write-Verbose 'Experienced an error when attempting to Download / Install the Windows Update Powershell.' }
+Invoke-LabCommand -ActivityName "Adding users to the SQL SysAdmin Group / Modifying Windows Firewall" -ComputerName MSSQL-2019 -ScriptBlock {
 	
 	Import-Module -Name SQLServer
 	
@@ -497,20 +544,21 @@ foreach ($CurrentSCOMServer in $SCOMServers.Name)
 
 #Region for SCOM Installation
 $SystemCLRTypesForSQLServer2014x64 = Get-LabInternetFile -Uri $SystemCLRTypesForSQLServer2014x64URI -Path $labSources\SoftwarePackages -PassThru
-Install-LabSoftwarePackage -ComputerName MS1-2019 -Path $SystemCLRTypesForSQLServer2014x64.FullName -CommandLine "/qn  /L* $(Join-Path -Path $env:SystemDrive -ChildPath $($SystemCLRTypesForSQLServer2014x64.FileName + ".log")) /norestart ALLUSERS=2"
+Install-LabSoftwarePackage -ComputerName $SCOMServers -Path $SystemCLRTypesForSQLServer2014x64.FullName -CommandLine "/qn  /L* $(Join-Path -Path $env:SystemDrive -ChildPath $($SystemCLRTypesForSQLServer2014x64.FileName + ".log")) /norestart ALLUSERS=2"
 
 $ReportViewer2015Runtime = Get-LabInternetFile -Uri $ReportViewer2015RuntimeURI -Path $labSources\SoftwarePackages -PassThru
-Install-LabSoftwarePackage -ComputerName MS1-2019 -Path $ReportViewer2015Runtime.FullName -CommandLine "/qn /L* $(Join-Path -Path $env:SystemDrive -ChildPath $($ReportViewer2015Runtime.FileName + ".log")) /norestart ALLUSERS=2"
+Install-LabSoftwarePackage -ComputerName $SCOMServers -Path $ReportViewer2015Runtime.FullName -CommandLine "/qn /L* $(Join-Path -Path $env:SystemDrive -ChildPath $($ReportViewer2015Runtime.FileName + ".log")) /norestart ALLUSERS=2"
 
 #Get-Job -Name 'Installation of*' | Wait-Job | Out-Null
 $LabSourcesLocation = Get-LabSourcesLocation
-Install-LabSoftwarePackage -ComputerName MS1-2019 -Path "$LabSourcesLocation\$SCOM2019_Location" -CommandLine "/dir=`"$SCOMSetupLocalFolder`" `"/silent`"" -ErrorAction Stop
-Invoke-LabCommand -ActivityName 'Installing the Operations Manager Management Server' -ComputerName MS1-2019 -ScriptBlock {
+Install-LabSoftwarePackage -ComputerName $SCOMServers -Path "$LabSourcesLocation\$SCOM2019_Location" -CommandLine "/dir=`"$SCOMSetupLocalFolder`" `"/silent`"" -ErrorAction Stop
+
+Invoke-LabCommand -ActivityName 'Installing the Operations Manager Management Server on the RMSE (MS01-2019)' -ComputerName ($SCOMServers | Where{ $_.Name -like '*01-*' }) -ScriptBlock {
 	
 	#Setting up SCOM Management Server
 	$ArgumentList = @(
-		"/silent /install /components:OMServer /ManagementGroupName:$SCOMMgmtGroup /SqlServerInstance:SQL-2019\$LabName",
-		"/DatabaseName:OperationsManager /DWSqlServerInstance:SQL-2019\$LabName /DWDatabaseName:OperationsManagerDW /ActionAccountUser:$NetBiosDomainName\$SCOMServerAction",
+		"/silent /install /components:OMServer /ManagementGroupName:$SCOMMgmtGroup /SqlServerInstance:MSSQL-2019\$LabName",
+		"/DatabaseName:OperationsManager /DWSqlServerInstance:MSSQL-2019\$LabName /DWDatabaseName:OperationsManagerDW /ActionAccountUser:$NetBiosDomainName\$SCOMServerAction",
 		"/ActionAccountPassword:$ClearTextPassword /DASAccountUser:$NetBiosDomainName\$SCOMDataAccessAccount /DASAccountPassword:$ClearTextPassword /DataReaderUser:$NetBiosDomainName\$SCOMDataWareHouseReader",
 		"/DataReaderPassword:$ClearTextPassword /DataWriterUser:$NetBiosDomainName\$SCOMDataWareHouseWriter /DataWriterPassword:$ClearTextPassword",
 		'/EnableErrorReporting:Always /SendCEIPReports:1 /UseMicrosoftUpdate:0 /AcceptEndUserLicenseAgreement:1'
@@ -518,7 +566,7 @@ Invoke-LabCommand -ActivityName 'Installing the Operations Manager Management Se
 	#Note: The installation status can also be checked in the SCOM installation log: OpsMgrSetupWizard.log which is found at: %LocalAppData%\SCOM\LOGS
 	Start-Process -FilePath "$SCOMSetupLocalFolder\Setup.exe" -ArgumentList $ArgumentList -Wait
 	"`"$SCOMSetupLocalFolder\Setup.exe`" $($ArgumentList -join ' ')" | Out-File "$ENV:SystemDrive\SCOMUnattendedSetup.cmd"
-	
+	Write-Host "Done Installing Management Server on $env:COMPUTERNAME"
 	if ($SCOMProductKey -match "^\w{5}-\w{5}-\w{5}-\w{5}-\w{5}$")
 	{
 		sleep 30
@@ -536,8 +584,42 @@ Invoke-LabCommand -ActivityName 'Installing the Operations Manager Management Se
 	}
 } -Variable (Get-Variable -Name LabName, SCOMSetupLocalFolder, ClearTextPassword, SecurePassword, SCOMMgmtGroup, NetBiosDomainName, SCOMDataAccessAccount, SCOMDataWareHouseReader, SCOMDataWareHouseWriter, SCOMProductKey, SCOMServerAction)
 
-
-Invoke-LabCommand -ActivityName 'Installing the Operations Manager Console' -ComputerName MS1-2019 -ScriptBlock {
+if ($NumberOfManagementServers -gt '1')
+{
+	sleep 30
+	Invoke-LabCommand -ActivityName 'Installing the Operations Manager Management Server on the Rest of the Management Servers' -ComputerName ($SCOMServers | Where{ $_.Name -notlike '*01-*' }) -ScriptBlock {
+		
+		#Setting up SCOM Management Server
+		$ArgumentList = @(
+			"/silent /install /components:OMServer /ManagementGroupName:$SCOMMgmtGroup /SqlServerInstance:MSSQL-2019\$LabName",
+			"/DatabaseName:OperationsManager /DWSqlServerInstance:MSSQL-2019\$LabName /DWDatabaseName:OperationsManagerDW /ActionAccountUser:$NetBiosDomainName\$SCOMServerAction",
+			"/ActionAccountPassword:$ClearTextPassword /DASAccountUser:$NetBiosDomainName\$SCOMDataAccessAccount /DASAccountPassword:$ClearTextPassword /DataReaderUser:$NetBiosDomainName\$SCOMDataWareHouseReader",
+			"/DataReaderPassword:$ClearTextPassword /DataWriterUser:$NetBiosDomainName\$SCOMDataWareHouseWriter /DataWriterPassword:$ClearTextPassword",
+			'/EnableErrorReporting:Always /SendCEIPReports:1 /UseMicrosoftUpdate:0 /AcceptEndUserLicenseAgreement:1'
+		)
+		#Note: The installation status can also be checked in the SCOM installation log: OpsMgrSetupWizard.log which is found at: %LocalAppData%\SCOM\LOGS
+		Start-Process -FilePath "$SCOMSetupLocalFolder\Setup.exe" -ArgumentList $ArgumentList -Wait
+		"`"$SCOMSetupLocalFolder\Setup.exe`" $($ArgumentList -join ' ')" | Out-File "$ENV:SystemDrive\SCOMUnattendedSetup.cmd"
+		Write-Host "Done Installing Management Server on $env:COMPUTERNAME"
+		if ($SCOMProductKey -match "^\w{5}-\w{5}-\w{5}-\w{5}-\w{5}$")
+		{
+			sleep 30
+			#Importing the OperationsManager module by specifying the full folder path
+			Import-Module "${env:ProgramFiles}\Microsoft System Center\Operations Manager\Powershell\OperationsManager"
+			#Checking the SkuForLicense = Retail 
+			if ((Get-SCOMManagementGroup).SKUForLicense -ne 'Retail')
+			{
+				$Cred = New-Object System.Management.Automation.PSCredential ($(whoami), $SecurePassword)
+				#To properly license SCOM, install the product key using the following cmdlet: 
+				Set-SCOMLicense -ProductId $SCOMProductKey -ManagementServer $((Get-SCOMManagementServer).DisplayName) -Credential:$Cred -Confirm:$false
+				#(Re)Starting the 'System Center Data Access Service'is mandatory to take effect
+				Restart-Service healthservice, omsdk, cshost -ErrorAction SilentlyContinue #-Force
+			}
+		}
+	} -Variable (Get-Variable -Name LabName, SCOMSetupLocalFolder, ClearTextPassword, SecurePassword, SCOMMgmtGroup, NetBiosDomainName, SCOMDataAccessAccount, SCOMDataWareHouseReader, SCOMDataWareHouseWriter, SCOMProductKey, SCOMServerAction)
+}
+sleep 30
+Invoke-LabCommand -ActivityName 'Installing the Operations Manager Console' -ComputerName $SCOMServers -ScriptBlock {
 	
 	#Setting up SCOM Management Console
 	$ArgumentList = @(
@@ -565,8 +647,8 @@ Invoke-LabCommand -ActivityName 'Installing the Operations Manager Console' -Com
 	}
 } -Variable (Get-Variable -Name SCOMSetupLocalFolder, SecurePassword, SCOMProductKey)
 
-
-Invoke-LabCommand -ActivityName 'Installing the Operations Manager Web Console' -ComputerName MS1-2019 -ScriptBlock {
+sleep 15
+Invoke-LabCommand -ActivityName 'Installing the Operations Manager Web Console' -ComputerName MS01-2019 -ScriptBlock {
 	Install-WindowsFeature Web-Server, Web-Request-Monitor, Web-Asp-Net, Web-Asp-Net45, Web-Windows-Auth, Web-Metabase, NET-WCF-HTTP-Activation45 -IncludeManagementTools -Source "C:\Sources\Sxs"
 	Write-Verbose "The Web Console prerequisites have been installed"
 	
@@ -598,10 +680,10 @@ Invoke-LabCommand -ActivityName 'Installing the Operations Manager Web Console' 
 } -Variable (Get-Variable -Name SCOMSetupLocalFolder, SecurePassword, SCOMProductKey)
 #Installing SSRS on the SQL Server
 $SQLServer2019ReportingServices = Get-LabInternetFile -Uri $SQLServer2019ReportingServicesURI -Path $labSources\SoftwarePackages -FileName SQLServer2019_ReportingServices.exe -PassThru
-Install-LabSoftwarePackage -ComputerName SQL-2019 -Path $SQLServer2019ReportingServices.FullName -CommandLine " /quiet /IAcceptLicenseTerms /Edition=Eval"
+Install-LabSoftwarePackage -ComputerName MSSQL-2019 -Path $SQLServer2019ReportingServices.FullName -CommandLine " /quiet /IAcceptLicenseTerms /Edition=Eval"
 #Get-Job -Name 'Installation of*' | Wait-Job | Out-Null
 
-Invoke-LabCommand -ActivityName 'Configuring Report Server on SQL Server' -ComputerName SQL-2019 -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Configuring Report Server on SQL Server' -ComputerName MSSQL-2019 -ScriptBlock {
 	#From https://blog.aelterman.com/2018/01/01/silent-installation-and-configuration-for-sql-server-2017-reporting-services/
 	#Start-Process -FilePath "$env:ProgramFiles\Microsoft SQL Server Reporting Services\Shared Tools\rsconfig.exe" -ArgumentList "-c -s localhost -d ReportServer -a Windows -i SSRS" -Wait
 	# "$env:ProgramFiles\Microsoft SQL Server Reporting Services\Shared Tools\rsconfig.exe -c -s localhost -d ReportServer -a Windows -i SSRS" | Out-File "$ENV:SystemDrive\SCOMUnattendedSetup.cmd" -Append
@@ -686,11 +768,11 @@ Invoke-LabCommand -ActivityName 'Configuring Report Server on SQL Server' -Compu
 	
 } -Variable (Get-Variable -Name LabName)
 
-Install-LabSoftwarePackage -ComputerName SQL-2019 -Path "$LabSourcesLocation\$SCOM2019_Location" -CommandLine "/dir=`"$SCOMSetupLocalFolder`" `"/silent`"" -ErrorAction Stop
-Invoke-LabCommand -ActivityName 'Installing the Operations Manager Reporting Services' -ComputerName SQL-2019 -ScriptBlock {
+Install-LabSoftwarePackage -ComputerName MSSQL-2019 -Path "$LabSourcesLocation\$SCOM2019_Location" -CommandLine "/dir=`"$SCOMSetupLocalFolder`" `"/silent`"" -ErrorAction Stop
+Invoke-LabCommand -ActivityName 'Installing the Operations Manager Reporting Services' -ComputerName MSSQL-2019 -ScriptBlock {
 	#Setting up SCOM
 	$ArgumentList = @(
-		"/silent /install /components:OMReporting /ManagementServer:MS1-2019 /SRSInstance:$env:ComputerName\SSRS",
+		"/silent /install /components:OMReporting /ManagementServer:MS01-2019 /SRSInstance:$env:ComputerName\SSRS",
 		"/DataReaderUser:$NetBiosDomainName\$SCOMDataWareHouseReader /DataReaderPassword:$ClearTextPassword",
 		"/SendODRReports:1 /UseMicrosoftUpdate:0 /AcceptEndUserLicenseAgreement:1"
 	)
@@ -698,10 +780,10 @@ Invoke-LabCommand -ActivityName 'Installing the Operations Manager Reporting Ser
 	Start-Process -FilePath "$SCOMSetupLocalFolder\Setup.exe" -ArgumentList $ArgumentList -Wait
 	"`"$SCOMSetupLocalFolder\Setup.exe`" $($ArgumentList -join ' ')" | Out-File "$ENV:SystemDrive\SCOMUnattendedSetup.cmd"
 } -Variable (Get-Variable -Name SCOMSetupLocalFolder, ClearTextPassword, NetBiosDomainName, SCOMDataWareHouseReader)
-Dismount-LabIsoImage -ComputerName SQL-2019
+Dismount-LabIsoImage -ComputerName MSSQL-2019
 
 
-Invoke-LabCommand -ActivityName 'Cleanup on SQL Server' -ComputerName SQL-2019 -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Cleanup on SQL Server' -ComputerName MSSQL-2019 -ScriptBlock {
 	Remove-Item -Path "C:\vcredist_x*.*" -Force
 	Remove-Item -Path "C:\SSMS-Setup-ENU.exe" -Force
 	#Disabling the Internet Connection on the SQL Server
@@ -717,12 +799,12 @@ $SCOMNETAPMManagementPack = Get-LabInternetFile -Uri $SCOMNETAPMManagementPackUR
 
 #Installing the SCOM IIS and Dependent Management Packs
 #Install-LabSoftwarePackage -ComputerName MS1-2019 -Path $SCOMWSManagementPack.FullName -CommandLine "-quiet"
-Install-LabSoftwarePackage -ComputerName MS1-2019 -Path $SCOMWS2016andWS2019ManagementPack.FullName -CommandLine "-quiet"
-Install-LabSoftwarePackage -ComputerName MS1-2019 -Path $SCOMIISManagementPack.FullName -CommandLine "-quiet"
-Install-LabSoftwarePackage -ComputerName MS1-2019 -Path $SCOMNETAPMManagementPack.FullName -CommandLine "-quiet"
+Install-LabSoftwarePackage -ComputerName MS01-2019 -Path $SCOMWS2016andWS2019ManagementPack.FullName -CommandLine "-quiet"
+Install-LabSoftwarePackage -ComputerName MS01-2019 -Path $SCOMIISManagementPack.FullName -CommandLine "-quiet"
+Install-LabSoftwarePackage -ComputerName MS01-2019 -Path $SCOMNETAPMManagementPack.FullName -CommandLine "-quiet"
 #Get-Job -Name 'Installation of*' | Wait-Job | Out-Null
 
-Invoke-LabCommand -ActivityName 'Installing Management Packs' -ComputerName MS1-2019 -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Installing Management Packs' -ComputerName MS01-2019 -ScriptBlock {
 	# From GutHub : Script designed to enumerate and download currently available MPs from Microsoft Download servers.
 	#Invoke-Expression -Command "& { $(Invoke-RestMethod https://raw.githubusercontent.com/slavizh/Get-SCOMManagementPacks/master/Get-SCOMManagementPacks.ps1) } -Extract"
 	#For some cleanup in case of a previous install
@@ -743,18 +825,20 @@ Invoke-LabCommand -ActivityName 'Installing Management Packs' -ComputerName MS1-
 	#Installing ApplicationInsights ManagementPack.
 	Get-ChildItem -Path "${env:ProgramFiles(x86)}\System Center Management Packs\" -File -Filter *.mp? -Recurse | Where-Object -FilterScript { $_.BaseName -in 'Microsoft.SystemCenter.ApplicationInsights' } | Import-SCOMManagementPack
 	
-	$SCOMAgent = Install-SCOMAgent -PrimaryManagementServer $(Get-SCOMManagementServer) -DNSHostName IIS-SERVER.contoso.com -PassThru
+	$SCOMAgent = Install-SCOMAgent -PrimaryManagementServer $(Get-SCOMManagementServer) -DNSHostName IIS-2019.contoso.com -PassThru
 	Get-SCOMPendingManagement | Approve-SCOMPendingManagement
 }
-
-$NotepadPlusPlusLocation = Get-LabInternetFile -URI $NotepadPlusPlusURI -Path $labSources\SoftwarePackages -Passthru
+$NotepadPlusPlusLocation = (Get-Item $labSources\SoftwarePackages\npp.*.*.*.Installer.x64.exe)
+if (!$NotepadPlusPlusLocation)
+{
+	$NotepadPlusPlusLocation = Get-LabInternetFile -URI $NotepadPlusPlusURI -Path $labSources\SoftwarePackages -Passthru
+}
 Install-LabSoftwarePackage -ComputerName $machines -Path $NotepadPlusPlusLocation.FullName -CommandLine "/S"
-
 #endregion
 if ($UseDefaultSwitch)
 {
 	#Removing the Internet Connection on the SQL Server (Required only for the SQL Setup via AutomatedLab)
-	Get-VM -Name 'SQL-2019' | Remove-VMNetworkAdapter -Name 'Default Switch' -ErrorAction SilentlyContinue
+	Get-VM -Name 'MSSQL-2019' | Remove-VMNetworkAdapter -Name 'Default Switch' -ErrorAction SilentlyContinue
 }
 
 #Setting processor number to 1 for all VMs (The AL deployment fails with 1 CPU)
