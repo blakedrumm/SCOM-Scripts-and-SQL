@@ -347,7 +347,7 @@ Install-LabSoftwarePackage -ComputerName MSSQL-2019 -Path $SQLServer2019LatestCU
 $i = 0
 $SCOMServers = Get-LabVM | Where-Object -FilterScript { $_.Name -like "MS*-2019*" -and $_.Roles -notin "SQLServer2019" }
 #region Installing Required Windows Features
-Install-LabWindowsFeature -FeatureName Telnet-Client -ComputerName $machines -IncludeManagementTools
+Install-LabWindowsFeature -FeatureName Telnet-Client -ComputerName $WindowsMachines -IncludeManagementTools
 #Below is needed to install Web Console
 Install-LabWindowsFeature -ComputerName $SCOMServers -FeatureName NET-WCF-HTTP-Activation45, Web-Static-Content, Web-Default-Doc, Web-Dir-Browsing, Web-Http-Errors, Web-Http-Logging, Web-Request-Monitor, Web-Filtering, Web-Stat-Compression, Web-Mgmt-Console, Web-Metabase, Web-Asp-Net, Web-Windows-Auth -NoDisplay
 #endregion
@@ -487,11 +487,11 @@ try
 	$files_to_remove += Get-ChildItem -Path $labSources\SoftwarePackages\WindowsUpdate_Powershell | Where { $_.Name -like "*.nuspec" }
 	$files_to_remove | Remove-Item -Recurse -Confirm:$false
 	
-	Copy-LabFileItem -ComputerName $machines $labSources\SoftwarePackages\WindowsUpdate_Powershell
+	Copy-LabFileItem -ComputerName $WindowsMachines $labSources\SoftwarePackages\WindowsUpdate_Powershell
 	Remove-Item $labSources\SoftwarePackages\PSWindowsUpdate.nupkg, $labSources\SoftwarePackages\windowsupdate_powershell.zip -ErrorAction SilentlyContinue
 	Remove-Item $labSources\SoftwarePackages\WindowsUpdate_Powershell -Recurse -Confirm:$false -ErrorAction SilentlyContinue
 	
-	Invoke-LabCommand -ActivityName 'Installing the latest Windows Update Powershell Module' -ComputerName $machines -ScriptBlock {
+	Invoke-LabCommand -ActivityName 'Installing the latest Windows Update Powershell Module' -ComputerName $WindowsMachines -ScriptBlock {
 		$modules_location = (($env:PSModulePath -split ";") | Where { $_ -like '*Program Files\WindowsPowerShell\Modules' })
 		New-Item -Path $modules_location\PSWindowsUpdate -ItemType Directory -Confirm:$false
 		$windowsupdate_module_version = ((Get-Content -Path C:\WindowsUpdate_Powershell\PSWindowsUpdate.psd1 | Where { $_ -match 'ModuleVersion' }).Split("'")[1])
@@ -828,6 +828,15 @@ Invoke-LabCommand -ActivityName 'Installing Management Packs' -ComputerName MS01
 	$SCOMAgent = Install-SCOMAgent -PrimaryManagementServer $(Get-SCOMManagementServer) -DNSHostName IIS-2019.contoso.com -PassThru
 	Get-SCOMPendingManagement | Approve-SCOMPendingManagement
 }
+sleep 10
+$ToBecomeAgents = Get-LabVM | Where { $_.OperatingSystem -match "Windows" -and $_.Name -notlike "MS0*" } | % { $_.Name + "." + $_.DomainName }
+Invoke-LabCommand -ActivityName 'Installing SCOM Agent' -ComputerName ($SCOMServers | Where{ $_.Name -like '*01-*' }) -ScriptBlock {
+	$Cred = New-Object System.Management.Automation.PSCredential ($(whoami), $SecurePassword)
+	foreach ($machine in $ToBecomeAgents)
+	{
+		Install-SCOMAgent -PrimaryManagementServer $(Get-SCOMManagementServer -Name MS01-2019.$FQDNDomainName) -DNSHostName $machine
+	}
+} -Variable (Get-Variable -Name $ToBecomeAgents, $FQDNDomainName)
 $NotepadPlusPlusLocation = (Get-Item $labSources\SoftwarePackages\npp.*.*.*.Installer.x64.exe)
 if (!$NotepadPlusPlusLocation)
 {
