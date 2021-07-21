@@ -1,35 +1,35 @@
 <#
 .AUTHOR
-        Blake Drumm (v-bldrum@microsoft.com)
+        Blake Drumm (blakedrumm@microsoft.com)
  Examples
-  .\Start-SCOMDiscovery.ps1 -DisplayName *Windows*, *Warehouse* -Wait
-  .\Start-SCOMDiscovery.ps1 -Id d7a25f74-a82b-7977-3a8b-19ae527c86fc -Wait
-  .\Start-SCOMDiscovery.ps1 -Name Microsoft.SQLServer.Windows.Discovery.DBFilegroup -Output $ENV:USERPROFILE`\Desktop\Output.txt -Wait
+  .\Start-SCOMDiscovery.ps1 -AgentServer MS1-2019 -DiscoveryDisplayName *Windows*, *Warehouse* -Wait
+  .\Start-SCOMDiscovery.ps1 -AgentServer IIS-2019 -DiscoveryId d7a25f74-a82b-7977-3a8b-19ae527c86fc -Wait
+  .\Start-SCOMDiscovery.ps1 -AgentServer SQL-2019 -DiscoveryName Microsoft.SQLServer.Windows.Discovery.DBFilegroup -OutputFile $ENV:USERPROFILE`\Desktop\Output.txt -Wait
+  
+  Created: January 1st, 2021
+  Modified: July 20th, 2021
 #>
 param
 (
 	[Parameter(Mandatory = $false,
 			   Position = 1)]
-	[String]$ManagementServer,
+	[String]$AgentServer,
 	[Parameter(Mandatory = $false,
 			   Position = 2)]
-	[String]$DisplayName,
+	[String]$DiscoveryDisplayName,
 	[Parameter(Mandatory = $false,
 			   Position = 3)]
-	[String[]]$Name,
+	[String[]]$DiscoveryName,
 	[Parameter(Mandatory = $false,
 			   Position = 4)]
-	[String]$Id,
+	[String]$DiscoveryId,
 	[Parameter(Mandatory = $false,
 			   Position = 5)]
-	[Switch]$Wait,
+	[Int]$Wait,
 	[Parameter(Mandatory = $false,
 			   Position = 6)]
-	[String]$Output
+	[String]$OutputFile
 )
-$DiscoveryDisplayName = $DisplayName
-$DiscoveryName = $Name
-$DiscoveryId = $Id
 
 function Start-SCOMDiscovery
 {
@@ -38,36 +38,34 @@ function Start-SCOMDiscovery
 	(
 		[Parameter(Mandatory = $false,
 				   Position = 1)]
-		[String]$ManagementServer,
+		[String]$AgentServer,
 		[Parameter(Mandatory = $false,
 				   Position = 2)]
-		[String]$DisplayName,
+		[String]$DiscoveryDisplayName,
 		[Parameter(Mandatory = $false,
 				   Position = 3)]
-		[String[]]$Name,
+		[String[]]$DiscoveryName,
 		[Parameter(Mandatory = $false,
 				   Position = 4)]
-		[String]$Id,
+		[String]$DiscoveryId,
 		[Parameter(Mandatory = $false,
 				   Position = 5)]
-		[Switch]$Wait,
+		[Int]$Wait = 10,
 		[Parameter(Mandatory = $false,
 				   Position = 6)]
-		[String]$Output
+		[String]$OutputFile
 	)
+	
 	try
 	{
-		$DiscoveryDisplayName = $DisplayName
-		$DiscoveryName = $Name
-		$DiscoveryId = $Id
-		if (!$ManagementServer)
+		if (!$AgentServer)
 		{
-			$ManagementServer = $env:COMPUTERNAME
+			$AgentServer = $env:COMPUTERNAME
 		}
 		Import-Module OperationsManager
-		if ($Output)
+		if ($OutputFile)
 		{
-			'Gathering Discoveries' | Out-File -FilePath $Output
+			'Gathering Discoveries' | Out-File -FilePath $OutputFile
 		}
 		'Gathering Discoveries' | Write-Host
 		$Task = Get-SCOMTask -Name Microsoft.SystemCenter.TriggerOnDemandDiscovery
@@ -87,9 +85,9 @@ function Start-SCOMDiscovery
 		{
 			return Write-Host "Missing the Display Name of the Discovery. (ex. Azure SQL*). Run this script like this:`n.\Start-SCOMDiscovery.ps1 -DisplayName 'Azure SQL*'" -ForegroundColor Red
 		}
-		if ($Output)
+		if ($OutputFile)
 		{
-			'Starting Discoveries (Count: ' + $Discoveries.Count + ')' | Out-File -Append -FilePath $Output
+			'Starting Discoveries (Count: ' + $Discoveries.Count + ')' | Out-File -Append -FilePath $OutputFile
 		}
 		'Starting Discoveries (Count: ' + $Discoveries.Count + ')' | Write-Host
 		$i = 0
@@ -97,10 +95,10 @@ function Start-SCOMDiscovery
 		{
 			$i = $i
 			$i++
-			if ($Output)
+			if ($OutputFile)
 			{
-				'(' + $i + '/' + $Discoveries.Count + ') -----------------------------------------------------------------' | Out-File -Append -FilePath $Output
-				' ' | Out-File -Append -FilePath $Output
+				'(' + $i + '/' + $Discoveries.Count + ') -----------------------------------------------------------------' | Out-File -Append -FilePath $OutputFile
+				' ' | Out-File -Append -FilePath $OutputFile
 			}
 			'(' | Write-Host -NoNewline
 			$i | Write-Host -NoNewline -ForegroundColor DarkYellow
@@ -109,10 +107,23 @@ function Start-SCOMDiscovery
 			') ' | Write-Host -NoNewline
 			'-----------------------------------------------------------------' | Write-Host -ForegroundColor DarkYellow
 			' ' | Write-Host
-			$Override = @{ DiscoveryId = $Discov.Id.ToString(); TargetInstanceId = $Discov.Target.Id.ToString() }
-			$Instance = Get-SCOMClass -Name Microsoft.SystemCenter.ManagementServer | Get-SCOMClassInstance | where { $_.Displayname -like "$ManagementServer`*" }
-			$CurrentTaskOutput = (Start-SCOMTask -Task $Task -Instance $Instance -Override $Override | Select-Object Status, @{ Name = "Discovery Display Name"; Expression = { $Discov.DisplayName } }, @{ Name = "Discovery Name"; Expression = { $Discov.Name } }, @{ Name = "Discovery Guid"; Expression = { $Discov.Id } }, @{ Name = "Guid"; Expression = { $_.Id } }, TimeScheduled, TimeStarted, TimeFinished, Output)
 			
+			$TargetInstanceId = (Get-SCOMClass -Id $Discov.Target.Id | Get-SCOMClassInstance | ? { $_.DisplayName -like "`*$AgentServer`*" }).Id.Guid
+			#Do not edit the below.
+			$Instance = Get-SCOMClass -Name $($task.Target.Identifier.Path) | Get-SCOMClassInstance | ? { $_.DisplayName -like "`*$AgentServer`*" }
+			
+			"Discovery Display Name: $($Discov.DisplayName)"
+			"TargetInstanceID: $($TargetInstanceId)"
+			"Target: $($Discov.Target.Identifier.Path)"
+			"Instance: $($Instance)"
+			"Task Target: $($task.Target.Identifier.Path)"
+			
+			try
+			{
+				$Override = @{ DiscoveryId = $Discov.Id.ToString(); TargetInstanceId = $TargetInstanceId.ToString() }
+				$CurrentTaskOutput = (Start-SCOMTask -Task $Task -Instance $Instance -Override $Override | Select-Object Status, @{ Name = "Discovery Name"; Expression = { $Discov.Name } }, @{ Name = "Discovery Guid"; Expression = { $Discov.Id } }, @{ Name = "TaskGuid"; Expression = { $_.Id } }, TimeScheduled, TimeStarted, TimeFinished, Output)
+			}
+			catch { continue }
             <#
 			TaskId               : ff34dc4f-2db3-1736-d9f2-6d85b539ff96
 			BatchId              : 3a33f6f7-d2df-4fcb-9fed-736b92230d6a
@@ -139,17 +150,17 @@ function Start-SCOMDiscovery
 			ManagementGroupId    : e37e57e1-7d7b-79cc-6cdf-95cb3750eaaf
 			#>
 			$currentoutput = ($CurrentTaskOutput | Out-String -Width 4096).trim()
-			if ($Output)
+			if ($OutputFile)
 			{
-				$currentoutput | Out-File -Append -FilePath $Output
+				$currentoutput | Out-File -Append -FilePath $OutputFile
 			}
 			$currentoutput
 			$taskresult = $null
 			$randomnumber = Get-Random -Minimum 1 -Maximum 4
 			if ($Wait)
 			{
-				do { $taskResultOriginal = Get-SCOMTaskResult -Id $CurrentTaskOutput.Guid; Sleep 1 }
-				until (($taskResultOriginal.Status -eq 'Succeeded' -or 'Failed') -and ($taskResultOriginal.Status -ne 'Started'))
+				do { $taskResultOriginal = Get-SCOMTaskResult -Id $CurrentTaskOutput.TaskGuid[0]; Sleep $wait }
+				until (($taskResultOriginal.Status -eq 'Succeeded' -or 'Failed') -and ($taskResultOriginal.Status -ne 'Started') -and ($taskResultOriginal.Status -ne 'Scheduled'))
 				<# Task Result
 				TaskId               : ff34dc4f-2db3-1736-d9f2-6d85b539ff96
 				BatchId              : e2689785-a3a0-41b6-a2b2-a66063d65810
@@ -177,31 +188,33 @@ function Start-SCOMDiscovery
 				#>
 				$taskResult = $taskResultOriginal | Select-Object Status, @{ Name = "Discovery Display Name"; Expression = { $Discov.DisplayName } }, @{ Name = "Discovery Name"; Expression = { $Discov.Name } }, TimeFinished, Output; Sleep $randomnumber
 				' ' | Write-Host
-				if ($Output)
+				if ($OutputFile)
 				{
-					' ' | Out-File -Append -FilePath $Output
+					' ' | Out-File -Append -FilePath $OutputFile
 				}
-				if ($taskResultOriginal.TimeStarted)
+				try
 				{
-					$Timediff = New-TimeSpan -Start $taskResultOriginal.TimeStarted -End $taskResultOriginal.TimeFinished
-				}
-				else
+					if ($taskResultOriginal.TimeStarted)
+					{
+						$Timediff = New-TimeSpan -Start $taskResultOriginal.TimeStarted -End $taskResultOriginal.TimeFinished
+					}
+					else
+					{
+						$Timediff = New-TimeSpan -Start $taskResultOriginal.TimeScheduled -End $taskResultOriginal.TimeFinished
+					}
+				}catch{ $Timediff = "Unknown Amount of"}
+				if ($OutputFile)
 				{
-					$Timediff = New-TimeSpan -Start $taskResultOriginal.TimeScheduled -End $taskResultOriginal.TimeFinished
-				}
-				
-				if ($Output)
-				{
-					$Discov.DisplayName + ' took ' + $Timediff.Seconds + ' seconds.' | Out-File -Append -FilePath $Output
-					' ' | Out-File -Append -FilePath $Output
+					$Discov.DisplayName + ' took ' + $Timediff.Seconds + ' seconds.' | Out-File -Append -FilePath $OutputFile
+					' ' | Out-File -Append -FilePath $OutputFile
 				}
 				$Discov.DisplayName + ' took ' + $Timediff.Seconds + ' seconds.' | Write-Host -ForegroundColor Yellow
 				Write-Host ' '
 				$taskresult = ($taskResult | Out-String -Width 4096).trim()
-				if ($Output)
+				if ($OutputFile)
 				{
-					$taskresult | Out-File -Append -FilePath $Output
-					' ' | Out-File -Append -FilePath $Output
+					$taskresult | Out-File -Append -FilePath $OutputFile
+					' ' | Out-File -Append -FilePath $OutputFile
 				}
 				$taskResult
 				Write-Host ' '
@@ -212,22 +225,22 @@ function Start-SCOMDiscovery
 	}
 	catch
 	{
-		if ($Output)
+		if ($OutputFile)
 		{
-			$_.Exception | Out-File -Append -FilePath $Output
-			"Unable to trigger the discovery" | Out-File -Append -FilePath $Output
+			$_.Exception | Out-File -Append -FilePath $OutputFile
+			"Unable to trigger the discovery" | Out-File -Append -FilePath $OutputFile
 		}
 		Write-Host $_.Exception
 		Write-Host "Unable to trigger the discovery" -ForegroundColor Red
 	}
 }
-if ($ManagementServer -or $DiscoveryDisplayName -or $DiscoveryName -or $Wait -or $DiscoveryId -or $Output)
+if ($AgentServer -or $DiscoveryDisplayName -or $DiscoveryName -or $Wait -or $DiscoveryId -or $OutputFile)
 {
-	Start-SCOMDiscovery -ManagementServer $ManagementServer -DisplayName $DiscoveryDisplayName -Name $DiscoveryName -Id $DiscoveryId -Wait:$Wait -Output $Output
+	Start-SCOMDiscovery -AgentServer $AgentServer -DiscoveryDisplayName $DiscoveryDisplayName -DiscoveryName $DiscoveryName -DiscoveryId $DiscoveryId -Wait $Wait -OutputFile $OutputFile
 }
 else
 {
 	#Enter the Discovery you want to run here.
-	# ex. Start-SCOMDiscovery -DisplayName 'Azure SQL*'
+	# ex. Start-SCOMDiscovery -DiscoveryDisplayName '*Windows*' -AgentServer IIS-2019
 	Start-SCOMDiscovery
 }
