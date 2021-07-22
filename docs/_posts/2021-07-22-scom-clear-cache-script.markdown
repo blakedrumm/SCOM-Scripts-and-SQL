@@ -12,6 +12,6 @@ description: >- # this means to ignore newlines
   https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Clear-SCOMCache.ps1
   
   Allows you to stop the SCOM Services and clears the SCOM cache. The script will also Flush DNS Cache, Purges Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics, and Resetting Winsock catalog.
----
+<!--
 Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
 -->
