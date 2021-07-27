@@ -8,8 +8,8 @@ description: >- # this means to ignore newlines
   Clear your Agent, Management Server, or Gateway SCOM Cache with an easy to use Powershell Script!
   The script also utilizes Invoke-Command, be sure to enable PSRemoting to allow you to utilize this script across servers if needed.
 ---
-  The Clear SCOM Cache Script, which is located here:
-  https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Clear-SCOMCache.ps1
+  The Clear SCOM Cache Script, which is located here: \
+  [https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Clear-SCOMCache.ps1](https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Clear-SCOMCache.ps1)
   
   Allows you to stop the SCOM Services and clears the SCOM cache. The script will also Flush DNS Cache, Purges Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics, and Resetting Winsock catalog.
 <!--
