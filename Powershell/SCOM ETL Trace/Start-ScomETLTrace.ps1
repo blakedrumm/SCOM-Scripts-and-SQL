@@ -4,7 +4,7 @@
 	
 	.DESCRIPTION
 		This will allow you to gather an ETL Trace from an Operations Manager Server or Agent.
-		The Script will detect the location of the ETL Tools based on this registry path: 
+		The Script will detect the location of the ETL Tools based on this registry path:
 		HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Setup
 	
 	.PARAMETER GetAdvisor
@@ -135,7 +135,8 @@ param
 	[int64]$DetectOpsMgrEventID,
 	[Parameter(Mandatory = $false,
 			   Position = 18)]
-	[int64]$SleepSeconds = 10
+	[Alias('Sleep')]
+	[int64]$SleepSeconds
 )
 trap
 {
@@ -204,13 +205,18 @@ Function Start-ETLTrace
 				   Position = 17)]
 		[int64]$DetectOpsMgrEventID,
 		[Parameter(Mandatory = $false,
-				   Position = 18)]
-		[int64]$SleepSeconds = 10
+			 	   Position = 18)]
+		[Alias('Sleep')]
+		[int64]$SleepSeconds
 	)
 	$Loc = $env:COMPUTERNAME
 	$date = Get-Date -Format "MM.dd.yyyy-hh.mmtt"
 	$Mod = $loc + "-" + $date
 	$TempETLTrace = "C:\Windows\Temp\scomETLtrace"
+	if (!$SleepSeconds)
+	{
+		$SleepSeconds = 10
+	}
 	try
 	{
 		$installdir = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Setup" -ErrorAction Stop | Select-Object -Property "InstallDirectory" -ExpandProperty "InstallDirectory"
@@ -597,8 +603,8 @@ exit 0
 	}
 	else
 	{
-        
-		if (!$PSBoundParameters.ContainsKey('SleepSeconds'))
+		
+		if (!($PSBoundParameters.ContainsKey('SleepSeconds')))
 		{
 			Time-Stamp
 			Write-Host "Once you have reproduced the issue, Press Enter to continue." -ForegroundColor Green
