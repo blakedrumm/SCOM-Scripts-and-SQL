@@ -76,7 +76,7 @@
 		September 3rd 2020
 		
 		.MODIFIED
-		July 19th, 2021
+		July 27th, 2021
 #>
 [CmdletBinding()]
 [OutputType([string])]
@@ -210,6 +210,7 @@ Function Start-ETLTrace
 	$Loc = $env:COMPUTERNAME
 	$date = Get-Date -Format "MM.dd.yyyy-hh.mmtt"
 	$Mod = $loc + "-" + $date
+	$TempETLTrace = "C:\Windows\Temp\scomETLtrace"
 	try
 	{
 		$installdir = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Setup" -ErrorAction Stop | Select-Object -Property "InstallDirectory" -ExpandProperty "InstallDirectory"
@@ -509,6 +510,11 @@ exit 0
 		{
 			Time-Stamp
 			Write-Host "Starting Network Trace" -ForegroundColor Cyan
+			$NetworkTracePath = "$TempETLTrace`\Network Trace"
+			if (!(Test-Path $NetworkTracePath) | Out-Null)
+			{
+				mkdir "$TempETLTrace`\Network Trace" -Force | Out-Null
+			}
 			Netsh trace start scenario=netconnection capture=yes maxsize=3000 tracefile=C:\Windows\Temp\$mod.etl | out-null
 		}
 		if (($answer -eq "verbose") -or ($answer -eq "v"))
@@ -591,7 +597,8 @@ exit 0
 	}
 	else
 	{
-		if ($SleepSeconds -eq 10)
+        
+		if (!$PSBoundParameters.ContainsKey('SleepSeconds'))
 		{
 			Time-Stamp
 			Write-Host "Once you have reproduced the issue, Press Enter to continue." -ForegroundColor Green
@@ -620,7 +627,7 @@ exit 0
 	Time-Stamp
 	Write-Host "Formatting ETL Trace" -ForegroundColor Cyan
 	#& $installdir`\FormatTracing.cmd
-	#[string]$formatTraceFile = 'C:\Windows\Temp\scomETLtrace\FormatTrace.ps1'
+	#[string]$formatTraceFile = '$TempETLTrace`\FormatTrace.ps1'
 	#$formatTrace | out-file -FilePath $formatTraceFile -Encoding ascii
 	#FormatTracing using the non-interactive FormatTracing file
 	#$command = $formatTraceFile + " `"'" + $installdir + "'`""
@@ -634,20 +641,10 @@ exit 0
 	Time-Stamp
 	Write-Host "Moving/Copying Files around"
 	
-	$TempETLTrace = "C:\Windows\Temp\scomETLtrace"
-	if ($NetworkTrace)
-	{
-		$NetworkTracePath = "C:\Windows\Temp\scomETLtrace\Network Trace"
-		if (!(Test-Path $NetworkTracePath) | Out-Null)
-		{
-			mkdir "C:\Windows\Temp\scomETLtrace\Network Trace" -Force | Out-Null
-		}
-		Move-Item "C:\Windows\Temp\$mod`.etl" "C:\Windows\Temp\scomETLtrace\Network Trace" -Force | Out-Null
-	}
-	$ETLFolder = "C:\Windows\Temp\scomETLtrace\ETL"
+	$ETLFolder = "$TempETLTrace`\ETL"
 	if (!(Test-Path $TempETLTrace) | Out-Null)
 	{
-		mkdir C:\Windows\Temp\scomETLtrace -Force | Out-Null
+		mkdir $TempETLTrace -Force | Out-Null
 	}
 	
 	
@@ -655,20 +652,20 @@ exit 0
 	
 	if (!(Test-Path $ETLFolder))
 	{
-		mkdir C:\Windows\Temp\scomETLtrace\ETL | Out-Null
+		mkdir $TempETLTrace`\ETL | Out-Null
 	}
 	else
 	{
-		Remove-Item C:\Windows\Temp\scomETLtrace\* -Recurse -Confirm:$false | Out-Null
+		Remove-Item $TempETLTrace`\* -Recurse -Confirm:$false | Out-Null
 	}
-	Copy-Item "C:\Windows\Logs\OpsMgrTrace\*" "C:\Windows\Temp\scomETLtrace\ETL" -Force | Out-Null
+	Copy-Item "C:\Windows\Logs\OpsMgrTrace\*" "$TempETLTrace`\ETL" -Force | Out-Null
 	
 	#Zip output
 	Time-Stamp
 	Write-Host "Zipping up Trace Output." -ForegroundColor DarkCyan
 	[Reflection.Assembly]::LoadWithPartialName("System.IO.Compression.FileSystem") | Out-Null
 	[System.AppDomain]::CurrentDomain.GetAssemblies() | Out-Null
-	$SourcePath = Resolve-Path "C:\Windows\Temp\scomETLtrace"
+	$SourcePath = Resolve-Path "$TempETLTrace"
 	
 	[string]$destfilename = "$Mod`.zip"
 	
@@ -683,7 +680,7 @@ exit 0
 	$compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
 	$includebasedir = $false
 	[System.IO.Compression.ZipFile]::CreateFromDirectory($SourcePath, $destfile, $compressionLevel, $includebasedir) | Out-Null
-	Remove-Item "C:\Windows\Temp\scomETLtrace" -Recurse -Confirm:$false
+	Remove-Item "$TempETLTrace" -Recurse -Confirm:$false
 	if ($Error)
 	{
 		Time-Stamp
@@ -694,14 +691,14 @@ exit 0
 	{
 		Time-Stamp
 		Write-Host "Cleaning up output directory." -ForegroundColor DarkCyan
-		Remove-Item "C:\Windows\Temp\scomETLtrace" -Recurse | Out-Null
+		Remove-Item "$TempETLTrace" -Recurse | Out-Null
 		Time-Stamp
 		Write-Host "Saved zip file to: $destfile`." -ForegroundColor Cyan
 	}
 	
 	C:\Windows\explorer.exe "/select,$destfile"
 }
-if ($GetAdvisor -or $GetAPM -or $GetApmConnector -or $GetBID -or $GetConfigService -or $GetDAS -or $GetFailover -or $GetManaged -or $GetNASM -or $GetNative -or $GetScript -or $GetUI -or $DebugTrace -or $VerboseTrace -or $NetworkTrace -or $RestartSCOMServices -or $DetectOpsMgrEventID)
+if ($GetAdvisor -or $GetAPM -or $GetApmConnector -or $GetBID -or $GetConfigService -or $GetDAS -or $GetFailover -or $GetManaged -or $GetNASM -or $GetNative -or $GetScript -or $GetUI -or $DebugTrace -or $VerboseTrace -or $NetworkTrace -or $RestartSCOMServices -or $DetectOpsMgrEventID -or $SleepSeconds)
 {
 	Start-ETLTrace -GetAdvisor:$GetAdvisor -GetApmConnector:$GetApmConnector -GetBID:$GetBID -GetConfigService:$GetConfigService -GetDAS:$GetDAS -GetFailover:$GetFailover -GetManaged:$GetManaged -GetNASM:$GetNASM -GetNative:$GetNative -GetScript:$GetScript -GetUI:$GetUI -DebugTrace:$DebugTrace -VerboseTrace:$VerboseTrace -NetworkTrace:$NetworkTrace -RestartSCOMServices:$RestartSCOMServices -DetectOpsMgrEventID $DetectOpsMgrEventID -SleepSeconds $SleepSeconds
 }
