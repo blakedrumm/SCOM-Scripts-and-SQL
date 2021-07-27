@@ -205,7 +205,7 @@ Function Start-ETLTrace
 				   Position = 17)]
 		[int64]$DetectOpsMgrEventID,
 		[Parameter(Mandatory = $false,
-			 	   Position = 18)]
+				   Position = 18)]
 		[Alias('Sleep')]
 		[int64]$SleepSeconds
 	)
@@ -213,6 +213,10 @@ Function Start-ETLTrace
 	$date = Get-Date -Format "MM.dd.yyyy-hh.mmtt"
 	$Mod = $loc + "-" + $date
 	$TempETLTrace = "C:\Windows\Temp\scomETLtrace"
+	if (!(Test-Path $TempETLTrace) | Out-Null)
+	{
+		mkdir $TempETLTrace -Force | Out-Null
+	}
 	if (!$SleepSeconds)
 	{
 		$SleepSeconds = 10
@@ -517,11 +521,15 @@ exit 0
 			Time-Stamp
 			Write-Host "Starting Network Trace" -ForegroundColor Cyan
 			$NetworkTracePath = "$TempETLTrace`\Network Trace"
-			if (!(Test-Path $NetworkTracePath) | Out-Null)
+			if (!(Test-Path $NetworkTracePath))
 			{
 				mkdir "$TempETLTrace`\Network Trace" -Force | Out-Null
 			}
-			Netsh trace start scenario=netconnection capture=yes maxsize=3000 tracefile=C:\Windows\Temp\$mod.etl | out-null
+			else
+			{
+				Remove-Item "$TempETLTrace`\Network Trace\*" -Confirm:$false | Out-Null
+			}
+			Netsh trace start capture=yes persistent=yes filemode=circular maxSize=3000MB tracefile="$TempETLTrace`\Network Trace\$mod.etl" | out-null
 		}
 		if (($answer -eq "verbose") -or ($answer -eq "v"))
 		{
@@ -647,22 +655,15 @@ exit 0
 	Time-Stamp
 	Write-Host "Moving/Copying Files around"
 	
-	$ETLFolder = "$TempETLTrace`\ETL"
-	if (!(Test-Path $TempETLTrace) | Out-Null)
-	{
-		mkdir $TempETLTrace -Force | Out-Null
-	}
-	
-	
 	Move-Item $TempDirectory\*.txt "$installdir" -Force | Out-Null
-	
+	$ETLFolder = "$TempETLTrace`\ETL"
 	if (!(Test-Path $ETLFolder))
 	{
-		mkdir $TempETLTrace`\ETL | Out-Null
+		mkdir $ETLFolder | Out-Null
 	}
 	else
 	{
-		Remove-Item $TempETLTrace`\* -Recurse -Confirm:$false | Out-Null
+		Remove-Item $TempETLTrace`\ETL\* -Confirm:$false | Out-Null
 	}
 	Copy-Item "C:\Windows\Logs\OpsMgrTrace\*" "$TempETLTrace`\ETL" -Force | Out-Null
 	
@@ -686,7 +687,7 @@ exit 0
 	$compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
 	$includebasedir = $false
 	[System.IO.Compression.ZipFile]::CreateFromDirectory($SourcePath, $destfile, $compressionLevel, $includebasedir) | Out-Null
-	Remove-Item "$TempETLTrace" -Recurse -Confirm:$false
+	#Remove-Item "$TempETLTrace" -Recurse -Confirm:$false
 	if ($Error)
 	{
 		Time-Stamp
