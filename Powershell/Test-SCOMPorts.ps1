@@ -105,23 +105,27 @@ Starting SCOM Port Checker
 		Write-Host "  Running from: " -NoNewLine
 		Write-Host $env:COMPUTERNAME -ForegroundColor Cyan -NoNewLine
 		$ports = @{
-			"Management Server / Agent Port"  = 5723;
-			"Console Port"				      = 5724;
-			"Connector Framework Source Port" = 51905;
-			"ACS Forwarder Port"			  = 51909;
-			"AEM Port"					      = 51906;
-			"SQL Server (Default) Port"	      = 1433;
-			"SSH Port"					      = 22;
-			"WS-MAN Port"					  = 1270;
-			"Web Console (HTTP) Port"		  = 80;
-			"Web Console (HTTPS) Port"	      = 443;
-			"SNMP (Get) Port"				  = 161;
-			"SNMP (Trap) Port"			      = 162
+			"Management Server / Agent Port"   = 5723;
+			"Web Console / Console Port"	   = 5724;
+			"Connector Framework Source Port"  = 51905;
+			"ACS Forwarder Port"			   = 51909;
+			"AEM Port"						   = 51906;
+			"SQL Server (Default) Port"	       = 1433;
+			"SSH Port"						   = 22;
+			"WS-MAN Port"					   = 1270;
+			"Web Console (HTTP) Port"		   = 80;
+			"Web Console (HTTPS) Port"		   = 443;
+			"SNMP (Get) Port"				   = 161;
+			"SNMP (Trap) Port"				   = 162
 			
-			"Remote Procedure Call (RPC)"  = 135;
+			"Remote Procedure Call (DCOM/RPC)" = 135;
 			#"NetBIOS (Name Services UDP)"  = 137;
 			#"NetBIOS (Datagram Services UDP)"  = 138;
-			"NetBIOS (Session Services)"  = 139;
+			"NetBIOS (Session Services)"	   = 139;
+			"SMB Over IP (Direct TCP/IP)"	   = 445;
+			#"Private/Dynamic Range (Beginning)" = 49152;
+			#"Private/Dynamic Range (Middle)" = 57343;
+			#"Private/Dynamic Range (End)" = 65535;
 		}
 		foreach ($server in $DestinationServer)
 		{
