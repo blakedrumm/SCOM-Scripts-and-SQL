@@ -117,6 +117,11 @@ Starting SCOM Port Checker
 			"Web Console (HTTPS) Port"	      = 443;
 			"SNMP (Get) Port"				  = 161;
 			"SNMP (Trap) Port"			      = 162
+			
+			"Remote Procedure Call (RPC)"  = 135;
+			"NetBIOS (Name Services)"  = 137;
+			"NetBIOS (Datagram Services)"  = 138;
+			"NetBIOS (Session Services)"  = 139;
 		}
 		foreach ($server in $DestinationServer)
 		{
