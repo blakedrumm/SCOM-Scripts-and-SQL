@@ -6,7 +6,7 @@ function Get-SCOMNotificationSubscriptionDetails
 		[string]$Output
 	)
 	#Originally found here: https://blog.topqore.com/export-scom-subscriptions-using-powershell/
-	# Located here: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/edit/master/Powershell/Get-SCOMNotificationSubscriptionDetails.ps1
+	# Located here: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Get-SCOMNotificationSubscriptionDetails.ps1
 	# Modified by: Blake Drumm (blakedrumm@microsoft.com)
 	# Date Modified: 08/03/2021
 	$finalstring = $null
