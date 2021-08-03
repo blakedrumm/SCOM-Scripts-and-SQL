@@ -7,7 +7,7 @@ function Get-SCOMNotificationSubscriptionDetails
 	)
 	#Originally found here: https://blog.topqore.com/export-scom-subscriptions-using-powershell/
 	# Modified by: Blake Drumm (blakedrumm@microsoft.com)
-	# Date Modified: 07/16/2021
+	# Date Modified: 08/02/2021
 	$finalstring = $null
 	$subs = $null
 	$subs = Get-SCOMNotificationSubscription | Sort-Object
@@ -191,18 +191,17 @@ function Get-SCOMNotificationSubscriptionDetails
 				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Command Line    ") -Value ($action.CommandLine)
 				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Timeout ") -Value ($action.Timeout)
 			}
-			elseif ($action.RecipientProtocol -like "Sip*")
-			{
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Application Name") -Value ($action.ApplicationName)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Working Directory       ") -Value ($action.WorkingDirectory)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Command Line    ") -Value ($action.CommandLine)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Timeout ") -Value ($action.Timeout)
-			}
 			$i++
 		}
 		$finalstring += $MainObject | Out-String
 		
 	}
-	$finalstring
+	if ($Output)
+	{
+		$finalstring | Out-File $Output
+	}
+	else
+	{
+		$finalstring
+	}
 }
-Get-SCOMNotificationSubscriptionDetails
