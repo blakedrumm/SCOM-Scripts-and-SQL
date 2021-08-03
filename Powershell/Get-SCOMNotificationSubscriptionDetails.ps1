@@ -37,62 +37,63 @@ function Get-SCOMNotificationSubscriptionDetails
 		$expression = $templatesub | Select-Xml -XPath "//SimpleExpression" | foreach { $_.node.InnerXML }
 		$val = Select-Xml -Content $templatesub -XPath "//Value" | foreach { $_.node.InnerXML }
 		$operators = Select-Xml -Content $templatesub -XPath "//Operator" | foreach { $_.node.InnerXML }
-		$property = Select-Xml -Content $templatesub -XPath "//Property" | foreach { $_.node.InnerXML }
-		
-		for ($i = 0; $i -lt $property.length; $i++)
+		$properties = Select-Xml -Content $templatesub -XPath "//Property" | foreach { $_.node.InnerXML }
+		$i = 0
+		do
 		{
-			if ($property[$i] -eq "ProblemId")
+            foreach($property in $properties)
+            {
+			if ($property -eq "ProblemId")
 			{
-				$monitor = (Get-SCOMMonitor -Id $val[$i]).DisplayName
+				$monitor = (Get-SCOMMonitor -Id $($val | Select-Object -Index $i)).DisplayName
 				$tempcriteria += "  " + ($i + 1) + ") Raised by Monitor: $monitor" + "`n"
-				
 			}
-			if ($property[$i] -eq "RuleId")
+			elseif ($property -eq "RuleId")
 			{
-				$rule = (Get-SCOMRule -Id $val[$i]).DisplayName
+				$rule = (Get-SCOMRule -Id $($val | Select-Object -Index $i)).DisplayName
 				$tempcriteria += "  " + ($i + 1) + ") Raised by Rule: $rule" + "`n"
 			}
-			if ($property[$i] -eq "BaseManagedEntityId")
+			elseif ($property -eq "BaseManagedEntityId")
 			{
-				$Instance = (Get-SCOMClassInstance -Id $val[$i]).DisplayName
+				$Instance = (Get-SCOMClassInstance -Id $($val | Select-Object -Index $i)).DisplayName
 				$tempcriteria += "  " + ($i + 1) + ") Raised by Instance: $Instance" + "`n"
 			}
-			if ($property[$i] -eq "Severity")
+			elseif ($property -eq "Severity")
 			{
-				$verbose_severity = switch ($val[$i])
+				$verbose_severity = switch ($($val | Select-Object -Index $i))
 				{
 					'0' { 'Informational' }
 					'1' { 'Warning' }
 					'2' { 'Critical' }
-					Default { $val[$i] }
+					Default { $($val | Select-Object -Index $i) }
 				}
-				$tempcriteria += "  " + ($i + 1) + ") " + $property[$i] + " " + $operators[$i] + " " + $verbose_severity + "`n"
-				continue
+				$tempcriteria += "  " + ($i + 1) + ") " + $property + " " + $($operators | Select-Object -Index $i) + " " + $verbose_severity + "`n"
 			}
-			if ($property[$i] -eq "Priority")
+			elseif ($property -eq "Priority")
 			{
-				$tempcriteria += "  " + ($i + 1) + ") " + $property[$i] + " " + $operators[$i] + " " + $val[$i] + "`n"
-				continue
+				$tempcriteria += "  " + ($i + 1) + ") $property $($operators | Select-Object -Index $i) $($val | Select-Object -Index $i) `n"
 			}
-			if ($property[$i] -eq "ResolutionState")
+			elseif ($property -eq "ResolutionState")
 			{
-				$tempcriteria += "  " + ($i + 1) + ") " + $property[$i] + " " + $operators[$i] + " " + $val[$i] + "`n"
-				continue
+				$tempcriteria += "  " + ($i + 1) + ") $property $($operators | Select-Object -Index $i) $($val | Select-Object -Index $i) `n"
 			}
-			if ($property[$i] -eq "AlertDescription")
+			elseif ($property -eq "AlertDescription")
 			{
-				$tempcriteria += "  " + ($i + 1) + ") " + $property[$i] + " " + $operators[$i] + " " + $val[$i] + "`n"
-				continue
+				$tempcriteria += "  " + ($i + 1) + ") $property $($operators | Select-Object -Index $i) $($val | Select-Object -Index $i) `n"
 			}
-			if ($property[$i] -eq "AlertName")
+			elseif ($property -eq "AlertName")
 			{
-				$tempcriteria += "  " + ($i + 1) + ") " + $property[$i] + " " + $operators[$i] + " " + $val[$i] + "`n"
-				continue
+				$tempcriteria += "  " + ($i + 1) + ") $property $($operators | Select-Object -Index $i) $($val | Select-Object -Index $i) `n"
 			}
-			
-			$tempcriteria += "  " + ($i + 1) + ") " + $property[$i] + " " + $operators[$i] + " " + $val[$i] + "`n"
-			
-		}
+            else
+            {
+			    $tempcriteria += "  " + ($i + 1) + ") $property $($operators | Select-Object -Index $i) $($val | Select-Object -Index $i) `n"
+            }
+            $i++
+            continue
+            }
+        }until ($i -eq $val.Count)
+        #$MainObject | Add-Member -MemberType NoteProperty -Name ("Criteria                         ") -Value 
 		$MainObject | Add-Member -MemberType NoteProperty -Name 'Criteria' -Value ($tempcriteria + "`n-------- Subscription Scope --------")
 		
 		#Check for class/group
@@ -114,7 +115,7 @@ function Get-SCOMNotificationSubscriptionDetails
 			{
 				$classStr += "`n `r $i) " + $class[$i - 1].DisplayName
 			}
-			$MainObject | Add-Member -MemberType NoteProperty -Name "Raised by an instance of a specific class      $subcount)" -Value $classStr
+			$MainObject | Add-Member -MemberType NoteProperty -Name "Raised by an instance of a specific class" -Value $classStr
 		}
 		if ($group -and !$class)
 		{
@@ -123,7 +124,7 @@ function Get-SCOMNotificationSubscriptionDetails
 			{
 				$groupStr += "`n `r $i) " + $Group[$i - 1].DisplayName
 			}
-			$MainObject | Add-Member -MemberType NoteProperty -Name "Raised by an instance of a specific group      $subcount)" -Value $groupStr
+			$MainObject | Add-Member -MemberType NoteProperty -Name "Raised by an instance of a specific group" -Value $groupStr
 		}
 		if ($class -and $Group)
 		{
@@ -139,8 +140,8 @@ function Get-SCOMNotificationSubscriptionDetails
 			{
 				$classStr += $targetclass.DisplayName.Split(", ")
 			}
-			$MainObject | Add-Member -MemberType NoteProperty -Name "Raised by an instance of a specific group      $subcount)" -Value $groupStr
-			$MainObject | Add-Member -MemberType NoteProperty -Name "Raised by an instance of a specific class      $subcount)" -Value $classStr
+			$MainObject | Add-Member -MemberType NoteProperty -Name "Raised by an instance of a specific group)" -Value $groupStr
+			$MainObject | Add-Member -MemberType NoteProperty -Name "Raised by an instance of a specific class)" -Value $classStr
 		}
 		
 		$MainObject | Add-Member -MemberType NoteProperty -Name '   ' -Value "`n`n-------- Subscriber Information --------"
@@ -150,44 +151,44 @@ function Get-SCOMNotificationSubscriptionDetails
 		{
 			$i = $i
 			$i++
-			$MainObject | Add-Member -MemberType NoteProperty -Name "Subscriber Name                 $i---" -Value $subscriber.Name
-			$MainObject | Add-Member -MemberType NoteProperty -Name "   Channel Type                 $i--" -Value $subscriber.Devices.Protocol
-			$MainObject | Add-Member -MemberType NoteProperty -Name "   Subscriber Address Name      $i-" -Value $subscriber.Devices.Name
+			$MainObject | Add-Member -MemberType NoteProperty -Name "Subscriber Name                 " -Value $subscriber.Name
+			$MainObject | Add-Member -MemberType NoteProperty -Name "   Channel Type                 " -Value $subscriber.Devices.Protocol
+			$MainObject | Add-Member -MemberType NoteProperty -Name "   Subscriber Address Name      " -Value $subscriber.Devices.Name
 		}
 		$i = 0
 		$MainObject | Add-Member -MemberType NoteProperty -Name '     ' -Value "`n`n-------- Channel Information --------"
 		foreach ($action in $sub.Actions)
 		{
 			$i = $i
-			$MainObject | Add-Member -MemberType NoteProperty -Name ("       Channel Name                         " + ($i + 1)) -Value ($action.Displayname)
-			$MainObject | Add-Member -MemberType NoteProperty -Name ("       ID                                   " + ($i + 1)) -Value ($action.ID)
-			$MainObject | Add-Member -MemberType NoteProperty -Name ("       Channel Description                  " + ($i + 1)) -Value ($action.description)
+			$MainObject | Add-Member -MemberType NoteProperty -Name ("       Channel Name                         ") -Value ($action.Displayname)
+			$MainObject | Add-Member -MemberType NoteProperty -Name ("       ID                                   ") -Value ($action.ID)
+			$MainObject | Add-Member -MemberType NoteProperty -Name ("       Channel Description                  ") -Value ($action.description)
 			if ($action.Endpoint -like "Smtp*")
 			{
 				#Get the SMTP channel endpoint
 				$action.Endpoint.PrimaryServer
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Primary SMTP Server                  " + ($i + 1)) -Value ($action.Endpoint.PrimaryServer.Address)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Primary SMTP Port                    " + ($i + 1)) -Value ($action.Endpoint.PrimaryServer.PortNumber)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Primary SMTP Authentication Type     " + ($i + 1)) -Value ($action.Endpoint.PrimaryServer.AuthenticationType)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Primary SMTP ExternalEmailProfile    " + ($i + 1)) -Value ($action.Endpoint.PrimaryServer.ExternalEmailProfile)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Secondary SMTP Server                " + ($i + 1)) -Value ($action.Endpoint.SecondaryServers.Address)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Secondary SMTP Port                  " + ($i + 1)) -Value ($action.Endpoint.SecondaryServers.PortNumber)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Secondary SMTP Authentication Type   " + ($i + 1)) -Value ($action.Endpoint.SecondaryServers.AuthenticationType)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Secondary SMTP ExternalEmailProfile  " + ($i + 1)) -Value ($action.Endpoint.SecondaryServers.ExternalEmailProfile)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       From                                 " + ($i + 1)) -Value ($action.From)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Subject                              " + ($i + 1)) -Value ($action.Subject)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Endpoint                             " + ($i + 1)) -Value ($action.Endpoint)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Body Encoding                        " + ($i + 1)) -Value ($action.BodyEncoding)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Reply To                             " + ($i + 1)) -Value ($action.ReplyTo)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Headers                              " + ($i + 1)) -Value ($action.Headers)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Body                                 " + ($i + 1)) -Value ($action.body)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Primary SMTP Server                  ") -Value ($action.Endpoint.PrimaryServer.Address)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Primary SMTP Port                    ") -Value ($action.Endpoint.PrimaryServer.PortNumber)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Primary SMTP Authentication Type     ") -Value ($action.Endpoint.PrimaryServer.AuthenticationType)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Primary SMTP ExternalEmailProfile    ") -Value ($action.Endpoint.PrimaryServer.ExternalEmailProfile)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Secondary SMTP Server                ") -Value ($action.Endpoint.SecondaryServers.Address)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Secondary SMTP Port                  ") -Value ($action.Endpoint.SecondaryServers.PortNumber)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Secondary SMTP Authentication Type   ") -Value ($action.Endpoint.SecondaryServers.AuthenticationType)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Secondary SMTP ExternalEmailProfile  ") -Value ($action.Endpoint.SecondaryServers.ExternalEmailProfile)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       From                                 ") -Value ($action.From)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Subject                              ") -Value ($action.Subject)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Endpoint                             ") -Value ($action.Endpoint)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Body Encoding                        ") -Value ($action.BodyEncoding)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Reply To                             ") -Value ($action.ReplyTo)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Headers                              ") -Value ($action.Headers)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Body                                 ") -Value ($action.body)
 			}
 			elseif ($action.RecipientProtocol -like "Cmd*")
 			{
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Application Name        " + ($i + 1)) -Value ($action.ApplicationName)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Working Directory       " + ($i + 1)) -Value ($action.WorkingDirectory)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Command Line            " + ($i + 1)) -Value ($action.CommandLine)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Timeout                 " + ($i + 1)) -Value ($action.Timeout)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Application Name        ") -Value ($action.ApplicationName)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Working Directory       ") -Value ($action.WorkingDirectory)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Command Line            ") -Value ($action.CommandLine)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Timeout                 ") -Value ($action.Timeout)
 			}
 			$i++
 		}
