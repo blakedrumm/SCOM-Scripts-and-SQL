@@ -7,7 +7,7 @@ function Get-SCOMNotificationSubscriptionDetails
 	)
 	#Originally found here: https://blog.topqore.com/export-scom-subscriptions-using-powershell/
 	# Modified by: Blake Drumm (blakedrumm@microsoft.com)
-	# Date Modified: 07/16/2021
+	# Date Modified: 08/02/2021
 	# TODO: Add Ability to gather multiple Subscribers Channels.
 	$finalstring = $null
 	$subs = $null
