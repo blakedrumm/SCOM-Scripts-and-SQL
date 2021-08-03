@@ -6,9 +6,9 @@ function Get-SCOMNotificationSubscriptionDetails
 		[string]$Output
 	)
 	#Originally found here: https://blog.topqore.com/export-scom-subscriptions-using-powershell/
+	# Located here: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/edit/master/Powershell/Get-SCOMNotificationSubscriptionDetails.ps1
 	# Modified by: Blake Drumm (blakedrumm@microsoft.com)
-	# Date Modified: 08/02/2021
-	# TODO: Add Ability to gather multiple Subscribers Channels.
+	# Date Modified: 08/03/2021
 	$finalstring = $null
 	$subs = $null
 	$subs = Get-SCOMNotificationSubscription | Sort-Object
@@ -153,16 +153,24 @@ function Get-SCOMNotificationSubscriptionDetails
 		{
 			$i = $i
 			$i++
-			$switchitup = switch ($subscriber.Devices.Protocol)
+			$MainObject | Add-Member -MemberType NoteProperty -Name "Subscriber Name | $i" -Value $subscriber.Name
+			(97 .. (97 + 25)).ForEach({ [array]$abc += [char]$_ })
+			$number = 0
+			foreach ($protocol in $subscriber.Devices.Protocol)
 			{
-				'sip' { "Instant Message (IM)" }
-				'Smtp' { "E-Mail (SMTP)" }
-				default { $subscriber.Devices.Protocol }
+				$protocoltype = switch ($protocol)
+				{
+					'SIP' { 'Instant Message (IM)' }
+					{ $_ -like 'Cmd*' } { 'Command' }
+					'SMTP' { 'E-Mail (SMTP)' }
+					'SMS' { 'Text Message (SMS)' }
+					Default { $protocol }
+				}
+				$number++
+				$MainObject | Add-Member -MemberType NoteProperty -Name "   Channel Type | $i$($abc | Select-Object -Index $($number))" -Value $protocoltype
+				$MainObject | Add-Member -MemberType NoteProperty -Name "   Subscriber Address Name | $i$($abc[$number])" -Value $($subscriber.Devices.Name | Select-Object -Index $($number - 1))
+				$MainObject | Add-Member -MemberType NoteProperty -Name "   Subscriber Address Destination | $i$($abc[$number])" -Value $($subscriber.Devices.Address | Select-Object -Index $($number - 1))
 			}
-			$MainObject | Add-Member -MemberType NoteProperty -Name "Subscriber Name $i" -Value $subscriber.Name
-			$MainObject | Add-Member -MemberType NoteProperty -Name "   Channel Type $i" -Value $switchitup
-			$MainObject | Add-Member -MemberType NoteProperty -Name "   Subscriber Address Name $i" -Value $subscriber.Devices.Name
-			$MainObject | Add-Member -MemberType NoteProperty -Name "   Subscriber Address Destination $i" -Value $subscriber.Devices.Address
 		}
 		$i = 0
 		$MainObject | Add-Member -MemberType NoteProperty -Name '     ' -Value "`n`n-------- Channel Information --------"
@@ -190,6 +198,7 @@ function Get-SCOMNotificationSubscriptionDetails
 				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Body Encoding | $i") -Value ($action.BodyEncoding)
 				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Reply To | $i") -Value ($action.ReplyTo)
 				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Headers | $i") -Value ($action.Headers)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Is Body HTML? | $i") -Value ($action.IsBodyHtml)
 				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Body | $i") -Value ($action.body)
 			}
 			elseif ($action.RecipientProtocol -like "Cmd*")
@@ -199,12 +208,25 @@ function Get-SCOMNotificationSubscriptionDetails
 				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Command Line | $i") -Value ($action.CommandLine)
 				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Timeout | $i") -Value ($action.Timeout)
 			}
-			elseif ($action.RecipientProtocol -like "Sip*")
+			elseif ($action.Endpoint -like "Im*")
 			{
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Application Name | $i") -Value ($action.ApplicationName)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Working Directory | $i") -Value ($action.WorkingDirectory)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Command Line | $i") -Value ($action.CommandLine)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Timeout | $i") -Value ($action.Timeout)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Name | $i") -Value ($action.Name)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Encoding | $i") -Value ($action.Encoding)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Body | $i") -Value ($action.WorkingDirectory)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Content Type | $i") -Value ($action.ContentType)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Endpoint Primary Server | $i") -Value ($action.Endpoint.PrimaryServer.Address)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Endpoint Return Address | $i") -Value ($action.Endpoint.PrimaryServer.UserUri)
+			}
+			elseif ($action.Endpoint -like "Sms*")
+			{
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Name | $i") -Value ($action.Name)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Encoding | $i") -Value ($action.Encoding)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Body | $i") -Value ($action.WorkingDirectory)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Content Type | $i") -Value ($action.ContentType)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Endpoint Primary Device | $i") -Value ($action.Endpoint.PrimaryDevice)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Endpoint Secondary Device | $i") -Value ($action.Endpoint.SecondaryDevices | Out-String -Width 2048)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Endpoint Device Enumeration Interval Seconds | $i") -Value ($action.Endpoint.DeviceEnumerationIntervalSeconds)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Endpoint Primary Device Switch Back Interval Seconds | $i") -Value ($action.Endpoint.PrimaryDeviceSwitchBackIntervalSeconds)
 			}
 		}
 		$finalstring += $MainObject | Out-String
