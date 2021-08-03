@@ -7,7 +7,8 @@ function Get-SCOMNotificationSubscriptionDetails
 	)
 	#Originally found here: https://blog.topqore.com/export-scom-subscriptions-using-powershell/
 	# Modified by: Blake Drumm (blakedrumm@microsoft.com)
-	# Date Modified: 08/02/2021
+	# Date Modified: 07/16/2021
+	# TODO: Add Ability to gather multiple Subscribers Channels.
 	$finalstring = $null
 	$subs = $null
 	$subs = Get-SCOMNotificationSubscription | Sort-Object
@@ -152,56 +153,63 @@ function Get-SCOMNotificationSubscriptionDetails
 		{
 			$i = $i
 			$i++
+			$switchitup = switch ($subscriber.Devices.Protocol)
+			{
+				'sip' { "Instant Message (IM)" }
+				'Smtp' { "E-Mail (SMTP)" }
+				default { $subscriber.Devices.Protocol }
+			}
 			$MainObject | Add-Member -MemberType NoteProperty -Name "Subscriber Name $i" -Value $subscriber.Name
-			$MainObject | Add-Member -MemberType NoteProperty -Name "   Channel Type $i" -Value $subscriber.Devices.Protocol
-			$MainObject | Add-Member -MemberType NoteProperty -Name "   Subscriber Address Name $i     " -Value $subscriber.Devices.Name
-			$MainObject | Add-Member -MemberType NoteProperty -Name "   Subscriber Address Destination $i     " -Value $subscriber.Devices.Address
+			$MainObject | Add-Member -MemberType NoteProperty -Name "   Channel Type $i" -Value $switchitup
+			$MainObject | Add-Member -MemberType NoteProperty -Name "   Subscriber Address Name $i" -Value $subscriber.Devices.Name
+			$MainObject | Add-Member -MemberType NoteProperty -Name "   Subscriber Address Destination $i" -Value $subscriber.Devices.Address
 		}
 		$i = 0
 		$MainObject | Add-Member -MemberType NoteProperty -Name '     ' -Value "`n`n-------- Channel Information --------"
 		foreach ($action in $sub.Actions)
 		{
 			$i = $i
-			$MainObject | Add-Member -MemberType NoteProperty -Name ("       Channel Name ") -Value ($action.Displayname)
-			$MainObject | Add-Member -MemberType NoteProperty -Name ("       ID   ") -Value ($action.ID)
-			$MainObject | Add-Member -MemberType NoteProperty -Name ("       Channel Description  ") -Value ($action.description)
+			$i++
+			$MainObject | Add-Member -MemberType NoteProperty -Name ("       Channel Name | $i") -Value ($action.Displayname)
+			$MainObject | Add-Member -MemberType NoteProperty -Name ("       ID | $i") -Value ($action.ID)
+			$MainObject | Add-Member -MemberType NoteProperty -Name ("       Channel Description | $i") -Value ($action.description)
 			if ($action.Endpoint -like "Smtp*")
 			{
 				#Get the SMTP channel endpoint
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Primary SMTP Server  ") -Value ($action.Endpoint.PrimaryServer.Address)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Primary SMTP Port    ") -Value ($action.Endpoint.PrimaryServer.PortNumber)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Primary SMTP Authentication Type     ") -Value ($action.Endpoint.PrimaryServer.AuthenticationType)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Primary SMTP ExternalEmailProfile    ") -Value ($action.Endpoint.PrimaryServer.ExternalEmailProfile)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Secondary SMTP Server") -Value ($action.Endpoint.SecondaryServers.Address)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Secondary SMTP Port  ") -Value ($action.Endpoint.SecondaryServers.PortNumber)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Secondary SMTP Authentication Type   ") -Value ($action.Endpoint.SecondaryServers.AuthenticationType)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Secondary SMTP ExternalEmailProfile  ") -Value ($action.Endpoint.SecondaryServers.ExternalEmailProfile)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       From ") -Value ($action.From)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Subject      ") -Value ($action.Subject)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Endpoint     ") -Value ($action.Endpoint)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Body Encoding") -Value ($action.BodyEncoding)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Reply To     ") -Value ($action.ReplyTo)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Headers      ") -Value ($action.Headers)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Body ") -Value ($action.body)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Primary SMTP Server | $i") -Value ($action.Endpoint.PrimaryServer.Address)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Primary SMTP Port | $i") -Value ($action.Endpoint.PrimaryServer.PortNumber)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Primary SMTP Authentication Type | $i") -Value ($action.Endpoint.PrimaryServer.AuthenticationType)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Primary SMTP ExternalEmailProfile | $i") -Value ($action.Endpoint.PrimaryServer.ExternalEmailProfile)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Secondary SMTP Server | $i") -Value ($action.Endpoint.SecondaryServers.Address)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Secondary SMTP Port | $i") -Value ($action.Endpoint.SecondaryServers.PortNumber)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Secondary SMTP Authentication Type | $i") -Value ($action.Endpoint.SecondaryServers.AuthenticationType)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Secondary SMTP ExternalEmailProfile | $i") -Value ($action.Endpoint.SecondaryServers.ExternalEmailProfile)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       From | $i") -Value ($action.From)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Subject | $i") -Value ($action.Subject)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Endpoint | $i") -Value ($action.Endpoint)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Body Encoding | $i") -Value ($action.BodyEncoding)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Reply To | $i") -Value ($action.ReplyTo)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Headers | $i") -Value ($action.Headers)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Body | $i") -Value ($action.body)
 			}
 			elseif ($action.RecipientProtocol -like "Cmd*")
 			{
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Application Name") -Value ($action.ApplicationName)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Working Directory       ") -Value ($action.WorkingDirectory)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Command Line    ") -Value ($action.CommandLine)
-				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Timeout ") -Value ($action.Timeout)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Application Name | $i") -Value ($action.ApplicationName)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Working Directory | $i") -Value ($action.WorkingDirectory)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Command Line | $i") -Value ($action.CommandLine)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Timeout | $i") -Value ($action.Timeout)
 			}
-			$i++
+			elseif ($action.RecipientProtocol -like "Sip*")
+			{
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Application Name | $i") -Value ($action.ApplicationName)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Working Directory | $i") -Value ($action.WorkingDirectory)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Command Line | $i") -Value ($action.CommandLine)
+				$MainObject | Add-Member -MemberType NoteProperty -Name ("       Timeout | $i") -Value ($action.Timeout)
+			}
 		}
 		$finalstring += $MainObject | Out-String
 		
 	}
-	if ($Output)
-	{
-		$finalstring | Out-File $Output
-	}
-	else
-	{
-		$finalstring
-	}
+	$finalstring
 }
+Get-SCOMNotificationSubscriptionDetails
