@@ -3,7 +3,7 @@ function Get-SCOMNotificationSubscriptionDetails
 	param
 	(
 		[Parameter(Mandatory = $false)]
-		[string]$Output
+		[string]$OutputFile
 	)
 	#Originally found here: https://blog.topqore.com/export-scom-subscriptions-using-powershell/
 	# Located here: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Get-SCOMNotificationSubscriptionDetails.ps1
@@ -232,6 +232,13 @@ function Get-SCOMNotificationSubscriptionDetails
 		$finalstring += $MainObject | Out-String
 		
 	}
-	$finalstring
+	if($OutputFile)
+	{
+		$finalstring | Out-File $OutputFile
+	}
+	else
+	{
+		$finalstring
+	}
 }
 Get-SCOMNotificationSubscriptionDetails
