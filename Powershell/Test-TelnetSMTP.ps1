@@ -25,6 +25,7 @@ Original sources:
     - https://www.techtutsonline.com/powershell-alternative-telnet-command/
     - https://www.leeholmes.com/blog/2009/10/28/scripting-network-tcp-connections-in-powershell/
 Tim Cartwright: Updated to be interative, also can optionally take a command list to be like a full featured telnet client
+https://gist.github.com/tcartwright/5ac83cd083268878fb50cc28bbb75159
 #>
 Function Telnet {
 
