@@ -137,7 +137,7 @@ Function Telnet {
     End {}
 }
 
-Telnet -ComputerName IIS-2019 -Port 25 -Commands @( "helo example.com", `
+Telnet -ComputerName IIS-2019 -Port 25 -Commands @( "helo contoso.com", `
     "mail from:bdrumm@contoso.com", `
     "rcpt to:blakedrumm@microsoft.com", `
     "data", `
