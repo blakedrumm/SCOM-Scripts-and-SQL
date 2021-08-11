@@ -1,3 +1,4 @@
+
 <#
 .Synopsis
 Tests the connectivity between two computers on a TCP Port
@@ -136,4 +137,11 @@ Function Telnet {
     End {}
 }
 
-Telnet -ComputerName IIS-2019 -Port 25 -Commands ehlo
+Telnet -ComputerName IIS-2019 -Port 25 -Commands @( "helo example.com", `
+    "mail from:bdrumm@contoso.com", `
+    "rcpt to:blakedrumm@microsoft.com", `
+    "data", `
+    "To: `"Blake Drumm`" <blakedrumm@microsoft.com>", `
+    "Subject: My Telnet Test Email", `
+    "Hello $name, `r`n`r`nThis is an email sent by using the telnet command from powershell.", `
+    "`r`n.`r`n")
