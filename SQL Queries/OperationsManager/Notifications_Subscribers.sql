@@ -1,0 +1,1 @@
+select * from [dbo].[ModuleType] WHERE MDTName = 'Microsoft.SystemCenter.Notification.Recipients'

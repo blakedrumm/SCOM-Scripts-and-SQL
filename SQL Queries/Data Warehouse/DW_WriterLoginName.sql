@@ -1,0 +1,1 @@
+SELECT [ManagementGroupDefaultName],[WriterLoginName] FROM [dbo].[ManagementGroup]

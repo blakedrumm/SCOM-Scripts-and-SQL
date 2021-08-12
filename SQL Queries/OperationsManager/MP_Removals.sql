@@ -1,0 +1,2 @@
+SELECT * FROM MPRemovalLog
+ORDER BY MPRemovalDate DESC
