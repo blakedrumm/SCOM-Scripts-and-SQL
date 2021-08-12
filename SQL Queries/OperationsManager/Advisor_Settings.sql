@@ -1,1 +1,1 @@
-select * [dbo].[MT_Microsoft$SystemCenter$Advisor$Settings]
+select * from [dbo].[MT_Microsoft$SystemCenter$Advisor$Settings]
