@@ -1,0 +1,37 @@
+---
+layout: post
+title:  "Resolve Operations Manager Event ID 33333"
+date:   2021-08-16 02:08:42 -0500
+categories: powershell
+title: System Center Operations Manager - Resolve Operations Manager Event ID 33333
+description: >- # this means to ignore newlines
+  Resolve issues detected with SCOM Event ID 33333 which can occur on any Management Server.
+---
+ I had a case recently where my customer was having issues with the following Event ID 33333 on all the Management Servers in the Management Group.
+ This is the Exact Event Information:
+```
+Log Name:      Operations Manager
+Source:        DataAccessLayer
+Date:          7/7/2021 2:19:52 PM
+Event ID:      33333
+Task Category: None
+Level:         Warning
+Keywords:      Classic
+User:          N/A
+Computer:      ManagementServer1.contoso.com
+Description:
+Data Access Layer rejected retry on SqlError:
+ Request: p_StateChangeEventProcess -- (BaseManagedEntityId=2ee6ce9a-6ec1-4a16-335b-700136600z60), (EventOriginId=b48055d3-18f2-40f7-a0e7-a0f8bd1b44a3), (MonitorId=f1baeb56-8cce-f8c7-79ae-d69796c9d926), (NewHealthState=3), (OldHealthState=1), (TimeGenerated=7/7/2021 6:19:43 PM), (Context=), (RETURN_VALUE=0)
+ Class: 14
+ Number: 2627
+ Message: Violation of PRIMARY KEY constraint 'PK_StateChangeEvent'. Cannot insert duplicate key in object 'dbo.StateChangeEvent'. The duplicate key value is (b48055d3-18f2-40f7-a0e7-a0f8bd1b44a3).
+```
+
+I found that this correlates to this article written by Kevin Holman:
+[https://kevinholman.com/2017/05/29/stop-healthservice-restarts-in-scom-2016/](https://kevinholman.com/2017/05/29/stop-healthservice-restarts-in-scom-2016/)
+
+Following the steps in the article above, will resolve the issues you are having with Event ID: **33333** above.
+
+<!--
+Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+-->
