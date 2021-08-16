@@ -32,13 +32,15 @@ This Powershell Script will allow you to detect for Event ID 33333 being generat
 ```powershell
 $events = (Get-EventLog -LogName 'Operations Manager' -Source 'DataAccessLayer' -ErrorAction SilentlyContinue | Where-Object { $_.EventID -eq 33333 })
 # If Event 33333 found in the OperationsManager Event Log, do the below
-if ($events.Message -like "*Violation of PRIMARY KEY constraint 'PK_StateChangeEvent'. Cannot insert duplicate key in object 'dbo.StateChangeEvent'. The duplicate key value is*")
-{
-  $message = $events | %{ ($_ | Select-Object -Property Message -ExpandProperty Message) }
-  $matches = $message -split "," | select-string "MonitorId=(.*)"
-  $match = $matches.matches.groups[1].value.TrimEnd(")")
-  "Found $($message.count) issues with the Event ID 33333 (Monitor Id: $match), see the following article:`n   https://kevinholman.com/2017/05/29/stop-healthservice-restarts-in-scom-2016/"
-}
+if (($events.Message -like "*Violation of PRIMARY KEY constraint 'PK_StateChangeEvent'. Cannot insert duplicate key in object 'dbo.StateChangeEvent'. The duplicate key value is*") -and ($events.Message -like "*f1baeb56-8cce-f8c7-79ae-d69796c9d926*"))
+	{
+		$message = $events | %{ ($_ | Select-Object -Property Message -ExpandProperty Message) }
+		$matches = $message -split "," | select-string "MonitorId=(.*)"
+		$match = $matches.matches.groups[1].value.TrimEnd(")")
+		$i++
+		$i = $i
+		$bestpractice += "Found $($message.count) issues with the Event ID 33333 (Monitor Id: $match), see the following article:`n   https://kevinholman.com/2017/05/29/stop-healthservice-restarts-in-scom-2016/"
+	}
 ```
 
 Run the above script on each of your Management Servers in your Management Group.
