@@ -28,10 +28,25 @@ Data Access Layer rejected retry on SqlError:
  Message: Violation of PRIMARY KEY constraint 'PK_StateChangeEvent'. Cannot insert duplicate key in object 'dbo.StateChangeEvent'. The duplicate key value is (b48055d3-18f2-40f7-a0e7-a0f8bd1b44a3).
 ```
 
+This Powershell Script will allow you to detect for Event ID 33333 being generated and get a count of unique Servers referenced across your OperationsManager Event Log:
+```powershell
+$events = (Get-EventLog -LogName 'Operations Manager' -Source 'DataAccessLayer' -ErrorAction SilentlyContinue | Where-Object { $_.EventID -eq 33333 })
+# If Event 33333 found in the OperationsManager Event Log, do the below
+if ($events.Message -like "*Violation of PRIMARY KEY constraint 'PK_StateChangeEvent'. Cannot insert duplicate key in object 'dbo.StateChangeEvent'. The duplicate key value is*")
+{
+  $message = $events | %{ ($_ | Select-Object -Property Message -ExpandProperty Message) }
+  $matches = $message -split "," | select-string "MonitorId=(.*)"
+  $match = $matches.matches.groups[1].value.TrimEnd(")")
+  "Found $($message.count) issues with the Event ID 33333 (Monitor Id: $match), see the following article:`n   https://kevinholman.com/2017/05/29/stop-healthservice-restarts-in-scom-2016/"
+}
+```
+
+Run the above script on each of your Management Servers in your Management Group.
+
 I found that this correlates to this article written by Kevin Holman:
 [https://kevinholman.com/2017/05/29/stop-healthservice-restarts-in-scom-2016/](https://kevinholman.com/2017/05/29/stop-healthservice-restarts-in-scom-2016/)
 
-Following the steps in the article above, will resolve the issues you are having with Event ID: **33333** above.
+Following the steps in the article above, will resolve the issues you are having with Event ID: **33333** `Violation of PRIMARY KEY constraint 'PK_StateChangeEvent'. Cannot insert duplicate key in object 'dbo.StateChangeEvent'.` .
 
 <!--
 Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
