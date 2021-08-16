@@ -2,7 +2,7 @@
 layout: post
 title:  "Resolve Operations Manager Event ID 33333"
 date:   2021-08-16 02:08:42 -0500
-categories: powershell
+categories: articles
 title: System Center Operations Manager - Resolve Operations Manager Event ID 33333
 description: >- # this means to ignore newlines
   Resolve issues detected with SCOM Event ID 33333 which can occur on any Management Server.
