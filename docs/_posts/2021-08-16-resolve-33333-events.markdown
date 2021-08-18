@@ -50,6 +50,8 @@ I found that this correlates to this article written by Kevin Holman:
 
 Following the steps in the article above, will resolve the issues you are having with Event ID: **33333** `Violation of PRIMARY KEY constraint 'PK_StateChangeEvent'. Cannot insert duplicate key in object 'dbo.StateChangeEvent'.` .
 
+![Page Views](https://counter.blakedrumm.com/count/tag.svg?url=blakedrumm.com/articles/2021/08/16/resolve-33333-events.html)
+
 <!--
 Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
 -->
