@@ -31,7 +31,7 @@
 		Blake Drumm (blakedrumm@microsoft.com)
 		
 		.MODIFIED
-		July 13th, 2021
+		August 17th, 2021
 #>
 [OutputType([string])]
 param
@@ -331,11 +331,11 @@ Function Erase-BaseManagedEntity
 	#ex: SQL01\SCOM2019
 	if (!$ManagementServer)
 	{
-		$ManagementServer = 'MS1-2019'
+		$ManagementServer = 'MS01-2019'
 	}
 	if (!$SqlServer)
 	{
-		$SqlServer = "SQL-2019\SCOM2019"
+		$SqlServer = "MSSQL-2019\SCOM2019"
 	}
 	
 	if (!$Database)
@@ -384,7 +384,9 @@ DO NOT EDIT PAST THIS POINT
 			$genericReadOnlyCollectionType = [System.Collections.ObjectModel.ReadOnlyCollection``1]
 			$genericReadOnlyCollection = $genericReadOnlyCollectionType.MakeGenericType($agentManagedComputerType)
 			$agentReadOnlyCollection = new-object $genericReadOnlyCollection.FullName @( ,$agentList);
+            try{
 			$administration.DeleteAgentManagedComputers($agentReadOnlyCollection);
+            }catch{Write-Host 'Unable to delete from Agent Managed Computers' -ForegroundColor Cyan}
 		} -ErrorAction Stop
 	}
 	catch
