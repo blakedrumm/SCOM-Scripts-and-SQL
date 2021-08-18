@@ -39,7 +39,7 @@ if (($events.Message -like "*Violation of PRIMARY KEY constraint 'PK_StateChange
 		$match = $matches.matches.groups[1].value.TrimEnd(")")
 		$i++
 		$i = $i
-		$bestpractice += "Found $($message.count) issues with the Event ID 33333 (Monitor Id: $match), see the following article:`n   https://kevinholman.com/2017/05/29/stop-healthservice-restarts-in-scom-2016/"
+		"Found $($message.count) issues with the Event ID 33333 (Monitor Id: $match), see the following article:`n   https://kevinholman.com/2017/05/29/stop-healthservice-restarts-in-scom-2016/"
 	}
 ```
 
