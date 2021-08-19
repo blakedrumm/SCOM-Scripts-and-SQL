@@ -103,9 +103,10 @@ function Remove-MPDependencies
 						Write-Host $($mp.Name) -ForegroundColor Cyan
 						try
 						{
-							$mpPresent | Export-SCOMManagementPack -Path "C:\Users\Administrator.contoso\Desktop\" -PassThru -ErrorAction Stop
-							$xmldata = [xml](Get-Content "C:\Users\Administrator.contoso\Desktop\$($mpPresent.Name).xml" -ErrorAction Stop);
-							$xmlData.Save("C:\Users\Administrator.contoso\Desktop\$($mpPresent.Name).backup.xml")
+							$unsealedMPpath = $env:TEMP
+							$mpPresent | Export-SCOMManagementPack -Path $unsealedMPpath -PassThru -ErrorAction Stop
+							$xmldata = [xml](Get-Content "$unsealedMPpath`\$($mpPresent.Name).xml" -ErrorAction Stop);
+							$xmlData.Save("$unsealedMPpath`\$($mpPresent.Name).backup.xml")
 							[version]$mpversion = $xmldata.ManagementPack.Manifest.Identity.Version
 							$xmldata.ManagementPack.Manifest.Identity.Version = [version]::New($mpversion.Major, $mpversion.Minor, $mpversion.Build, $mpversion.Revision + 1).ToString()
 							$xmlData.ChildNodes.Manifest.References.Reference | Where { $_.ID -eq $firstArg } | ForEach-Object { $alias = $_.Alias; [void]$_.ParentNode.RemoveChild($_); }
@@ -116,8 +117,8 @@ function Remove-MPDependencies
 							{
 								$xmlData.ChildNodes.LanguagePacks.LanguagePack.DisplayStrings.DisplayString | Where { $_.ElementID -eq $identifer } | ForEach-Object { [void]$_.ParentNode.RemoveChild($_) }
 							}
-							$xmlData.Save("C:\Users\Administrator.contoso\Desktop\$($mpPresent.Name).xml")
-							Import-SCOMManagementPack -FullName "C:\Users\Administrator.contoso\Desktop\$($mpPresent.Name).xml" | Out-Null
+							$xmlData.Save("$unsealedMPpath`\$($mpPresent.Name).xml")
+							Import-SCOMManagementPack -FullName "$unsealedMPpath`\$($mpPresent.Name).xml" | Out-Null
 						}
 						catch
 						{ Write-Warning $_ }
