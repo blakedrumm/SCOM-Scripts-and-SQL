@@ -5,7 +5,7 @@
 # Date Created	 	:	April 24th, 2012
 # Date Modified		: 	August 19th, 2021
 #
-# Version		:       2.0.2
+# Version		:       2.0.3
 #
 # Arguments		: 	ManagementPackName.  (Provide the value of the management pack ID from the management pack properties, not the value of the Name property.  Otherwise, the script will fail.)
 
@@ -139,7 +139,7 @@ function Remove-MPDependencies
 							}
 							Write-Host "    * Removed the following XML Data from the MP: " -NoNewline
 							Write-Host $($mp.Name) -ForegroundColor Cyan
-							$removed | % { "$_`n"}
+							$removed | % { Write-Host $_ | Out-Host }
 							
 							$xmlData.Save("$unsealedMPpath`\$($mpPresent.Name).xml")
 							Import-SCOMManagementPack -FullName "$unsealedMPpath`\$($mpPresent.Name).xml" | Out-Null
@@ -177,21 +177,29 @@ function Remove-MPDependencies
 		param ($mp)
 		
 		$listOfManagementPacksToRemove = Get-SCOMManagementPack -Name $mp -Recurse
-		$listOfManagementPacksToRemove | Format-Table Name, Sealed, DisplayName
-		
-		$title = "Uninstall Management Packs"
-		$message = "Do you want to uninstall the above $($listOfManagementPacksToRemove.Count) management packs and its dependent management packs?"
-		
-		$yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes", "Uninstall selected Management Packs."
-		$no = New-Object System.Management.Automation.Host.ChoiceDescription "&No", "Do not remove Management Packs."
-		$options = [System.Management.Automation.Host.ChoiceDescription[]]($yes, $no)
-		
-		$result = $host.ui.PromptForChoice($title, $message, $options, 0)
-		
-		switch ($result)
+		if (!$listOfManagementPacksToRemove)
 		{
-			0 { RemoveMPsHelper $listOfManagementPacksToRemove }
-			1 { Write-Host "`nExiting without removing any management packs" -ForegroundColor DarkCyan }
+			Write-Host "No Management Packs found for: $firstArg" -ForegroundColor Yellow
+			exit 1
+		}
+		else
+		{
+			$listOfManagementPacksToRemove | Format-Table Name, Sealed, DisplayName | Out-Host
+			
+			$title = "Uninstall/Edit Management Packs"
+			$message = "Do you want to uninstall/edit the above $($listOfManagementPacksToRemove.Count) management packs and its dependent management packs?"
+			
+			$yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes", "Uninstall (Sealed) / Edit (Unsealed) selected Management Packs."
+			$no = New-Object System.Management.Automation.Host.ChoiceDescription "&No", "Do not remove Management Packs."
+			$options = [System.Management.Automation.Host.ChoiceDescription[]]($yes, $no)
+			
+			$result = $host.ui.PromptForChoice($title, $message, $options, 0)
+			
+			switch ($result)
+			{
+				0 { RemoveMPsHelper $listOfManagementPacksToRemove }
+				1 { Write-Host "`nExiting without removing any management packs" -ForegroundColor DarkCyan }
+			}
 		}
 	}
 	
