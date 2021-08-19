@@ -5,7 +5,7 @@
 # Date Created	 	:	April 24th, 2012
 # Date Modified		: 	August 19th, 2021
 #
-# Version		:       2.0.0
+# Version		:       2.0.1
 #
 # Arguments		: 	ManagementPackName.  (Provide the value of the management pack ID from the management pack properties, not the value of the Name property.  Otherwise, the script will fail.)
 
@@ -103,20 +103,27 @@ function Remove-MPDependencies
 						Write-Host $($mp.Name) -ForegroundColor Cyan
 						try
 						{
+                            [array]$removed = $null
+                            [array]$alias = $null
 							$unsealedMPpath = $env:TEMP
 							$mpPresent | Export-SCOMManagementPack -Path $unsealedMPpath -PassThru -ErrorAction Stop
 							$xmldata = [xml](Get-Content "$unsealedMPpath`\$($mpPresent.Name).xml" -ErrorAction Stop);
 							$xmlData.Save("$unsealedMPpath`\$($mpPresent.Name).backup.xml")
 							[version]$mpversion = $xmldata.ManagementPack.Manifest.Identity.Version
 							$xmldata.ManagementPack.Manifest.Identity.Version = [version]::New($mpversion.Major, $mpversion.Minor, $mpversion.Build, $mpversion.Revision + 1).ToString()
-							$xmlData.ChildNodes.Manifest.References.Reference | Where { $_.ID -eq $firstArg } | ForEach-Object { $alias = $_.Alias; [void]$_.ParentNode.RemoveChild($_); }
-							$xmlData.ChildNodes.Monitoring.Overrides.MonitorPropertyOverride | Where { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $id += $_.Id; [void]$_.ParentNode.RemoveChild($_) }
-							$xmlData.ChildNodes.Monitoring.Overrides.DiscoveryConfigurationOverride | Where { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $id += $_.Id; [void]$_.ParentNode.RemoveChild($_) }
-							$xmlData.ChildNodes.Monitoring.Overrides.RulePropertyOverride | Where { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $id += $_.Id; [void]$_.ParentNode.RemoveChild($_) }
+							$xmlData.ChildNodes.Manifest.References.Reference | Where { $_.ID -eq $firstArg } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $aliases += $_.Alias; [void]$_.ParentNode.RemoveChild($_); }
+                            foreach ($alias in $aliases)
+                            {
+							    $xmlData.ChildNodes.Monitoring.Overrides.MonitorPropertyOverride | Where { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id = $_.Id; [void]$_.ParentNode.RemoveChild($_) }
+							    $xmlData.ChildNodes.Monitoring.Overrides.DiscoveryConfigurationOverride | Where { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id += $_.Id; [void]$_.ParentNode.RemoveChild($_) }
+							    $xmlData.ChildNodes.Monitoring.Overrides.RulePropertyOverride | Where { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id += $_.Id; [void]$_.ParentNode.RemoveChild($_) }
+                            }
+
 							foreach ($identifer in $id)
 							{
-								$xmlData.ChildNodes.LanguagePacks.LanguagePack.DisplayStrings.DisplayString | Where { $_.ElementID -eq $identifer } | ForEach-Object { [void]$_.ParentNode.RemoveChild($_) }
+								$xmlData.ChildNodes.LanguagePacks.LanguagePack.DisplayStrings.DisplayString | Where { $_.ElementID -eq $identifer } | ForEach-Object { $removed += $_.ParentNode.InnerXML; [void]$_.ParentNode.RemoveChild($_) }
 							}
+                            $removed
 							$xmlData.Save("$unsealedMPpath`\$($mpPresent.Name).xml")
 							Import-SCOMManagementPack -FullName "$unsealedMPpath`\$($mpPresent.Name).xml" | Out-Null
 						}
@@ -207,5 +214,5 @@ else
 {
 	# Example:
 	#         Remove-MPDependencies -ManagementPackName Microsoft.SQLServer.Windows.Discovery
-	Remove-MPDependencies
+	Remove-MPDependencies -ManagementPackName Microsoft.SQLServer.Windows.Discovery
 }
