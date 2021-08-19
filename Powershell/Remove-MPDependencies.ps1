@@ -9,6 +9,12 @@
 #
 # Arguments		: 	ManagementPackId.  (Provide the value of the management pack ID from the management pack properties, not the value of the Name property.  Otherwise, the script will fail.)
 
+<# NOTE:
+
+Added ability to remove XML Reference from Unsealed Management Packs - August 19th, 2021
+
+#>
+
 # Example:
 # Get-SCOMManagementPack -DisplayName "Microsoft Azure SQL Managed Instance (Discovery)" | .\RecursiveRemove.ps1 -DryRun -PauseOnEach
 #
