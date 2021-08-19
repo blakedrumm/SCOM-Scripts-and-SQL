@@ -22,7 +22,7 @@ param
 	[Parameter(ValueFromPipeline = $true,
 			   Position = 0,
 			   HelpMessage = 'ex: Microsoft.Azure.ManagedInstance.Discovery')]
-	[string]$ManagementPackId,
+	[string]$ManagementPackName,
 	[Parameter(Position = 1,
 			   HelpMessage = 'This will allow you to pause between each Mangement Pack Dependency removal.')]
 	[switch]$PauseOnEach,
@@ -39,7 +39,7 @@ function Remove-MPDependencies
 				   ValueFromPipeline = $true,
 				   Position = 0,
 				   HelpMessage = 'ex: Microsoft.Azure.ManagedInstance.Discovery')]
-		[String]$ManagementPackId,
+		[String]$ManagementPackName,
 		[Parameter(Position = 1,
 				   HelpMessage = 'This will allow you to pause between each Mangement Pack Dependency removal.')]
 		[switch]$PauseOnEach,
@@ -167,13 +167,13 @@ function Remove-MPDependencies
 	#######################################################################
 	# Begin Script functionality
 	#
-	if ($ManagementPackId -like "*,*")
+	if ($ManagementPackName -like "*,*")
 	{
-		$firstArg = ($ManagementPackId.Split(",").Split("["))[1]
+		$firstArg = ($ManagementPackName.Split(",").Split("["))[1]
 	}
-	elseif ($ManagementPackId)
+	elseif ($ManagementPackName)
 	{
-		$firstArg = $ManagementPackId
+		$firstArg = $ManagementPackName
 	}
 	else
 	{
@@ -192,13 +192,13 @@ function Remove-MPDependencies
 	
 	Write-Host 'Script Completed!' -ForegroundColor Green
 }
-if ($ManagementPackId -or $PauseOnEach -or $DryRun)
+if ($ManagementPackName -or $PauseOnEach -or $DryRun)
 {
-	Remove-MPDependencies -ManagementPackId $ManagementPackId -PauseOnEach:$PauseOnEach -DryRun:$DryRun
+	Remove-MPDependencies -ManagementPackName $ManagementPackName -PauseOnEach:$PauseOnEach -DryRun:$DryRun
 }
 else
 {
 	# Example:
-	#         Remove-MPDependencies -ManagementPackId Microsoft.SQLServer.Windows.Discovery
+	#         Remove-MPDependencies -ManagementPackName Microsoft.SQLServer.Windows.Discovery
 	Remove-MPDependencies
 }
