@@ -5,9 +5,9 @@
 # Date Created	 	:	April 24th, 2012
 # Date Modified		: 	August 19th, 2021
 #
-# Version		:       2.0.3
+# Version		:       2.0.4
 #
-# Arguments		: 	ManagementPackName.  (Provide the value of the management pack ID from the management pack properties, not the value of the Name property.  Otherwise, the script will fail.)
+# Arguments		: 	ManagementPackName.  (Provide the value of the management pack name or id from the management pack properties.  Otherwise, the script will fail.)
 
 <# NOTE:
 
@@ -16,11 +16,11 @@ Added ability to remove XML Reference from Unsealed Management Packs - August 19
 #>
 
 # Example:
-# Get-SCOMManagementPack -DisplayName "Microsoft Azure SQL Managed Instance (Discovery)" | .\RecursiveRemove.ps1 -DryRun -PauseOnEach
+# Get-SCOMManagementPack -DisplayName "Microsoft Azure SQL Managed Instance (Discovery)" | .\Remove-MPDependencies.ps1 -DryRun -PauseOnEach
 #
-# Get-SCOMManagementPack -DisplayName "Microsoft Azure SQL Managed Instance (Discovery)" | .\RecursiveRemove.ps1
+# Get-SCOMManagementPack -DisplayName "Microsoft Azure SQL Managed Instance (Discovery)" | .\Remove-MPDependencies.ps1
 # 
-# .\RecursiveRemove.ps1 -ManagementPackName Microsoft.Azure.ManagedInstance.Discovery
+# .\Remove-MPDependencies.ps1 -ManagementPackName Microsoft.Azure.ManagedInstance.Discovery
 
 # Needed for SCOM SDK
 param
@@ -29,13 +29,15 @@ param
 			   Position = 0,
 			   HelpMessage = 'ex: Microsoft.Azure.ManagedInstance.Discovery')]
 	[string]$ManagementPackName,
-	[Parameter(Position = 1,
+	[Parameter(Position = 1)]
+	[string]$ManagementPackId,
+	[Parameter(Position = 2,
 			   HelpMessage = 'This will allow you to pause between each Mangement Pack Dependency removal.')]
 	[switch]$PauseOnEach,
-	[Parameter(Position = 2,
+	[Parameter(Position = 3,
 			   HelpMessage = 'This will let you see how it would execute, without making any changes to your environment.')]
 	[switch]$DryRun,
-	[Parameter(Position = 3)]
+	[Parameter(Position = 4)]
 	[string]$ExportPath
 )
 
@@ -47,16 +49,18 @@ function Remove-MPDependencies
 				   Position = 0,
 				   HelpMessage = 'ex: Microsoft.Azure.ManagedInstance.Discovery')]
 		[string]$ManagementPackName,
-		[Parameter(Position = 1,
+		[Parameter(Position = 1)]
+		[string]$ManagementPackId,
+		[Parameter(Position = 2,
 				   HelpMessage = 'This will allow you to pause between each Mangement Pack Dependency removal.')]
 		[switch]$PauseOnEach,
-		[Parameter(Position = 2,
+		[Parameter(Position = 3,
 				   HelpMessage = 'This will let you see how it would execute, without making any changes to your environment.')]
 		[switch]$DryRun,
-		[Parameter(Position = 3)]
+		[Parameter(Position = 4)]
 		[string]$ExportPath
 	)
-	$firstArg = $null
+	$firstArgName = $null
 	if (!$ExportPath)
 	{
 		$unsealedMPpath = $env:TEMP
@@ -65,9 +69,9 @@ function Remove-MPDependencies
 	{
 		$unsealedMPpath = $ExportPath
 	}
-	if (!$ManagementPackName)
+	if (!$ManagementPackName -and !$ManagementPackId)
 	{
-		Write-Host "-ManagementPackName is required!" -ForegroundColor Red
+		Write-Host "-ManagementPackName or -ManagementPackId is required!" -ForegroundColor Red
 		exit 1
 	}
 	$ipProperties = [System.Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties()
@@ -84,7 +88,7 @@ function Remove-MPDependencies
 		foreach ($mp in $mpList)
 		{
 			$id = $null
-			$recursiveListOfManagementPacksToRemove = Get-SCOMManagementPack -Name $mp.Name -Recurse
+			$recursiveListOfManagementPacksToRemove = Get-SCOMManagementPack -Name $mpname.Name -Recurse
 			if ($recursiveListOfManagementPacksToRemove.Count -gt 1)
 			{
 				Echo "`r`n"
@@ -96,12 +100,12 @@ function Remove-MPDependencies
 			}
 			else
 			{
-				$mpPresent = Get-ManagementPack -Name $mp.Name
+				$mpPresent = Get-ManagementPack -Name $mpname.Name
 				$Error.Clear()
 				if ($mpPresent -eq $null)
 				{
 					# If the MP wasn't found, we skip the uninstallation of it.
-					Write-Host "    $mp has already been uninstalled"
+					Write-Host "    $mpname has already been uninstalled"
 				}
 				else
 				{
@@ -125,7 +129,7 @@ function Remove-MPDependencies
 							$xmlData.Save("$unsealedMPpath`\$($mpPresent.Name).backup.xml")
 							[version]$mpversion = $xmldata.ManagementPack.Manifest.Identity.Version
 							$xmldata.ManagementPack.Manifest.Identity.Version = [version]::New($mpversion.Major, $mpversion.Minor, $mpversion.Build, $mpversion.Revision + 1).ToString()
-							$xmlData.ChildNodes.Manifest.References.Reference | Where { $_.ID -eq $firstArg } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $aliases += $_.Alias; [void]$_.ParentNode.RemoveChild($_); }
+							$xmlData.ChildNodes.Manifest.References.Reference | Where { $_.ID -eq $firstArgName } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $aliases += $_.Alias; [void]$_.ParentNode.RemoveChild($_); }
 							foreach ($alias in $aliases)
 							{
 								$xmlData.ChildNodes.Monitoring.Overrides.MonitorPropertyOverride | Where { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id = $_.Id; [void]$_.ParentNode.RemoveChild($_) }
@@ -154,7 +158,7 @@ function Remove-MPDependencies
 					{
 						Write-Host "    * Uninstalling Management Pack: " -NoNewLine -ForegroundColor Red
 						Write-Host $($mp.Name) -ForegroundColor Cyan
-						Uninstall-ManagementPack -managementpack $mp
+						Uninstall-ManagementPack -managementpack $mpname
 					}
 				}
 				if ($PauseOnEach)
@@ -174,12 +178,19 @@ function Remove-MPDependencies
 	#
 	function RemoveMPs
 	{
-		param ($mp)
-		
-		$listOfManagementPacksToRemove = Get-SCOMManagementPack -Name $mp -Recurse
+		param ($mpname,
+			$mpid)
+		if ($mpname)
+		{
+			$listOfManagementPacksToRemove = Get-SCOMManagementPack -Name $mpname -Recurse
+		}
+		elseif ($mpid)
+		{
+			$listOfManagementPacksToRemove = Get-SCOMManagementPack -Id $mpid -Recurse
+		}
 		if (!$listOfManagementPacksToRemove)
 		{
-			Write-Host "No Management Packs found for: $firstArg" -ForegroundColor Yellow
+			Write-Host "No Management Packs found for: $firstArgName" -ForegroundColor Yellow
 			exit 1
 		}
 		else
@@ -208,11 +219,19 @@ function Remove-MPDependencies
 	#
 	if ($ManagementPackName -like "*,*")
 	{
-		$firstArg = ($ManagementPackName.Split(",").Split("["))[1]
+		$firstArgName = ($ManagementPackName.Split(",").Split("["))[1]
 	}
 	elseif ($ManagementPackName)
 	{
-		$firstArg = $ManagementPackName
+		$firstArgName = $ManagementPackName
+	}
+	elseif ($ManagementPackId -like "*,*")
+	{
+		$firstArgId = ($ManagementPackId.Split(",").Split("["))[1]
+	}
+	elseif ($ManagementPackId)
+	{
+		$firstArgId = $ManagementPackId
 	}
 	else
 	{
@@ -223,17 +242,24 @@ function Remove-MPDependencies
 	$cwd = get-location
 	set-location "OperationsManagerMonitoring::";
 	$mgConnection = new-managementGroupConnection -ConnectionString:$rootMS;
+	if ($firstArgName)
+	{
+		RemoveMPs -mpname $firstArgName
+	}
+	elseif ($firstArgId)
+	{
+		RemoveMPs -mpid $firstArgId
+	}
 	
-	RemoveMPs -mp $firstArg
 	
 	set-location $cwd
 	remove-pssnapin "Microsoft.EnterpriseManagement.OperationsManager.Client";
 	
 	Write-Host 'Script Completed!' -ForegroundColor Green
 }
-if ($ManagementPackName -or $PauseOnEach -or $DryRun -or $ExportPath)
+if ($ManagementPackName -or $ManagementPackId -or $PauseOnEach -or $DryRun -or $ExportPath)
 {
-	Remove-MPDependencies -ManagementPackName $ManagementPackName -PauseOnEach:$PauseOnEach -DryRun:$DryRun -ExportPath $ExportPath
+	Remove-MPDependencies -ManagementPackId $ManagementPackId -ManagementPackName $ManagementPackName -PauseOnEach:$PauseOnEach -DryRun:$DryRun -ExportPath $ExportPath
 }
 else
 {
