@@ -37,6 +37,34 @@ ForEach ($Computer in $AllComputers)
 		# Uninstall Agent
 		Time-Stamp
 		Write-Host "`t - Uninstalling Agent" -ForegroundColor Cyan
+		<#
+			2012 R2 install
+			msiexec.exe /i \\agent1.contoso.com\stagetools\SCOMAgent2012R2x64\MOMAgent.msi /qn USE_SETTINGS_FROM_AD=0 USE_MANUALLY_SPECIFIED_SETTINGS=1 MANAGEMENT_GROUP=Beta2019 MANAGEMENT_SERVER_DNS=MS1.contoso.com MANAGEMENT_SERVER_AD_NAME=MS1.contoso.com SECURE_PORT=5723 ACTIONS_USE_COMPUTER_ACCOUNT=1 AcceptEndUserLicenseAgreement=1
+
+			2012 R2 Patch UR14
+			msiexec.exe /p \\agent1.contoso.com\stagetools\SCOMAgent2016x64\KB4024942-AMD64-Agent.msp /qn AcceptEndUserLicenseAgreement=1
+
+			2016 upgrade - Upgraded my agent from 2012 R2 UR14 to 2016 RTM
+			msiexec.exe /i \\agent1.contoso.com\stagetools\SCOMAgent2016x64\MOMAgent.msi /qn AcceptEndUserLicenseAgreement=1
+
+			2016 patch UR9 - - Then I patched from 2016 RTM to UR9
+			msiexec.exe /p \\agent1.contoso.com\stagetools\SCOMAgent2016x64\KB4546986-AMD64-Agent.msp /qn AcceptEndUserLicenseAgreement=1
+
+			2016 patch UR10 - - Then I patched from 2016 RTM to UR10
+			msiexec.exe /p \\agent1.contoso.com\stagetools\SCOMAgent2016x64\KB4580254-AMD64-Agent.msp /qn AcceptEndUserLicenseAgreement=1
+
+			2019 upgrade
+			msiexec.exe /i \\agent1.contoso.com\stagetools\SCOMAgent2019x64\MOMAgent.msi /qn AcceptEndUserLicenseAgreement=1
+
+			2019 patch UR1
+			msiexec.exe /p \\agent1.contoso.com\stagetools\SCOMAgent2016x64\KB4533415-AMD64-Agent.msp /qn AcceptEndUserLicenseAgreement=1
+
+			2019 patch UR2
+			msiexec.exe /p KB4558752-amd64-Agent.msp /qn AcceptEndUserLicenseAgreement=1
+
+			2019 patch UR3
+			msiexec.exe /p \\uncpath\share\KB4594078-amd64-Agent.msp /qn AcceptEndUserLicenseAgreement=1
+		#>
 		start-process -FilePath "msiexec.exe" -ArgumentList "/x $path_to_install /qn /l*v C:\Temp\AgentUninstall.log" -Wait -ErrorAction Stop
 		Sleep 1
 		$args = "USE_SETTINGS_FROM_AD=0 USE_MANUALLY_SPECIFIED_SETTINGS=1 MANAGEMENT_GROUP=ManagementGroup1 MANAGEMENT_SERVER_DNS=MS1.contoso.com MANAGEMENT_SERVER_AD_NAME=MS1.contoso.com SECURE_PORT=5723 ACTIONS_USE_COMPUTER_ACCOUNT=1 AcceptEndUserLicenseAgreement=1"
