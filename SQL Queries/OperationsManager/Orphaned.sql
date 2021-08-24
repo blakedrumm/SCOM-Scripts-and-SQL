@@ -1,4 +1,5 @@
 --find orphans
+-- if anything found run this query: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/SQL%20Queries/OperationsManager/Orphaned_Purge.sql
 declare @DiscoverySourceId uniqueidentifier;
 declare @TimeGenerated datetime;
 set @TimeGenerated = GETUTCDATE();
