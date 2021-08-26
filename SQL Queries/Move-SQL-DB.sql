@@ -1,4 +1,4 @@
--- Author: Lorne Sepaugh
+-- Author: Alex Kremenetskiy
 DECLARE @OpsMgrSQLInstance nvarchar(50) = '<OpsMgr DB Instance>'
 DECLARE @DWSQLInstance nvarchar(50) = '<DW DB Instance>'
 
