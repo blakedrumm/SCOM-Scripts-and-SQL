@@ -3,9 +3,9 @@
 # Original Author	:     	Christopher Crammond, Chandra Bose
 # Modified By	 	:     	Blake Drumm (blakedrumm@microsoft.com)
 # Date Created	 	:	April 24th, 2012
-# Date Modified		: 	August 19th, 2021
+# Date Modified		: 	August 27th, 2021
 #
-# Version		:       2.0.4
+# Version		:       2.0.5
 #
 # Arguments		: 	ManagementPackName.  (Provide the value of the management pack name or id from the management pack properties.  Otherwise, the script will fail.)
 
@@ -88,7 +88,7 @@ function Remove-MPDependencies
 		foreach ($mp in $mpList)
 		{
 			$id = $null
-			$recursiveListOfManagementPacksToRemove = Get-SCOMManagementPack -Name $mpname.Name -Recurse
+			$recursiveListOfManagementPacksToRemove = Get-SCOMManagementPack -Name $mp.Name -Recurse
 			if ($recursiveListOfManagementPacksToRemove.Count -gt 1)
 			{
 				Echo "`r`n"
@@ -100,12 +100,12 @@ function Remove-MPDependencies
 			}
 			else
 			{
-				$mpPresent = Get-ManagementPack -Name $mpname.Name
+				$mpPresent = Get-ManagementPack -Name $mp.Name
 				$Error.Clear()
 				if ($mpPresent -eq $null)
 				{
 					# If the MP wasn't found, we skip the uninstallation of it.
-					Write-Host "    $mpname has already been uninstalled"
+					Write-Host "    $mp has already been uninstalled"
 				}
 				else
 				{
@@ -158,7 +158,7 @@ function Remove-MPDependencies
 					{
 						Write-Host "    * Uninstalling Management Pack: " -NoNewLine -ForegroundColor Red
 						Write-Host $($mp.Name) -ForegroundColor Cyan
-						Uninstall-ManagementPack -managementpack $mpname
+						Uninstall-ManagementPack -managementpack $mp
 					}
 				}
 				if ($PauseOnEach)
