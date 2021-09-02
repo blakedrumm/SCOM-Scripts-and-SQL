@@ -1,10 +1,11 @@
---find orphans
--- if anything found run this query: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/SQL%20Queries/OperationsManager/Orphaned_Purge.sql
+--Detect Orphaned objects; Added FullName
 declare @DiscoverySourceId uniqueidentifier;
 declare @TimeGenerated datetime;
 set @TimeGenerated = GETUTCDATE();
 set @DiscoverySourceId = dbo.fn_DiscoverySourceId_User();
-SELECT TME.[TypedManagedEntityid]
+SELECT TME.[TypedManagedEntityid],
+BHS.DisplayName,
+BHS.FullName
 FROM MTV_HealthService HS
 INNER JOIN dbo.[BaseManagedEntity] BHS
 ON BHS.[BaseManagedEntityId] = HS.[BaseManagedEntityId]
