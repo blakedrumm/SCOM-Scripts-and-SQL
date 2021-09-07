@@ -1,3 +1,5 @@
+# THIS SCRIPT CAN BE DANGEROUS, MAKE BACKUPS OF YOUR OPSDB AND DW!
+
 # PowerShell script to automagically remove an MP and its dependencies.
 #
 # Original Author	:     	Christopher Crammond, Chandra Bose
