@@ -1,5 +1,5 @@
 	--Create the detection sproc: 
-	USE [OperationsManager] 
+	--USE [OperationsManager] 
 	GO 
 	/****** Object:  StoredProcedure [dbo].[p_RecursiveMembershipInconsistencySelect]    Script Date: 8/30/2017 6:35:07 PM ******/ 
 	SET ANSI_NULLS ON 
