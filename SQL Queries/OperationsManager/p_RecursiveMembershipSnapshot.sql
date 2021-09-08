@@ -1,5 +1,5 @@
 	--Create the cleanup sproc: 
-	USE [OperationsManager] 
+	--USE [OperationsManager] 
 	GO 
 	/****** Object:  StoredProcedure [dbo].[p_RecursiveMembershipSnapshot]    Script Date: 8/30/2017 6:38:45 PM ******/ 
 	SET ANSI_NULLS ON 
