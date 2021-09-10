@@ -54,9 +54,9 @@ param
 			   Position = 2,
 			   HelpMessage = 'Optionally reboot the server after stopping the SCOM Services and clearing SCOM Cache. This will always perform on the local server last.')]
 	[Switch]$Reboot,
-		[Parameter(Mandatory = $false,
-				   Position = 3)]
-		[Switch]$All
+	[Parameter(Mandatory = $false,
+			   Position = 3)]
+	[Switch]$All
 )
 
 if ($Servers -match 'Microsoft.EnterpriseManagement.Administration.ManagementServer')
