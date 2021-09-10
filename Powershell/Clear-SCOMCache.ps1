@@ -3,13 +3,27 @@
 		Clear-SCOMCache
 	
 	.DESCRIPTION
-		The script clears the SCOM cache, Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics, and Resetting Winsock catalog. And reboots the server(s) if -Reboot switch is present.
+		The script clears the SCOM cache. You can also pass an array to this script and it will handle each server.
+		
+		If the -All Switch is present, this script will perform the following:
+		 - Flush DNS
+		 - Purge Kerberos Tickets
+		 - Reset NetBIOS over TCPIP Statistics
+		 
+		 IF Rebooting we also perform the following:
+		     - Reset Winsock Catalog
+		     
+		This script will Reboot the server(s) ONLY if -Reboot switch is present when you are running the Script. 
+		This just adds the ability the Restart the Server when Patching.
 	
 	.PARAMETER Servers
 		Each Server you want to Clear SCOM Cache on, can be an Agent, Management Server, or SCOM Gateway.
 	
 	.PARAMETER Reboot
 		Optionally reboot the server after stopping the SCOM Services and clearing SCOM Cache.
+		
+	.PARAMETER All
+		If you want to clear all caches that SCOM relies on.
 	
 	.EXAMPLE
 		Clear SCOM cache on every Management Server in Management Group.
@@ -39,7 +53,10 @@ param
 	[Parameter(Mandatory = $false,
 			   Position = 2,
 			   HelpMessage = 'Optionally reboot the server after stopping the SCOM Services and clearing SCOM Cache. This will always perform on the local server last.')]
-	[Switch]$Reboot
+	[Switch]$Reboot,
+		[Parameter(Mandatory = $false,
+				   Position = 3)]
+		[Switch]$All
 )
 
 if ($Servers -match 'Microsoft.EnterpriseManagement.Administration.ManagementServer')
