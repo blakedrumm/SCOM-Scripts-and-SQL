@@ -51,11 +51,6 @@ elseif ($Servers -match 'Microsoft.EnterpriseManagement.Administration.AgentMana
 	$Servers = $Servers.DisplayName
 }
 
-if (!$Servers)
-{
-	$Servers = $env:COMPUTERNAME
-}
-
 Write-Host '===================================================================' -ForegroundColor DarkYellow
 Write-Host '==========================  Start of Script =======================' -ForegroundColor DarkYellow
 Write-Host '===================================================================' -ForegroundColor DarkYellow
@@ -95,6 +90,10 @@ Function Clear-SCOMCache
 				   Position = 3)]
 		[Switch]$All
 	)
+    if (!$Servers)
+    {
+	    $Servers = $env:COMPUTERNAME
+    }
 	function Inner-ClearSCOMCache
 	{
 		param
@@ -414,7 +413,7 @@ if ($Servers -or $Reboot -or $All)
 }
 else
 {
-<# Edit line 422 to modify the default command run when this script is executed.
+<# Edit line 610 to modify the default command run when this script is executed.
 
    Example: 
    Clear-SCOMCache -Servers Agent1.contoso.com, Agent2.contoso.com, MS1.contoso.com, MS2.contoso.com
