@@ -468,4 +468,4 @@ Function Get-TLSRegistryKeys
 	}
 	$results | Out-String -Width 4096
 }
-Get-TLSRegistryKeys
+Get-TLSRegistryKeys -Servers $env:COMPUTERNAME
