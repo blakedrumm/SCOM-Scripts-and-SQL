@@ -1,1 +1,1 @@
-SELECT [ManagementGroupDefaultName],[WriterLoginName] FROM [dbo].[ManagementGroup]
+SELECT [ManagementGroupDefaultName],[WriterLoginName] FROM [dbo].[ManagementGroup] WITH (NOLOCK)

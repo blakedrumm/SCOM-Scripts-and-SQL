@@ -2,4 +2,4 @@ SELECT
    UserRoleName,
    IsSystem 
 from
-   userrole
+   userrole WITH (NOLOCK)

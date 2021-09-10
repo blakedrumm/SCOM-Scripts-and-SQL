@@ -7,5 +7,5 @@ StartedDateTimeUtc,
 LastActivityDateTimeUtc,
 CompletedDateTimeUtc,
 DurationSeconds
-FROM CS.workitem
+FROM CS.workitem WITH (NOLOCK)
 ORDER BY WorkItemRowId DESC

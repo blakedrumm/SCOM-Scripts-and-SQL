@@ -1,7 +1,7 @@
 DECLARE @RelationshipTypeId_Manages UNIQUEIDENTIFIER 
 SELECT @RelationshipTypeId_Manages = dbo.fn_RelationshipTypeId_Manages() 
 SELECT TOP 50 bme.DisplayName, SUM(1) AS HostedInstances 
-FROM BaseManagedEntity bme 
+FROM BaseManagedEntity bme WITH (NOLOCK)
 RIGHT JOIN ( 
 SELECT 
       HBME.BaseManagedEntityId AS HS_BMEID, 

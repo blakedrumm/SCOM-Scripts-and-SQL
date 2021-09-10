@@ -22,6 +22,6 @@ When 13 then 'Security issue'
 When 14 then 'Loss of network connectivity (Unplanned)'
 End as [Reason for Maintenance],
 Comments
-FROM BaseManagedEntity INNER JOIN
-MaintenanceMode ON BaseManagedEntity.BaseManagedEntityId = MaintenanceMode.BaseManagedEntityId
+FROM BaseManagedEntity WITH (NOLOCK) INNER JOIN
+MaintenanceMode WITH (NOLOCK) ON BaseManagedEntity.BaseManagedEntityId = MaintenanceMode.BaseManagedEntityId
 WHERE IsInMaintenanceMode = 1

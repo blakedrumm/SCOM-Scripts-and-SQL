@@ -8,6 +8,6 @@ SELECT ds.DatasetDefaultName,
   sdah.DirtyInd,
   sdah.DataLastReceivedDateTime,
   sdah.AggregationCount
-FROM StandardDatasetAggregationHistory sdah
-JOIN Dataset ds ON sdah.DatasetId = ds.DatasetId
+FROM StandardDatasetAggregationHistory sdah WITH(NOLOCK)
+JOIN Dataset ds WITH (NOLOCK) ON sdah.DatasetId = ds.DatasetId
 ORDER BY StandardDatasetAggregationHistoryRowId DESC

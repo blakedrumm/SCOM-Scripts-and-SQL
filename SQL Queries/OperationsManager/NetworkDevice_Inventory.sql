@@ -9,4 +9,4 @@
 [Vendor_16EE4AB2_CBCC_BAD3_B249_A56E6BF207D0] as 'Vendor',
 [sysName_EBD2EE76_4A80_E1A2_D2C1_615B586EAD36] as 'SystemName',
 [DisplayName] as 'DisplayName'
-FROM [MT_System$NetworkManagement$Node]
+FROM [MT_System$NetworkManagement$Node] WITH (NOLOCK)

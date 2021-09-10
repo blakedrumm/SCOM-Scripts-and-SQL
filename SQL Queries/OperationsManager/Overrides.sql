@@ -16,18 +16,18 @@
 		   mo.lastmodified AS OverrideLastModified,
 		   mo.timeadded    AS OverrideCreatedOn
 	--op.TimeAdded AS MPTimeCreated
-	FROM moduleoverride mo
-	INNER JOIN managementpackview mpv
+	FROM moduleoverride mo WITH (NOLOCK)
+	INNER JOIN managementpackview mpv WITH (NOLOCK)
 	ON mpv.id = mo.managementpackid
-	INNER JOIN ruleview rv
+	INNER JOIN ruleview rv WITH (NOLOCK)
 	ON rv.id = mo.parentid
-	INNER JOIN managedtype mt
+	INNER JOIN managedtype mt WITH (NOLOCK)
 	ON mt.managedtypeid = mo.typecontext
-	LEFT JOIN localizedtext lt
+	LEFT JOIN localizedtext lt WITH (NOLOCK)
 	ON lt.ltstringid = mo.moduleoverrideid
-	LEFT JOIN basemanagedentity bme
+	LEFT JOIN basemanagedentity bme WITH (NOLOCK)
 	ON bme.basemanagedentityid = mo.instancecontext
-	LEFT JOIN overrideableparameter op
+	LEFT JOIN overrideableparameter op WITH (NOLOCK)
 	ON mo.overrideableparameterid = op.overrideableparameterid
 	--Where (lt.LTStringType = 2 and mpv.LanguageCode = 'ENU')
 	--Where (mpv.Sealed = 0 and mpv.LanguageCode = 'ENU')
@@ -50,18 +50,18 @@
 		   mto.lastmodified AS OverrideLastModified,
 		   mto.timeadded    AS OverrideCreatedOn
 	--mpv.TimeCreated AS MPTimeCreated
-	FROM monitoroverride mto
-	INNER JOIN managementpackview mpv
+	FROM monitoroverride mto WITH (NOLOCK)
+	INNER JOIN managementpackview mpv WITH (NOLOCK)
 	ON mpv.id = mto.managementpackid
-	INNER JOIN monitorview mv
+	INNER JOIN monitorview mv WITH (NOLOCK)
 	ON mv.id = mto.monitorid
-	INNER JOIN managedtype mt
+	INNER JOIN managedtype mt WITH (NOLOCK)
 	ON mt.managedtypeid = mto.typecontext
-	LEFT JOIN localizedtext lt
+	LEFT JOIN localizedtext lt WITH (NOLOCK)
 	ON lt.ltstringid = mto.monitoroverrideid
-	LEFT JOIN basemanagedentity bme
+	LEFT JOIN basemanagedentity bme WITH (NOLOCK)
 	ON bme.basemanagedentityid = mto.instancecontext
-	LEFT JOIN overrideableparameter op
+	LEFT JOIN overrideableparameter op WITH (NOLOCK)
 	ON mto.overrideableparameterid = op.overrideableparameterid
 	--Where (lt.LTStringType = 2 and mpv.LanguageCode = 'ENU')
 	--Where (mpv.Sealed = 0 and mpv.LanguageCode = 'ENU')
@@ -84,18 +84,18 @@
 		   mo.lastmodified AS OverrideLastModified,
 		   mo.timeadded    AS OverrideCreatedOn
 	--mpv.TimeCreated AS MPTimeCreated
-	FROM moduleoverride mo
-	INNER JOIN managementpackview mpv
+	FROM moduleoverride mo WITH (NOLOCK)
+	INNER JOIN managementpackview mpv WITH (NOLOCK)
 	ON mpv.id = mo.managementpackid
-	INNER JOIN discoveryview dv
+	INNER JOIN discoveryview dv WITH (NOLOCK)
 	ON dv.id = mo.parentid
-	INNER JOIN managedtype mt
+	INNER JOIN managedtype mt WITH (NOLOCK)
 	ON mt.managedtypeid = mo.typecontext
-	LEFT JOIN localizedtext lt
+	LEFT JOIN localizedtext lt WITH (NOLOCK)
 	ON lt.ltstringid = mo.moduleoverrideid
-	LEFT JOIN basemanagedentity bme
+	LEFT JOIN basemanagedentity bme WITH (NOLOCK)
 	ON bme.basemanagedentityid = mo.instancecontext
-	LEFT JOIN overrideableparameter op
+	LEFT JOIN overrideableparameter op WITH (NOLOCK)
 	ON mo.overrideableparameterid = op.overrideableparameterid
 	--Where (lt.LTStringType = 2 and mpv.LanguageCode = 'ENU')
 	--Where (mpv.Sealed = 0 and mpv.LanguageCode = 'ENU')
@@ -103,8 +103,8 @@
 	
 
 LEFT JOIN (
-	SELECT mo.ModuleOverrideId, mo.OverrideName, mpv.DisplayName as 'MPTargetClass', mpv.FriendlyName as [TargetManagementPack] FROM ModuleOverride mo
-	INNER JOIN Managedtype mt on mt.ManagedTypeId = mo.TypeContext
+	SELECT mo.ModuleOverrideId, mo.OverrideName, mpv.DisplayName as 'MPTargetClass', mpv.FriendlyName as [TargetManagementPack] FROM ModuleOverride mo WITH (NOLOCK)
+	INNER JOIN Managedtype mt WITH (NOLOCK) on mt.ManagedTypeId = mo.TypeContext
 	INNER JOIN ManagementPackView mpv on mpv.ID = mt.ManagementPackId
 	Where mpv.LanguageCode = 'ENU'
 ) OverridesOverview ON OverridesOverview.OverrideName = Overview.OverrideName

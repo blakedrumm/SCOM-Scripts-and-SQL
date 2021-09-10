@@ -1,1 +1,1 @@
-select * from [dbo].[MT_Microsoft$SystemCenter$Advisor$Settings]
+select * from MT_Microsoft$SystemCenter$Advisor$Settings WITH (NOLOCK)

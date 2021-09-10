@@ -3,6 +3,6 @@ SELECT ds.datasetDefaultName AS 'Dataset Name',
  sda.MaxDataAgeDays AS 'Retention Time in Days',
  sda.LastGroomingDateTime,
  sda.GroomingIntervalMinutes
-FROM dataset ds, StandardDatasetAggregation sda 
+FROM dataset ds WITH(NOLOCK), StandardDatasetAggregation sda WITH(NOLOCK)
 WHERE ds.datasetid = sda.datasetid
 ORDER by ds.datasetDefaultName

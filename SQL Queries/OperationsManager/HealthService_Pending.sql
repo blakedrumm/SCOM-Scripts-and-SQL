@@ -1,1 +1,1 @@
-SELECT * FROM AgentPendingAction
+SELECT * FROM AgentPendingAction WITH (NOLOCK)

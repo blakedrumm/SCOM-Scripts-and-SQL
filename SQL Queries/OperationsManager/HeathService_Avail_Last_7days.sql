@@ -15,7 +15,7 @@ When 97 then 'Solution Event Source Not Open'
 When 98 then 'Cannot Parse Config'
 End as [Reason for Change],
 AV.TimeStarted,
-AV.TimeFinished from AvailabilityHistory AV
-join BaseManagedEntity BME on AV.BaseManagedEntityId=BME.BaseManagedEntityId
+AV.TimeFinished from AvailabilityHistory AV WITH (NOLOCK)
+join BaseManagedEntity BME WITH (NOLOCK) on AV.BaseManagedEntityId=BME.BaseManagedEntityId
 WHERE AV.TimeStarted > DATEADD(day, -7, GETUTCDATE())
 order by AV.TimeStarted desc

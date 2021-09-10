@@ -11,5 +11,5 @@ mpv.Description,
 mpv.LanguageCode AS 'Language'
 --CAST(mp.MPXML AS xml) AS 'XML'
 from ManagementPackView mpv
-inner join ManagementPack mp
-on mpv.id = mp.ManagementPackId
+--inner join ManagementPack mp WITH (NOLOCK)
+--on mpv.id = mp.ManagementPackId

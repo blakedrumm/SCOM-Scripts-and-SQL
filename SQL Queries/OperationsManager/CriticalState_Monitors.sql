@@ -8,7 +8,7 @@ bme.DisplayName,
 bme.FullName AS 'Target',
 s.LastModified AS 'StateLastModified'
 FROM State s
-JOIN BaseManagedEntity bme ON s.BaseManagedEntityId = bme.BaseManagedEntityId
+JOIN BaseManagedEntity bme WITH (NOLOCK) ON s.BaseManagedEntityId = bme.BaseManagedEntityId
 JOIN MonitorView mv ON mv.Id = s.MonitorId
 WHERE s.HealthState = 3
 AND mv.IsUnitMonitor = 1

@@ -1,1 +1,1 @@
-select * from [dbo].[ModuleType] WHERE MDTName = 'Microsoft.SystemCenter.Notification.Recipients'
+select * from [dbo].[ModuleType] WITH (NOLOCK) WHERE MDTName = 'Microsoft.SystemCenter.Notification.Recipients'

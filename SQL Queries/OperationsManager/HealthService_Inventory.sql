@@ -17,4 +17,4 @@ IsManagementServer,
 IsRHS,
 PatchList,
 MaximumQueueSize
-FROM MTV_HealthService
+FROM MTV_HealthService WITH (NOLOCK)

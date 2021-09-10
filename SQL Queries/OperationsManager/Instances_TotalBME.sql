@@ -1,1 +1,1 @@
-select count(*) from BaseManagedEntity
+select count(*) from BaseManagedEntity WITH (NOLOCK)

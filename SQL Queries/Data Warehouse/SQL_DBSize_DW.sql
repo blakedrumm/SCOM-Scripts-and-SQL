@@ -6,5 +6,5 @@ convert(decimal(12,0),round(sf.maxsize/128.000,2)) AS 'AutoGrowthMB(MAX)',
 left(sf.NAME,15) AS 'NAME', 
 left(sf.FILENAME,120) AS 'PATH',
 sf.FILEID
-from dbo.sysfiles sf
-JOIN sys.master_files smf on smf.physical_name = sf.filename
+from dbo.sysfiles sf WITH (NOLOCK)
+JOIN sys.master_files smf WITH (NOLOCK) on smf.physical_name = sf.filename
