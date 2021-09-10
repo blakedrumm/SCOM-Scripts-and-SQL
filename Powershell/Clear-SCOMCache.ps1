@@ -21,10 +21,10 @@
 		PS C:\>	.\Clear-SCOMCache.ps1 -Servers $objects.DisplayName
 			
 		Clear SCOM cache on every Management Server in Management Group.
-		PS C:\> Get-SCOMManagementServer | %{.\Clear-SCOMCache.ps1 -Servers $_}
+		PS C:\> Get-SCOMManagementServer | %{.\Clear-SCOMCache.ps1 -Servers $_.DisplayName}
 		
 		Clear SCOM cache on every Agent in the in Management Group.
-		PS C:\> Get-SCOMAgent | %{.\Clear-SCOMCache.ps1 -Servers $_}
+		PS C:\> Get-SCOMAgent | %{.\Clear-SCOMCache.ps1 -Servers $_.DisplayName}
 		
 		Clear SCOM cache and reboot the Servers specified.
 		PS C:\> .\Clear-SCOMCache.ps1 -Servers IIS-Server.contoso.com, MS2.contoso.com -Reboot
