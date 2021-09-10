@@ -431,7 +431,7 @@ if ($Servers -or $Reboot -or $All)
 }
 else
 {
-<# Edit line 422 to modify the default command run when this script is executed.
+<# Edit line 439 to modify the default command run when this script is executed.
 
    Example: 
    Clear-SCOMCache -Servers Agent1.contoso.com, Agent2.contoso.com, MS1.contoso.com, MS2.contoso.com
