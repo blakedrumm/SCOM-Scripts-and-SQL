@@ -90,10 +90,10 @@ Function Clear-SCOMCache
 				   Position = 3)]
 		[Switch]$All
 	)
-    if (!$Servers)
-    {
-	    $Servers = $env:COMPUTERNAME
-    }
+	if (!$Servers)
+	{
+		$Servers = $env:COMPUTERNAME
+	}
 	function Inner-ClearSCOMCache
 	{
 		param
@@ -298,6 +298,10 @@ Function Clear-SCOMCache
 		if ($All -or $Reboot)
 		{
 			Time-Stamp
+			Write-Host "Purging Kerberos Tickets: " -NoNewline
+			Write-Host 'KList -li 0x3e7 purge' -ForegroundColor Cyan
+			Start-Process "KList" "-li 0x3e7 purge"
+			Time-Stamp
 			Write-Host "Flushing DNS: " -NoNewline
 			Write-Host "IPConfig /FlushDNS" -ForegroundColor Cyan
 			Start-Process "IPConfig" "/FlushDNS"
@@ -309,53 +313,50 @@ Function Clear-SCOMCache
 		if ($Reboot)
 		{
 			Time-Stamp
-			Write-Host "Purging Kerberos Tickets: " -NoNewline
-			Write-Host 'KList -li 0x3e7 purge' -ForegroundColor Cyan
-			Start-Process "KList" "-li 0x3e7 purge"
-			Time-Stamp
 			Write-Host "Resetting Winsock catalog: " -NoNewline
 			Write-Host '​netsh winsock reset' -ForegroundColor Cyan
 			Start-Process "netsh" "winsock reset"
-			sleep 2
+			sleep 1
 			Time-Stamp
 			Write-Host "Restarting: " -NoNewLine
 			Write-Host "$env:COMPUTERNAME" -ForegroundColor Green
 			Shutdown /r /t 10
-			return
 		}
-		
-		if ($healthservice)
+		else
 		{
-			Time-Stamp
-			Write-Host ("Starting `'{0}`' Service" -f (Get-Service -Name 'healthservice').DisplayName)
-			Start-Service 'healthservice'
+			if ($healthservice)
+			{
+				Time-Stamp
+				Write-Host ("Starting `'{0}`' Service" -f (Get-Service -Name 'healthservice').DisplayName)
+				Start-Service 'healthservice'
+			}
+			if ($omsdk)
+			{
+				Time-Stamp
+				Write-Host ("Starting `'{0}`' Service" -f (Get-Service -Name 'omsdk').DisplayName)
+				Start-Service 'omsdk'
+			}
+			if ($cshost)
+			{
+				Time-Stamp
+				Write-Host ("Starting `'{0}`' Service" -f (Get-Service -Name 'cshost').DisplayName)
+				Start-Service 'cshost'
+			}
+			if ($apm)
+			{
+				Time-Stamp
+				Write-Host ("Starting `'{0}`' Service" -f (Get-Service -Name 'System Center Management APM').DisplayName)
+				Start-Service 'System Center Management APM'
+			}
+			if ($auditforwarding)
+			{
+				Time-Stamp
+				Write-Host ("Starting `'{0}`' Service" -f (Get-Service -Name 'AdtAgent').DisplayName)
+				Start-Service 'AdtAgent'
+			}
 		}
-		if ($omsdk)
-		{
-			Time-Stamp
-			Write-Host ("Starting `'{0}`' Service" -f (Get-Service -Name 'omsdk').DisplayName)
-			Start-Service 'omsdk'
-		}
-		if ($cshost)
-		{
-			Time-Stamp
-			Write-Host ("Starting `'{0}`' Service" -f (Get-Service -Name 'cshost').DisplayName)
-			Start-Service 'cshost'
-		}
-		if ($apm)
-		{
-			Time-Stamp
-			Write-Host ("Starting `'{0}`' Service" -f (Get-Service -Name 'System Center Management APM').DisplayName)
-			Start-Service 'System Center Management APM'
-		}
-		if ($auditforwarding)
-		{
-			Time-Stamp
-			Write-Host ("Starting `'{0}`' Service" -f (Get-Service -Name 'AdtAgent').DisplayName)
-			Start-Service 'AdtAgent'
-		}
-        Time-Stamp
-        Write-Host "Completed Script Execution on: " -NoNewline -ForegroundColor DarkCyan
+		Time-Stamp
+		Write-Host "Completed Script Execution on: " -NoNewline -ForegroundColor DarkCyan
 		Write-Host "$currentserv" -ForegroundColor Cyan
 	}
 	if ($Servers)
@@ -378,7 +379,7 @@ Function Clear-SCOMCache
 						return Inner-ClearSCOMCache -Reboot
 					}
 				}
-				catch { Write-Host "Issue Connecting to $server" -ForegroundColor Yellow }
+				catch { Write-Host $Error[0] -ForegroundColor Red }
 				continue
 			}
 			else
@@ -391,7 +392,7 @@ Function Clear-SCOMCache
 						return Inner-ClearSCOMCache
 					}
 				}
-				catch { Write-Host "Issue Connecting to $server" -ForegroundColor Yellow }
+				catch { Write-Host $Error[0] -ForegroundColor Red }
 				continue
 			}
 			if ($containslocal)
@@ -413,7 +414,7 @@ if ($Servers -or $Reboot -or $All)
 }
 else
 {
-<# Edit line 610 to modify the default command run when this script is executed.
+<# Edit line 422 to modify the default command run when this script is executed.
 
    Example: 
    Clear-SCOMCache -Servers Agent1.contoso.com, Agent2.contoso.com, MS1.contoso.com, MS2.contoso.com
