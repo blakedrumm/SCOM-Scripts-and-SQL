@@ -1,5 +1,6 @@
 Function MP-Export
 {
+	$OutputPath = 'C:\Temp'
 	if ((Test-Path -Path "$OutputPath\Unsealed Management Packs") -eq $false)
 	{
 		Write-Host "  Creating Folder: $OutputPath\Unsealed Management Packs" -ForegroundColor Gray
