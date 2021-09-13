@@ -17,18 +17,15 @@
 		PS C:\>	$agent = Get-SCOMClass | where-object{$_.name -eq "microsoft.systemcenter.agent"}
 
 		PS C:\>	#Get the grey agents
-		PS C:\>	$objects = Get-SCOMMonitoringObject -class:$agent | where {$_.IsAvailable -eq $false}
-		PS C:\>	.\Clear-SCOMCache.ps1 -Servers $objects
+		PS C:\>	$objects = Get-SCOMMonitoringObject -class:$agent | where {$_.IsAvailable -eq $false} | .\Clear-SCOMCache.ps1 -Servers $objects.DisplayName
+		PS C:\>	.\Clear-SCOMCache.ps1 -Servers $objects.DisplayName
 			
 		Clear SCOM cache on every Management Server in Management Group.
 		PS C:\> Get-SCOMManagementServer | .\Clear-SCOMCache.ps1
 		
 		Clear SCOM cache on every Agent in the in Management Group.
 		PS C:\> Get-SCOMAgent | .\Clear-SCOMCache.ps1
-
-		Clear SCOM cache on the Servers specified.
-		PS C:\> .\Clear-SCOMCache.ps1 -Servers IIS-Server.contoso.com, MS2.contoso.com
-
+		
 		Clear SCOM cache and reboot the Servers specified.
 		PS C:\> .\Clear-SCOMCache.ps1 -Servers IIS-Server.contoso.com, MS2.contoso.com -Reboot
 	
@@ -274,8 +271,8 @@ PROCESS
 					catch
 					{
 						Time-Stamp
-						Write-Host "[Warning] :: " -NoNewline
-						Write-Host "$_" -ForegroundColor Yellow
+						Write-Host "[Info] :: " -NoNewline -ForegroundColor DarkCyan
+						Write-Host "$_" -ForegroundColor Gray
 						Time-Stamp
 						Write-Host "Attempting to Delete Folder: `"$healthservice`\Health Service State`" "
 						try
@@ -474,7 +471,7 @@ PROCESS
 	}
 	else
 	{
-<# Edit line 448 to modify the default command run when this script is executed.
+<# Edit line 479 to modify the default command run when this script is executed.
 
    Example: 
    Clear-SCOMCache -Servers Agent1.contoso.com, Agent2.contoso.com, MS1.contoso.com, MS2.contoso.com
