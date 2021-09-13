@@ -155,6 +155,10 @@ PROCESS
 			)
 			BEGIN
 			{
+				trap
+				{
+					Write-Host $error[0] -ForegroundColor Yellow
+				}
 				Function Time-Stamp
 				{
 					$TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
@@ -450,26 +454,55 @@ PROCESS
 				}
 				else
 				{
-					try
+					if ($All)
 					{
-						Invoke-Command -ErrorAction Stop -ComputerName $server -ArgumentList $InnerClearSCOMCacheFunctionScript -ScriptBlock {
-							Param ($script)
-							. ([ScriptBlock]::Create($script))
-							return Inner-ClearSCOMCache
+						try
+						{
+							Invoke-Command -ErrorAction Stop -ComputerName $server -ArgumentList $InnerClearSCOMCacheFunctionScript -ScriptBlock {
+								Param ($script)
+								. ([ScriptBlock]::Create($script))
+								return Inner-ClearSCOMCache -All
+							}
 						}
+						catch { Write-Host $Error[0] -ForegroundColor Red }
 					}
-					catch { Write-Host $Error[0] -ForegroundColor Red }
+					else
+					{
+						try
+						{
+							Invoke-Command -ErrorAction Stop -ComputerName $server -ArgumentList $InnerClearSCOMCacheFunctionScript -ScriptBlock {
+								Param ($script)
+								. ([ScriptBlock]::Create($script))
+								return Inner-ClearSCOMCache
+							}
+						}
+						catch { Write-Host $Error[0] -ForegroundColor Red }
+					}
 					continue
 				}
 				if ($containslocal)
 				{
-					Inner-ClearSCOMCache
+					if ($All)
+					{
+						Inner-ClearSCOMCache -All
+					}
+					else
+					{
+						Inner-ClearSCOMCache
+					}
 					$completedlocally = $true
 				}
 			}
 			if ($containslocal -and !$completedlocally)
 			{
-				Inner-ClearSCOMCache
+				if ($All)
+				{
+					Inner-ClearSCOMCache -All
+				}
+				else
+				{
+					Inner-ClearSCOMCache
+				}
 			}
 			
 		}
@@ -480,7 +513,7 @@ PROCESS
 	}
 	else
 	{
-<# Edit line 479 to modify the default command run when this script is executed.
+<# Edit line 510 to modify the default command run when this script is executed.
 
    Example: 
    Clear-SCOMCache -Servers Agent1.contoso.com, Agent2.contoso.com, MS1.contoso.com, MS2.contoso.com
