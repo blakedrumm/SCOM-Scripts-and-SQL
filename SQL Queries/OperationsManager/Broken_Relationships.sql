@@ -1,5 +1,4 @@
 ---Check for Broken Relationship
-Use OperationsManager
 SELECT R.[RelationshipId],
        RT.[RelationshipTypeId],
        S.[FullName] as SourceName,
