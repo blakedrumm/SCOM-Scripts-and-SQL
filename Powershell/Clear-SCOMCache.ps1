@@ -22,8 +22,8 @@
 		PS C:\>	$agent = Get-SCOMClass | where-object{$_.name -eq "microsoft.systemcenter.agent"}
 
 		PS C:\>	#Get the grey agents
-		PS C:\>	$objects = Get-SCOMMonitoringObject -class:$agent | where {$_.IsAvailable -eq $false} | .\Clear-SCOMCache.ps1 -Servers $objects.DisplayName
-		PS C:\>	.\Clear-SCOMCache.ps1 -Servers $objects.DisplayName
+		PS C:\>	$objects = Get-SCOMMonitoringObject -class:$agent | where {$_.IsAvailable -eq $false}
+		PS C:\>	.\Clear-SCOMCache.ps1 -Servers $objects
 			
 		Clear SCOM cache on every Management Server in Management Group.
 		PS C:\> Get-SCOMManagementServer | .\Clear-SCOMCache.ps1
@@ -54,7 +54,7 @@ param
 			   HelpMessage = 'Optionally reboot the server after stopping the SCOM Services and clearing SCOM Cache. This will always perform on the local server last.')]
 	[Switch]$Reboot,
 	[Parameter(Mandatory = $false,
-			   Position = 2,
+			   Position = 3,
 			   HelpMessage = 'Optionally clear all caches that SCOM could potentially use. Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics.')]
 	[Switch]$All
 )
