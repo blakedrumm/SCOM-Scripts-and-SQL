@@ -92,52 +92,56 @@ BEGIN
 }
 PROCESS
 {
-	$setdefault = $false
-	foreach ($Server in $input)
-	{
-		if ($Server.GetType().Name -eq 'ManagementServer')
-		{
-			if (!$setdefault)
-			{
-				$Servers = @()
-				$setdefault = $true
-			}
-			$Servers += $Server.DisplayName
-		}
-		elseif ($Server.GetType().Name -eq 'AgentManagedComputer')
-		{
-			if (!$setdefault)
-			{
-				$Servers = @()
-				$setdefault = $true
-			}
-			$Servers += $Server.DisplayName
-		}
-		elseif ($Server.GetType().Name -eq 'MonitoringObject')
-		{
-			if (!$setdefault)
-			{
-				$Servers = @()
-				$setdefault = $true
-			}
-			$Servers += $Server.DisplayName
-		}
-		
-	}
 	Function Clear-SCOMCache
 	{
 		param
 		(
 			[Parameter(Mandatory = $false,
-					   Position = 1)]
+					   ValueFromPipeline = $true,
+					   Position = 1,
+					   HelpMessage = 'Each Server you want to Clear SCOM Cache on. Can be an Agent, Management Server, or SCOM Gateway. This will always perform on the local server last.')]
 			[String[]]$Servers,
 			[Parameter(Mandatory = $false,
-					   Position = 2)]
+					   Position = 2,
+					   HelpMessage = 'Optionally reboot the server after stopping the SCOM Services and clearing SCOM Cache. This will always perform on the local server last.')]
 			[Switch]$Reboot,
 			[Parameter(Mandatory = $false,
-					   Position = 3)]
+					   Position = 3,
+					   HelpMessage = 'Optionally clear all caches that SCOM could potentially use. Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics.')]
 			[Switch]$All
 		)
+		$setdefault = $false
+		foreach ($Server in $input)
+		{
+			if ($Server.GetType().Name -eq 'ManagementServer')
+			{
+				if (!$setdefault)
+				{
+					$Servers = @()
+					$setdefault = $true
+				}
+				$Servers += $Server.DisplayName
+			}
+			elseif ($Server.GetType().Name -eq 'AgentManagedComputer')
+			{
+				if (!$setdefault)
+				{
+					$Servers = @()
+					$setdefault = $true
+				}
+				$Servers += $Server.DisplayName
+			}
+			elseif ($Server.GetType().Name -eq 'MonitoringObject')
+			{
+				if (!$setdefault)
+				{
+					$Servers = @()
+					$setdefault = $true
+				}
+				$Servers += $Server.DisplayName
+			}
+			
+		}
 		if (!$Servers)
 		{
 			$Servers = $env:COMPUTERNAME
@@ -513,7 +517,7 @@ PROCESS
 	}
 	else
 	{
-<# Edit line 510 to modify the default command run when this script is executed.
+<# Edit line 525 to modify the default command run when this script is executed.
 
    Example: 
    Clear-SCOMCache -Servers Agent1.contoso.com, Agent2.contoso.com, MS1.contoso.com, MS2.contoso.com
