@@ -18,14 +18,17 @@
 
 		PS C:\>	#Get the grey agents
 		PS C:\>	$objects = Get-SCOMMonitoringObject -class:$agent | where {$_.IsAvailable -eq $false}
-		PS C:\>	.\Clear-SCOMCache.ps1 -Servers $objects.DisplayName
+		PS C:\>	.\Clear-SCOMCache.ps1 -Servers $objects
 			
 		Clear SCOM cache on every Management Server in Management Group.
-		PS C:\> Get-SCOMManagementServer | %{.\Clear-SCOMCache.ps1 -Servers $_.DisplayName}
+		PS C:\> Get-SCOMManagementServer | .\Clear-SCOMCache.ps1
 		
 		Clear SCOM cache on every Agent in the in Management Group.
-		PS C:\> Get-SCOMAgent | %{.\Clear-SCOMCache.ps1 -Servers $_.DisplayName}
-		
+		PS C:\> Get-SCOMAgent | .\Clear-SCOMCache.ps1
+
+		Clear SCOM cache on the Servers specified.
+		PS C:\> .\Clear-SCOMCache.ps1 -Servers IIS-Server.contoso.com, MS2.contoso.com
+
 		Clear SCOM cache and reboot the Servers specified.
 		PS C:\> .\Clear-SCOMCache.ps1 -Servers IIS-Server.contoso.com, MS2.contoso.com -Reboot
 	
@@ -34,7 +37,7 @@
 		Blake Drumm (blakedrumm@microsoft.com)
 		
 		.MODIFIED
-		September 10th, 2021
+		September 13th, 2021
 #>
 [OutputType([string])]
 param
@@ -49,18 +52,8 @@ param
 			   HelpMessage = 'Optionally reboot the server after stopping the SCOM Services and clearing SCOM Cache. This will always perform on the local server last.')]
 	[Switch]$Reboot
 )
-
 BEGIN
 {
-	if ($Servers -match 'Microsoft.EnterpriseManagement.Administration.ManagementServer')
-	{
-		$Servers = $Servers.DisplayName
-	}
-	elseif ($Servers -match 'Microsoft.EnterpriseManagement.Administration.AgentManagedComputer')
-	{
-		$Servers = $Servers.DisplayName
-	}
-	
 	Write-Host '===================================================================' -ForegroundColor DarkYellow
 	Write-Host '==========================  Start of Script =======================' -ForegroundColor DarkYellow
 	Write-Host '===================================================================' -ForegroundColor DarkYellow
@@ -84,11 +77,47 @@ BEGIN
 		$permissiongranted = " Currently running as administrator - proceeding with script execution..."
 		Write-Host $permissiongranted -ForegroundColor Green
 	}
+	
+	Function Time-Stamp
+	{
+		$TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
+		write-host "$TimeStamp - " -NoNewline
+	}
 }
 PROCESS
 {
-	
-	
+	$setdefault = $false
+	foreach ($Server in $input)
+	{
+		if ($Server.GetType().Name -eq 'ManagementServer')
+		{
+			if (!$setdefault)
+			{
+				$Servers = @()
+				$setdefault = $true
+			}
+			$Servers += $Server.DisplayName
+		}
+		elseif ($Server.GetType().Name -eq 'AgentManagedComputer')
+		{
+			if (!$setdefault)
+			{
+				$Servers = @()
+				$setdefault = $true
+			}
+			$Servers += $Server.DisplayName
+		}
+		elseif ($Server.GetType().Name -eq 'MonitoringObject')
+		{
+			if (!$setdefault)
+			{
+				$Servers = @()
+				$setdefault = $true
+			}
+			$Servers += $Server.DisplayName
+		}
+		
+	}
 	Function Clear-SCOMCache
 	{
 		param
@@ -257,7 +286,7 @@ PROCESS
 						}
 						catch
 						{
-							Write-Host "Issue clearing the 'Health Service State' folder." -ForegroundColor Yellow
+							Write-Host "Issue removing the 'Health Service State' folder. Maybe attempt to clear the cache again, or a process is using the Health Service State Folder." -ForegroundColor Red
 							#$healthservice = $null
 						}
 					}
@@ -308,7 +337,15 @@ PROCESS
 				{
 					try
 					{
-						Time-Stamp; Write-Host "Clearing Operations Manager Console Cache."; Get-ChildItem "$env:SystemDrive\Users\*\AppData\Local\Microsoft\Microsoft.EnterpriseManagement.Monitoring.Console\momcache.mdb" | % { Remove-Item $_ -Force -ErrorAction Stop }
+						Time-Stamp
+						Write-Host "Clearing Operations Manager Console Cache for the following users:";
+						$cachePath = Get-ChildItem "$env:SystemDrive\Users\*\AppData\Local\Microsoft\Microsoft.EnterpriseManagement.Monitoring.Console\momcache.mdb"
+						foreach ($consolecachefolder in $cachePath)
+						{
+							Time-Stamp
+							Write-Host "  $($consolecachefolder.FullName.Split("\")[2])"
+							Remove-Item $consolecachefolder -Force -ErrorAction Stop
+						}
 					}
 					catch { Write-Warning $_ }
 				}
@@ -431,9 +468,6 @@ PROCESS
 			
 		}
 	}
-}
-end
-{
 	if ($Servers -or $Reboot -or $All)
 	{
 		Clear-SCOMCache -Servers $Servers -Reboot:$Reboot -All:$All
@@ -447,4 +481,10 @@ end
    #>
 		Clear-SCOMCache
 	}
+}
+end
+{
+	Time-Stamp
+	Write-Host "Script has Completed!" -ForegroundColor Gray
+	Write-Host "==================================================================="
 }
