@@ -39,7 +39,7 @@
 		Blake Drumm (blakedrumm@microsoft.com)
 		
 		.MODIFIED
-		September 20th, 2021
+		September 13th, 2021
 #>
 [OutputType([string])]
 param
@@ -549,7 +549,7 @@ PROCESS
 	}
 	else
 	{
-<# Edit line 525 to modify the default command run when this script is executed.
+<# Edit line 557 to modify the default command run when this script is executed.
 
    Example: 
    Clear-SCOMCache -Servers Agent1.contoso.com, Agent2.contoso.com, MS1.contoso.com, MS2.contoso.com
