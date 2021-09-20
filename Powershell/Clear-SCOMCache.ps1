@@ -39,7 +39,7 @@
 		Blake Drumm (blakedrumm@microsoft.com)
 		
 		.MODIFIED
-		September 13th, 2021
+		September 20th, 2021
 #>
 [OutputType([string])]
 param
@@ -92,6 +92,38 @@ BEGIN
 }
 PROCESS
 {
+	$setdefault = $false
+	foreach ($Server in $input)
+	{
+		if ($Server.GetType().Name -eq 'ManagementServer')
+		{
+			if (!$setdefault)
+			{
+				$Servers = @()
+				$setdefault = $true
+			}
+			$Servers += $Server.DisplayName
+		}
+		elseif ($Server.GetType().Name -eq 'AgentManagedComputer')
+		{
+			if (!$setdefault)
+			{
+				$Servers = @()
+				$setdefault = $true
+			}
+			$Servers += $Server.DisplayName
+		}
+		elseif ($Server.GetType().Name -eq 'MonitoringObject')
+		{
+			if (!$setdefault)
+			{
+				$Servers = @()
+				$setdefault = $true
+			}
+			$Servers += $Server.DisplayName
+		}
+		
+	}
 	Function Clear-SCOMCache
 	{
 		param
