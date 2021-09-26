@@ -1,7 +1,6 @@
 <#
 Based on 
-- https://rlevchenko.com/2018/01/16/automate-scom-2016-installation-with-powershell/
-- https://thesystemcenterblog.com/2016/07/08/installing-scom-2016-from-the-command-line/
+- https://kevinholman.com/2013/10/18/scom-2012-r2-quickstart-deployment-guide/
 - https://docs.microsoft.com/en-us/system-center/scom/deploy-install-reporting-server?view=sc-om-2016
 - https://redmondmag.com/articles/2020/10/26/sql-server-reporting-for-scom.aspx
 - https://blog.aelterman.com/2018/01/01/silent-installation-and-configuration-for-sql-server-2017-reporting-services/
