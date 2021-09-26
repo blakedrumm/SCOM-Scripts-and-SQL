@@ -10,7 +10,7 @@ Based on
 #
 # Author: Blake Drumm (blakedrumm@microsoft.com)
 # Date Created: September 26th, 2021
-# Date Modified: 
+# Date Modified: September 26th, 2021
 #requires -Version 5 -Modules AutomatedLab -RunAsAdministrator 
 trap
 {
@@ -36,7 +36,7 @@ $LabName = 'SCOM2012R2' # (Default: SCOM2012R2)
 ######### ISO Names / Executables ############
 ##############################################
 $SQLServerISO = 'ISOs\SQLServer2012SP1-FullSlipstream-ENU-x64.iso' #Location of the SQL Server 2012R2 ISO (https://go.microsoft.com/fwlink/?linkid=866664) (Default: ISOs\SQLServer2012-x64-ENU.iso)
-$SCOM2012R2_Location = 'ISOs\en_system_center_2012_r2_operations_manager_x86_and_x64_dvd_2920299.iso' #Location of the SCOM 2012R2 Executable (https://www.microsoft.com/en-US/evalcenter/evaluate-system-center-2012R2) (Default: SoftwarePackages\SCOM_2012R2.exe)
+$SCOM2012R2_Location = 'ISOs\en_system_center_2012_r2_operations_manager_x86_and_x64_dvd_2920299.iso' #Location of the SCOM 2012R2 ISO (Default: ISOs\en_system_center_2012_r2_operations_manager_x86_and_x64_dvd_2920299.iso)
 ##############################################
 
 
