@@ -228,6 +228,7 @@ PROCESS
 				$healthservice = (Get-WmiObject win32_service | ?{ $_.Name -eq 'healthservice' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
 				$apm = (Get-WmiObject win32_service | ?{ $_.Name -eq 'System Center Management APM' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
 				$auditforwarding = (Get-WmiObject win32_service -ErrorAction SilentlyContinue | ?{ $_.Name -eq 'AdtAgent' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path -ErrorAction SilentlyContinue
+				$veeamcollector = (Get-WmiObject win32_service | ?{ $_.Name -eq 'veeamcollector' } | select PathName -ExpandProperty PathName | % { $_.Split('"')[1] }) | Split-Path
 				if ($omsdk)
 				{
 					$omsdkStatus = (Get-Service -Name omsdk).Status
@@ -301,6 +302,27 @@ PROCESS
 						Time-Stamp
 						Write-Host ("[Warning] :: Status of `'{0}`' Service - " -f (Get-Service -Name 'AdtAgent').DisplayName) -NoNewline
 						Write-Host "$auditforwardingstatus" -ForegroundColor Yellow
+					}
+				}
+				if ($veeamcollector)
+				{
+					$veeamcollectorStatus = (Get-Service -Name 'veeamcollector').Status
+					$veeamcollectorStartType = (Get-Service -Name 'veeamcollector').StartType
+					if ($veeamcollectorStatus -eq "Running")
+					{
+						Time-Stamp
+						Write-Host ("Stopping `'{0}`' Service" -f (Get-Service -Name 'System Center Management APM').DisplayName)
+						Stop-Service 'System Center Management APM'
+					}
+					elseif ($veeamcollectorStartType -eq 'Disabled')
+					{
+						$veeamcollector = $null
+					}
+					else
+					{
+						Time-Stamp
+						Write-Host ("[Warning] :: Status of `'{0}`' Service - " -f (Get-Service -Name 'System Center Management APM').DisplayName) -NoNewline
+						Write-Host "$veeamcollectorStatus" -ForegroundColor Yellow
 					}
 				}
 				if ($healthservice)
@@ -434,6 +456,12 @@ PROCESS
 				}
 				else
 				{
+					if ($veeamcollector)
+					{
+						Time-Stamp
+						Write-Host ("Starting `'{0}`' Service" -f (Get-Service -Name 'veeamcollector').DisplayName)
+						Start-Service 'veeamcollector'
+					}
 					if ($healthservice)
 					{
 						Time-Stamp
@@ -577,7 +605,7 @@ PROCESS
 	}
 	else
 	{
-<# Edit line 585 to modify the default command run when this script is executed.
+<# Edit line 613 to modify the default command run when this script is executed.
 
    Example: 
    Clear-SCOMCache -Servers Agent1.contoso.com, Agent2.contoso.com, MS1.contoso.com, MS2.contoso.com
