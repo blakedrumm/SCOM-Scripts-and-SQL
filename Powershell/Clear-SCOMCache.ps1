@@ -42,7 +42,7 @@
 		Blake Drumm (blakedrumm@microsoft.com)
 		
 		.MODIFIED
-		October 7th, 2021
+		October 13th, 2021
 #>
 [OutputType([string])]
 param
@@ -101,58 +101,7 @@ PROCESS
 	$setdefault = $false
 	foreach ($Server in $input)
 	{
-		if ($Server.GetType().Name -eq 'ManagementServer')
-		{
-			if (!$setdefault)
-			{
-				$Servers = @()
-				$setdefault = $true
-			}
-			$Servers += $Server.DisplayName
-		}
-		elseif ($Server.GetType().Name -eq 'AgentManagedComputer')
-		{
-			if (!$setdefault)
-			{
-				$Servers = @()
-				$setdefault = $true
-			}
-			$Servers += $Server.DisplayName
-		}
-		elseif ($Server.GetType().Name -eq 'MonitoringObject')
-		{
-			if (!$setdefault)
-			{
-				$Servers = @()
-				$setdefault = $true
-			}
-			$Servers += $Server.DisplayName
-		}
-		
-	}
-	Function Clear-SCOMCache
-	{
-		param
-		(
-			[Parameter(Mandatory = $false,
-					   ValueFromPipeline = $true,
-					   Position = 1,
-					   HelpMessage = 'Each Server you want to clear SCOM Cache on. Can be an Agent, Management Server, or SCOM Gateway. This will always perform on the local server last.')]
-			[String[]]$Servers,
-			[Parameter(Position = 2,
-					   HelpMessage = 'Time in seconds to sleep between each server.')]
-			[int64]$Sleep,
-			[Parameter(Mandatory = $false,
-					   Position = 3,
-					   HelpMessage = 'Optionally reset winsock catalog, stop the SCOM Services, clear SCOM Cache, then reboot the server. This will always perform on the local server last.')]
-			[Switch]$Reboot,
-			[Parameter(Mandatory = $false,
-					   Position = 4,
-					   HelpMessage = 'Optionally clear all caches that SCOM could potentially use that doesnt require a reboot. Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics. (Combine with -Reboot for a full clear cache)')]
-			[Switch]$All
-		)
-		$setdefault = $false
-		foreach ($Server in $input)
+		if ($Server)
 		{
 			if ($Server.GetType().Name -eq 'ManagementServer')
 			{
@@ -180,6 +129,67 @@ PROCESS
 					$setdefault = $true
 				}
 				$Servers += $Server.DisplayName
+			}
+		}
+	}
+	Function Clear-SCOMCache
+	{
+		param
+		(
+			[Parameter(Mandatory = $false,
+					   ValueFromPipeline = $true,
+					   Position = 1,
+					   HelpMessage = 'Each Server you want to clear SCOM Cache on. Can be an Agent, Management Server, or SCOM Gateway. This will always perform on the local server last.')]
+			[String[]]$Servers,
+			[Parameter(Position = 2,
+					   HelpMessage = 'Time in seconds to sleep between each server.')]
+			[int64]$Sleep,
+			[Parameter(Mandatory = $false,
+					   Position = 3,
+					   HelpMessage = 'Optionally reset winsock catalog, stop the SCOM Services, clear SCOM Cache, then reboot the server. This will always perform on the local server last.')]
+			[Switch]$Reboot,
+			[Parameter(Mandatory = $false,
+					   Position = 4,
+					   HelpMessage = 'Optionally clear all caches that SCOM could potentially use that doesnt require a reboot. Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics. (Combine with -Reboot for a full clear cache)')]
+			[Switch]$All
+		)
+		$setdefault = $false
+		foreach ($Server in $input)
+		{
+			if ($Server)
+			{
+				if ($Server.GetType().Name -eq 'ManagementServer')
+				{
+					if (!$setdefault)
+					{
+						$Servers = @()
+						$setdefault = $true
+					}
+					$Servers += $Server.DisplayName
+				}
+				elseif ($Server.GetType().Name -eq 'AgentManagedComputer')
+				{
+					if (!$setdefault)
+					{
+						$Servers = @()
+						$setdefault = $true
+					}
+					$Servers += $Server.DisplayName
+				}
+				elseif ($Server.GetType().Name -eq 'MonitoringObject')
+				{
+					if (!$setdefault)
+					{
+						$Servers = @()
+						$setdefault = $true
+					}
+					$Servers += $Server.DisplayName
+				}
+				else
+				{
+					$Server += $Server
+				}
+				
 			}
 			
 		}
@@ -274,6 +284,13 @@ PROCESS
 					}
 					elseif ($apmStartType -eq 'Disabled')
 					{
+						$apm = $null
+					}
+					elseif ($apmStatus -eq 'Stopped')
+					{
+						Time-Stamp
+						Write-Host ("Status of `'{0}`' Service - " -f (Get-Service -Name 'System Center Management APM').DisplayName) -NoNewline
+						Write-Host "$apmStatus" -ForegroundColor Yellow
 						$apm = $null
 					}
 					else
@@ -605,7 +622,7 @@ PROCESS
 	}
 	else
 	{
-<# Edit line 613 to modify the default command run when this script is executed.
+<# Edit line 630 to modify the default command run when this script is executed.
 
    Example: 
    Clear-SCOMCache -Servers Agent1.contoso.com, Agent2.contoso.com, MS1.contoso.com, MS2.contoso.com
