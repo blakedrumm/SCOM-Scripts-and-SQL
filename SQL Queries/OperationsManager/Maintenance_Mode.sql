@@ -1,9 +1,13 @@
 SELECT
 FullName as [Object in Maintenance],
+case MM.IsInMaintenanceMode
+When 0 then 'False'
+When 1 then 'True'
+End as [Currently in Maintenance Mode],
 TimeAdded as [Time Added],
 StartTime as [Start Time],
 ScheduledEndTime as [Scheduled End Time],
-dbo.MaintenanceMode.[User] as [User],
+MM.[User] as [User],
 Case ReasonCode
 When 0 then 'Other (Planned)'
 When 1 then 'Other (Unplanned)'
@@ -22,6 +26,7 @@ When 13 then 'Security issue'
 When 14 then 'Loss of network connectivity (Unplanned)'
 End as [Reason for Maintenance],
 Comments
-FROM BaseManagedEntity WITH (NOLOCK) INNER JOIN
-MaintenanceMode WITH (NOLOCK) ON BaseManagedEntity.BaseManagedEntityId = MaintenanceMode.BaseManagedEntityId
-WHERE IsInMaintenanceMode = 1
+FROM BaseManagedEntity AS BME WITH (NOLOCK) INNER JOIN
+MaintenanceMode AS MM WITH (NOLOCK) ON BME.BaseManagedEntityId = MM.BaseManagedEntityId 
+--INNER JOIN MT_Microsoft$SystemCenter$ManagementServer as MS WITH (NOLOCK) on BME.BaseManagedEntityId = MS.BaseManagedEntityId
+ORDER BY [Time Added] DESC
