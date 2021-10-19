@@ -4,7 +4,6 @@ case MM.IsInMaintenanceMode
 When 0 then 'False'
 When 1 then 'True'
 End as [Currently in Maintenance Mode],
-TimeAdded as [Time Added],
 StartTime as [Start Time],
 ScheduledEndTime as [Scheduled End Time],
 MM.[User] as [User],
@@ -29,4 +28,4 @@ Comments
 FROM BaseManagedEntity AS BME WITH (NOLOCK) INNER JOIN
 MaintenanceMode AS MM WITH (NOLOCK) ON BME.BaseManagedEntityId = MM.BaseManagedEntityId 
 --INNER JOIN MT_Microsoft$SystemCenter$ManagementServer as MS WITH (NOLOCK) on BME.BaseManagedEntityId = MS.BaseManagedEntityId
-ORDER BY [Time Added] DESC
+ORDER BY [Start Time] DESC
