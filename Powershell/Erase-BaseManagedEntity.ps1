@@ -410,7 +410,7 @@ FROM BaseManagedEntity WHERE IsDeleted = '0' AND FullName like @name OR DisplayN
 ORDER BY FullName
 "@
 		
-		$BME_IDs = (Invoke-SqlCommand -Timeout $Timeout -Server $SqlServer -Database $Database -Query $bme_query) | Where { $_.IsDeleted = $false }
+		$BME_IDs = (Invoke-SqlCommand -Timeout $Timeout -Server $SqlServer -Database $Database -Query $bme_query)
 		
 		if (!$BME_IDs)
 		{
