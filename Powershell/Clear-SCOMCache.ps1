@@ -42,7 +42,7 @@
 		Blake Drumm (blakedrumm@microsoft.com)
 		
 		.MODIFIED
-		October 13th, 2021
+		October 26th, 2021
 #>
 [OutputType([string])]
 param
@@ -536,12 +536,64 @@ PROCESS
 			{
 				if ($Reboot)
 				{
+					if ($All)
+					{
+						try
+						{
+							Invoke-Command -ErrorAction Stop -ComputerName $server -ArgumentList $InnerClearSCOMCacheFunctionScript -ScriptBlock {
+								Param ($script)
+								. ([ScriptBlock]::Create($script))
+								return Inner-ClearSCOMCache -All -Reboot
+							}
+						}
+						catch { Write-Host $Error[0] -ForegroundColor Red }
+					}
+					else
+					{
+						try
+						{
+							Invoke-Command -ErrorAction Stop -ComputerName $server -ArgumentList $InnerClearSCOMCacheFunctionScript -ScriptBlock {
+								Param ($script)
+								. ([ScriptBlock]::Create($script))
+								return Inner-ClearSCOMCache -Reboot
+							}
+						}
+						catch { Write-Host $Error[0] -ForegroundColor Red }
+					}
+					if ($Sleep)
+					{
+						Time-Stamp
+						Write-Host "Sleeping for $Sleep seconds." -NoNewline
+						Start-Sleep -Seconds $Sleep
+					}
+					continue
+				}
+				elseif ($All)
+				{
 					try
 					{
 						Invoke-Command -ErrorAction Stop -ComputerName $server -ArgumentList $InnerClearSCOMCacheFunctionScript -ScriptBlock {
 							Param ($script)
 							. ([ScriptBlock]::Create($script))
-							return Inner-ClearSCOMCache -Reboot
+							return Inner-ClearSCOMCache -All
+						}
+					}
+					catch { Write-Host $Error[0] -ForegroundColor Red }
+					if ($Sleep)
+					{
+						Time-Stamp
+						Write-Host "Sleeping for $Sleep seconds." -NoNewline
+						Start-Sleep -Seconds $Sleep
+					}
+				}
+				else
+				{
+					try
+					{
+						Invoke-Command -ErrorAction Stop -ComputerName $server -ArgumentList $InnerClearSCOMCacheFunctionScript -ScriptBlock {
+							Param ($script)
+							. ([ScriptBlock]::Create($script))
+							return Inner-ClearSCOMCache
 						}
 					}
 					catch { Write-Host $Error[0] -ForegroundColor Red }
@@ -553,69 +605,9 @@ PROCESS
 					}
 					continue
 				}
-				else
-				{
-					if ($All)
-					{
-						try
-						{
-							Invoke-Command -ErrorAction Stop -ComputerName $server -ArgumentList $InnerClearSCOMCacheFunctionScript -ScriptBlock {
-								Param ($script)
-								. ([ScriptBlock]::Create($script))
-								return Inner-ClearSCOMCache -All
-							}
-						}
-						catch { Write-Host $Error[0] -ForegroundColor Red }
-						if ($Sleep)
-						{
-							Time-Stamp
-							Write-Host "Sleeping for $Sleep seconds." -NoNewline
-							Start-Sleep -Seconds $Sleep
-						}
-					}
-					else
-					{
-						try
-						{
-							Invoke-Command -ErrorAction Stop -ComputerName $server -ArgumentList $InnerClearSCOMCacheFunctionScript -ScriptBlock {
-								Param ($script)
-								. ([ScriptBlock]::Create($script))
-								return Inner-ClearSCOMCache
-							}
-						}
-						catch { Write-Host $Error[0] -ForegroundColor Red }
-						if ($Sleep)
-						{
-							Time-Stamp
-							Write-Host "Sleeping for $Sleep seconds." -NoNewline
-							Start-Sleep -Seconds $Sleep
-						}
-						continue
-					}
-					continue
-				}
-				if ($containslocal)
-				{
-					if ($Reboot)
-					{
-						Inner-ClearSCOMCache -Reboot
-					}
-					elseif ($Reboot -and $All)
-					{
-						Inner-ClearSCOMCache -Reboot -All
-					}
-					elseif ($All)
-					{
-						Inner-ClearSCOMCache -All
-					}
-					else
-					{
-						Inner-ClearSCOMCache
-					}
-					$completedlocally = $true
-				}
+				continue
 			}
-			if ($containslocal -and !$completedlocally)
+			if ($containslocal)
 			{
 				if ($Reboot)
 				{
@@ -633,8 +625,27 @@ PROCESS
 				{
 					Inner-ClearSCOMCache
 				}
+				$completedlocally = $true
 			}
-			
+		}
+		if ($containslocal -and !$completedlocally)
+		{
+			if ($Reboot)
+			{
+				Inner-ClearSCOMCache -Reboot
+			}
+			elseif ($Reboot -and $All)
+			{
+				Inner-ClearSCOMCache -Reboot -All
+			}
+			elseif ($All)
+			{
+				Inner-ClearSCOMCache -All
+			}
+			else
+			{
+				Inner-ClearSCOMCache
+			}
 		}
 	}
 	if ($Servers -or $Reboot -or $All -or $Sleep)
@@ -643,7 +654,7 @@ PROCESS
 	}
 	else
 	{
-<# Edit line 651 to modify the default command run when this script is executed.
+<# Edit line 662 to modify the default command run when this script is executed.
 
    Example: 
    Clear-SCOMCache -Servers Agent1.contoso.com, Agent2.contoso.com, MS1.contoso.com, MS2.contoso.com
