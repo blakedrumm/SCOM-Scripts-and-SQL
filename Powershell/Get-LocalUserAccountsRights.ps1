@@ -9,7 +9,7 @@ function Get-LocalUserAccountsRights
 				   Position = 1)]
 		[array]$Servers,
 		[Parameter(Mandatory = $false,
-				   Position = 1)]
+				   Position = 2)]
 		[array]$OutputPath
 	)
 	
