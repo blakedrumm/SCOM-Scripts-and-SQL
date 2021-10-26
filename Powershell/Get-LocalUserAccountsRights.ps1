@@ -7,7 +7,10 @@ function Get-LocalUserAccountsRights
 	(
 		[Parameter(Mandatory = $false,
 				   Position = 1)]
-		[array]$Servers
+		[array]$Servers,
+		[Parameter(Mandatory = $false,
+				   Position = 1)]
+		[array]$OutputPath
 	)
 	
 	if (!$Servers)
@@ -15,7 +18,7 @@ function Get-LocalUserAccountsRights
 		$Servers = $env:COMPUTERNAME
 	}
 	Write-Host "    Gathering Output" -ForegroundColor DarkCyan -NoNewline
-	
+	$output = $null
 	$localadmin = Invoke-Command -ScriptBlock {
 		$members = net localgroup administrators |
 		where { $_ -AND $_ -notmatch "command completed successfully" } |
@@ -39,9 +42,16 @@ function Get-LocalUserAccountsRights
 		
 	} -computer $servers -HideComputerName | Select * -ExcludeProperty RunspaceID, PSShowComputerName, PSComputerName | Sort-Object -Property @{ Expression = "ComputerName"; Descending = $False }, @{ Expression = "Members"; Descending = $False }
 	Write-Host "-" -ForegroundColor DarkCyan -NoNewline
-	New-Item -ItemType Directory -Path "$OutputPath\Local Administrators Group" -Force -ErrorAction Stop | Out-Null
-	$localadmin | Export-CSV $OutputPath\CSV\Server_LocalAdministratorsGroup.csv -NoTypeInformation
-	$localadmin | Out-String -Width 4096 | Out-File "$OutputPath\Local Administrators Group\LocalAdmins.txt"
+	if ($OutputPath)
+	{
+		New-Item -ItemType Directory -Path "$OutputPath\Local Administrators Group" -Force -ErrorAction Stop | Out-Null
+		$localadmin | Export-CSV $OutputPath\Server_LocalAdministratorsGroup.csv -NoTypeInformation
+		$localadmin | Out-String -Width 4096 | Out-File "$OutputPath\Local Administrators Group\LocalAdmins.txt"
+	}
+	else
+	{
+		$output += $localadmin | Out-String -Width 4096
+	}
 	$localrights = $null
 	$localrights = Invoke-Command -ScriptBlock {
 		function Get-SecurityPolicy
@@ -133,11 +143,12 @@ public static extern bool LookupPrivilegeDisplayName(
 				param (
 					[String]$principal
 				)
-                try{
+				try
+				{
 					$sid = New-Object System.Security.Principal.SecurityIdentifier($principal.Substring(1))
 					$sid.Translate([Security.Principal.NTAccount])
-                }
-                catch{$principal}
+				}
+				catch { $principal }
 			}
 			
 			$TemplateFilename = Join-Path ([IO.Path]::GetTempPath()) ([IO.Path]::GetRandomFileName())
@@ -179,9 +190,18 @@ public static extern bool LookupPrivilegeDisplayName(
 		return Get-SecurityPolicy
 	} -computer $servers -HideComputerName | Select * -ExcludeProperty RunspaceID, PSShowComputerName, PSComputerName -Unique
 	Write-Host "-" -ForegroundColor DarkCyan -NoNewline
-	New-Item -ItemType Directory -Path "$OutputPath\Local Logon Rights" -Force -ErrorAction Stop | Out-Null
-	$localrights | Export-CSV $OutputPath\CSV\Server_UserLogonRights.csv -NoTypeInformation
-	$localrights | Out-String -Width 4096 | Out-File "$OutputPath\Local Logon Rights\UserLogonRights.txt"
+	if ($OutputPath)
+	{
+		New-Item -ItemType Directory -Path "$OutputPath\Local Logon Rights" -Force -ErrorAction Stop | Out-Null
+		$localrights | Export-CSV $OutputPath\Server_UserLogonRights.csv -NoTypeInformation
+		$localrights | Out-String -Width 4096 | Out-File "$OutputPath\Local Logon Rights\UserLogonRights.txt"
+	}
+	else
+	{
+		$output += $localrights | Out-String -Width 4096
+	}
 	Write-Host "> " -ForegroundColor DarkCyan -NoNewline
 	Write-Host 'Complete!' -ForegroundColor Green
+	$output
 }
+Get-LocalUserAccountsRights
