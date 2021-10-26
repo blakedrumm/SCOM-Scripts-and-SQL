@@ -10,7 +10,7 @@ function Get-LocalUserAccountsRights
 		[array]$Servers,
 		[Parameter(Mandatory = $false,
 				   Position = 2)]
-		[array]$OutputPath
+		[string]$OutputPath
 	)
 	
 	if (!$Servers)
