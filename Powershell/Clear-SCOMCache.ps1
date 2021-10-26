@@ -596,7 +596,15 @@ PROCESS
 				}
 				if ($containslocal)
 				{
-					if ($All)
+					if ($Reboot)
+					{
+						Inner-ClearSCOMCache -Reboot
+					}
+					elseif ($Reboot -and $All)
+					{
+						Inner-ClearSCOMCache -Reboot -All
+					}
+					elseif ($All)
 					{
 						Inner-ClearSCOMCache -All
 					}
@@ -609,7 +617,15 @@ PROCESS
 			}
 			if ($containslocal -and !$completedlocally)
 			{
-				if ($All)
+				if ($Reboot)
+				{
+					Inner-ClearSCOMCache -Reboot
+				}
+				elseif ($Reboot -and $All)
+				{
+					Inner-ClearSCOMCache -Reboot -All
+				}
+				elseif ($All)
 				{
 					Inner-ClearSCOMCache -All
 				}
@@ -627,7 +643,7 @@ PROCESS
 	}
 	else
 	{
-<# Edit line 635 to modify the default command run when this script is executed.
+<# Edit line 651 to modify the default command run when this script is executed.
 
    Example: 
    Clear-SCOMCache -Servers Agent1.contoso.com, Agent2.contoso.com, MS1.contoso.com, MS2.contoso.com
