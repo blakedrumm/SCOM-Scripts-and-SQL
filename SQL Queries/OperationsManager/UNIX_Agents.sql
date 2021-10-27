@@ -8,7 +8,7 @@ SELECT @ArchitectureCol=COLUMN_NAME FROM INFORMATION_SCHEMA.Columns where TABLE_
 and COLUMN_NAME Like 'Architecture%'
 SELECT @IPAddressCol=COLUMN_NAME FROM INFORMATION_SCHEMA.Columns WHERE TABLE_NAME = 'MT_Microsoft$Unix$Computer'
 AND COLUMN_NAME Like 'IPAddress%'
-set @query = 'select bme2.DisplayName as ''Agent'', ' + @AgentVersionCol + '  as ''Build'' , 
+set @query = 'select bme2.fullname as ''FullName'', bme2.Displayname as ''DisplayName'', ' + @AgentVersionCol + '  as ''Build'' ,
 ' + @ArchitectureCol + ' as ''Architecture'', ' + @IPAddressCol + ' as ''IPAddress'', bme.Displayname as ''ResourcePool''
 from dbo.Relationship r with (nolock) 
 join dbo.RelationshipType rt with (nolock) 
@@ -26,5 +26,6 @@ and bme2.basemanagedtypeid in (SELECT DerivedTypeId
 FROM DerivedManagedTypes with (nolock) 
 WHERE BaseTypeId = (select managedtypeid 
 from managedtype where typename = ''Microsoft.Unix.Computer'') 
-and DerivedIsAbstract = 0)'
+and DerivedIsAbstract = 0)
+ORDER BY DisplayName DESC'
 exec(@query)
