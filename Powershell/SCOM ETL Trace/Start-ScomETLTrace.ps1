@@ -212,7 +212,7 @@ Function Start-ETLTrace
 	$Loc = $env:COMPUTERNAME
 	$date = Get-Date -Format "MM.dd.yyyy-hh.mmtt"
 	$Mod = $loc + "-" + $date
-	$TempETLTrace = "C:\Windows\Temp\scomETLtrace"
+	$TempETLTrace = "$env:HOMEDRIVE$env:HOMEPATH\Desktop\scomETLtrace"
 	if (!(Test-Path $TempETLTrace) | Out-Null)
 	{
 		mkdir $TempETLTrace -Force | Out-Null
@@ -242,7 +242,7 @@ Function Start-ETLTrace
 	
 	if ($null -ne ($GetAdvisor -or $GetAPM -or $GetApmConnector -or $GetBID -or $GetConfigService -or $GetDAS -or $GetFailover -or $GetManaged -or $GetNASM -or $GetNative -or $GetScript -or $GetUI -or $DebugTrace -or $VerboseTrace -or $NetworkTrace -or $RestartSCOMServices -or $DetectOpsMgrEventID -or $SleepSeconds))
 	{
-		$TempDirectory = "C:\Windows\Temp\SCOMTracingTemp"
+		$TempDirectory = "$env:HOMEDRIVE$env:HOMEPATH\Desktop\SCOMTracingTemp"
 		if (!(test-path $TempDirectory))
 		{
 			New-Item -ItemType Directory -Force -Path $TempDirectory
@@ -676,7 +676,7 @@ exit 0
 	
 	[string]$destfilename = "$Mod`.zip"
 	
-	[string]$destfile = "C:\Windows\Temp\$destfilename"
+	[string]$destfile = "$env:HOMEDRIVE$env:HOMEPATH\Desktop\$destfilename"
 	if (Test-Path $destfile)
 	{
 		#File exists from a previous run on the same day - delete it
