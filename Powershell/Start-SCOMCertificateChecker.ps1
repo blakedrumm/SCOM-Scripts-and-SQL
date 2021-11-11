@@ -227,9 +227,8 @@ Examining Certificate - Subject: $($cert.Subject -replace "CN=", $null) - Serial
 							# Not part of a domain
 							continue;
 						}
-						
 						$fqdnRegexPattern = "CN=" + $fqdn.Replace(".", "\.") + '(,.*)?$'
-						
+
 						if (!($cert.SubjectName.Name -match $fqdnRegexPattern))
 						{
 							$text5 = "Certificate Subjectname Mismatch"
@@ -692,9 +691,7 @@ Examining Certificate - Subject: $($cert.Subject -replace "CN=", $null) - Serial
 						# Not part of a domain
 						continue;
 					}
-					
 					$fqdnRegexPattern = "CN=" + $fqdn.Replace(".", "\.") + '(,.*)?$'
-					
 					if (!($cert.SubjectName.Name -match $fqdnRegexPattern))
 					{
 						$text5 = "Certificate Subjectname Mismatch"
@@ -1055,4 +1052,4 @@ $time : Script Completed
 	break
 }
 if ($null -eq $Servers) { SCOM-CertCheck }
-else { SCOM-CertCheck -Servers $Servers -Output $Output }
+else { SCOM-CertCheck -Servers $Servers -Output $Output -All:$All }
