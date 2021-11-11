@@ -231,6 +231,10 @@ Function Start-ETLTrace
 		Write-Warning "Exiting Script: Unable to locate the Install Directory`nHKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Setup"
 		exit 1
 	}
+	$healthService = Get-Service -Name healthservice -ErrorAction SilentlyContinue
+	$OMSDK = Get-Service -Name OMSDK -ErrorAction SilentlyContinue
+	$cshost = Get-Service -Name cshost -ErrorAction SilentlyContinue
+	
 	Function Time-Stamp
 	{
 		
@@ -245,7 +249,21 @@ Function Start-ETLTrace
 		$TempDirectory = "$env:HOMEDRIVE$env:HOMEPATH\Desktop\SCOMTracingTemp"
 		if (!(test-path $TempDirectory))
 		{
-			New-Item -ItemType Directory -Force -Path $TempDirectory
+			Time-Stamp
+			Write-Host "Creating temporary directory: `"$TempDirectory`"" -ForegroundColor Gray
+			New-Item -ItemType Directory -Force -Path $TempDirectory | Out-Null
+		}
+		else
+		{
+			Time-Stamp
+			Write-Host "Temporary directory found: `"$TempDirectory`"" -ForegroundColor Gray
+			$directorycontents = Get-ChildItem $TempDirectory\*.txt
+			if ($directorycontents)
+			{
+				Time-Stamp
+				Write-Host "Moving .txt files in `"$TempDirectory`" back to `"$installdir`"" -ForegroundColor Gray
+				Move-Item $TempDirectory\*.txt "$installdir" -Force | Out-Null
+			}
 		}
 	}
 	
@@ -458,8 +476,8 @@ exit 0
 				write-host "  Stopping any existing Network Trace" -ForegroundColor Gray -NoNewline
 				do { Write-Host "." -NoNewline -ForegroundColor DarkCyan; sleep 1 }
 				until (Netsh trace stop)
+				Write-Host " "
 			}
-			Write-Host " "
 		}
 		catch
 		{
@@ -472,29 +490,38 @@ exit 0
 			{
 				Time-Stamp
 				Write-Host "No Trace Type Selected (Verbose / Debug), will proceed with Verbose as default." -ForegroundColor DarkGray
-				$answer = "verbose"
+				$global:answer = "verbose"
 			}
 			if ($VerboseTrace)
 			{
-				$answer = "verbose"
+				$global:answer = "verbose"
 			}
 			elseif ($DebugTrace)
 			{
-				$answer = "debug"
+				$global:answer = "debug"
 			}
 		}
-		until (($answer -eq "verbose" -or "v") -or ($answer -eq "debug" -or "d"))
+		until (($global:answer -eq "verbose" -or "v") -or ($global:answer -eq "debug" -or "d"))
 		if ($RestartSCOMServices)
 		{
-			Time-Stamp
-			write-host "Stopping `'System Center Data Access Service`'" -ForegroundColor DarkCyan
-			stop-service OMSDK -ErrorAction SilentlyContinue
-			Time-Stamp
-			write-host "Stopping `'System Center Management Configuration`' Service" -ForegroundColor DarkCyan
-			stop-service cshost -ErrorAction SilentlyContinue
-			Time-Stamp
-			write-host "Stopping `'Microsoft Monitoring Agent`' Service" -ForegroundColor DarkCyan
-			stop-service healthservice -ErrorAction SilentlyContinue
+			if ($OMSDK)
+			{
+				Time-Stamp
+				write-host "Stopping `'System Center Data Access Service`'" -ForegroundColor DarkCyan
+				stop-service OMSDK -ErrorAction SilentlyContinue
+			}
+			if ($cshost)
+			{
+				Time-Stamp
+				write-host "Stopping `'System Center Management Configuration`' Service" -ForegroundColor DarkCyan
+				stop-service cshost -ErrorAction SilentlyContinue
+			}
+			if ($healthService)
+			{
+				Time-Stamp
+				write-host "Stopping `'Microsoft Monitoring Agent`' Service" -ForegroundColor DarkCyan
+				stop-service healthservice -ErrorAction SilentlyContinue
+			}
 		}
 		Time-Stamp
 		write-host "Removing stale log files" -ForegroundColor DarkCyan
@@ -531,15 +558,37 @@ exit 0
 			}
 			Netsh trace start capture=yes persistent=yes filemode=circular maxSize=3000MB tracefile="$TempETLTrace`\Network Trace\$mod.etl" | out-null
 		}
-		if (($answer -eq "verbose") -or ($answer -eq "v"))
+		if (($global:answer -eq "verbose") -or ($global:answer -eq "v"))
 		{
 			try
 			{
+				if ($RestartSCOMServices)
+				{
+					$LogFiles = $null
+					$LogFiles = Get-ChildItem "$installdir\*.txt"
+					if (!$LogFiles)
+					{
+						$LogFiles = Get-ChildItem "$installdir\*.DBG"
+					}
+					if (!$LogFiles)
+					{
+						$LogFiles = Get-ChildItem "$installdir\*.VER"
+					}
+					Foreach ($LogFile in $LogFiles)
+					{
+						$OldName = $null
+						$OldName = $LogFile.name
+						$newNameRaw = $OldName.split('.')[0]
+						$newName = "$newNameRaw" + ".VER"
+						Time-Stamp
+						Write-Host "Renaming `"$LogFile`" to `"$newName`"" -ForegroundColor Gray
+						rename-item $logfile $newName -force -Confirm:$false
+					}
+				}
 				Time-Stamp
 				write-host "Starting ETL trace at Verbose level" -ForegroundColor Cyan
 				Start-Process "$env:SystemRoot\SYSWOW64\cmd.exe" "/c `"$installdir`\StartTracing.cmd`" VER" -WorkingDirectory $installdir -Wait | out-null
-				#[string] $Out = $ps.StandardOutput.ReadToEnd();
-				#[void](Invoke-Item "" 'VER' -)
+				
 				Time-Stamp
 				write-host "Process Completed!" -ForegroundColor DarkCyan
 			}
@@ -549,10 +598,33 @@ exit 0
 				Write-Host $_
 			}
 		}
-		elseif (($answer -eq "debug") -or ($answer -eq "d"))
+		elseif (($global:answer -eq "debug") -or ($global:answer -eq "d"))
 		{
 			try
 			{
+				if ($RestartSCOMServices)
+				{
+					$LogFiles = $null
+					$LogFiles = Get-ChildItem "$installdir\*.txt"
+					if (!$LogFiles)
+					{
+						$LogFiles = Get-ChildItem "$installdir\*.DBG"
+					}
+					if (!$LogFiles)
+					{
+						$LogFiles = Get-ChildItem "$installdir\*.VER"
+					}
+					Foreach ($LogFile in $LogFiles)
+					{
+						$OldName = $null
+						$OldName = $LogFile.name
+						$newNameRaw = $OldName.split('.')[0]
+						$newName = "$newNameRaw" + ".DBG"
+						Time-Stamp
+						Write-Host "Renaming `"$LogFile`" to `"$newName`"" -ForegroundColor Gray
+						rename-item $logfile $newName -force -Confirm:$false
+					}
+				}
 				Time-Stamp
 				write-host "Starting ETL trace at Debug level" -ForegroundColor Cyan
 				Start-Process "$env:SystemRoot\SYSWOW64\cmd.exe" "/c `"$installdir`\StartTracing.cmd`" DBG" -WorkingDirectory $installdir -Wait | out-null
@@ -567,23 +639,32 @@ exit 0
 		}
 		if ($RestartSCOMServices)
 		{
-			Time-Stamp
-			write-host "Starting `'Microsoft Monitoring Agent`' Service" -ForegroundColor DarkCyan
-			start-service healthservice -ErrorAction SilentlyContinue
-			Time-Stamp
-			write-host "Starting `'System Center Data Access Service`'" -ForegroundColor DarkCyan
-			start-service OMSDK -ErrorAction SilentlyContinue
-			Time-Stamp
-			write-host "Starting `'System Center Management Configuration`' Service" -ForegroundColor DarkCyan
-			start-service cshost -ErrorAction SilentlyContinue
+			if ($healthService)
+			{
+				Time-Stamp
+				write-host "Starting `'Microsoft Monitoring Agent`' Service" -ForegroundColor DarkCyan
+				start-service healthservice -ErrorAction SilentlyContinue
+			}
+			if ($OMSDK)
+			{
+				Time-Stamp
+				write-host "Starting `'System Center Data Access Service`'" -ForegroundColor DarkCyan
+				start-service OMSDK -ErrorAction SilentlyContinue
+			}
+			if ($cshost)
+			{
+				Time-Stamp
+				write-host "Starting `'System Center Management Configuration`' Service" -ForegroundColor DarkCyan
+				start-service cshost -ErrorAction SilentlyContinue
+			}
 		}
 	}
 	Start-ScomETLTrace
 	if ($DetectOpsMgrEventID)
 	{
 		Time-Stamp
-		Write-Host "Starting Detection of OperationsManager Event ID " -NoNewLine -ForegroundColor DarkGreen
-		Write-Host "(Checking every $SleepSeconds seconds): " -NoNewline -ForegroundColor DarkCyan
+		Write-Host "Starting Detection of OperationsManager Event ID " -NoNewLine -ForegroundColor Cyan
+		Write-Host "(Checking every $SleepSeconds seconds): " -NoNewline -ForegroundColor Cyan
 		Write-Host $DetectOpsMgrEventID -NoNewline -ForegroundColor Cyan
 		do
 		{
@@ -591,15 +672,15 @@ exit 0
 			$Date = $null
 			$events = $null
 			$foundEventID = $false
-			$Date = (Get-Date).AddSeconds("`-" + ($SleepSeconds + 2))
+			$Date = (Get-Date).AddSeconds("`-" + ($SleepSeconds + 1))
 			$events = Get-WinEvent -FilterHashtable @{ LogName = 'Operations Manager'; StartTime = $Date; Id = $DetectOpsMgrEventID } -ErrorAction SilentlyContinue
 			if ($events)
 			{
 				Write-Host ' '
 				Time-Stamp
-				Write-Host 'Found the Event ID:' -ForegroundColor Green -NoNewline
+				Write-Host 'Found the Event ID: ' -ForegroundColor Green -NoNewline
 				Write-Host $DetectOpsMgrEventID -NoNewline -ForegroundColor Cyan
-				Write-Host "!" -ForegroundColor DarkCyan
+				Write-Host "!" -ForegroundColor Green
 				$foundEventID = $true
 			}
 			else
@@ -630,6 +711,37 @@ exit 0
 	Time-Stamp
 	Write-Host "Stopping ETL Trace" -ForegroundColor Cyan
 	Start-Process "$env:SystemRoot\SYSWOW64\cmd.exe" "/c `"$installdir`\StopTracing.cmd`"" -WorkingDirectory $installdir -Wait | out-null
+	
+	if (($global:answer -eq "debug") -or ($global:answer -eq "d"))
+	{
+		$logfiles = $null
+		$LogFiles = Get-ChildItem "$installdir\*.DBG"
+		Foreach ($LogFile in $LogFiles)
+		{
+			$OldName = $null
+			$OldName = $LogFile.name
+			$newNameRaw = $OldName.split('.')[0]
+			$newName = "$newNameRaw" + ".txt"
+			Time-Stamp
+			Write-Host "Renaming $LogFile back to $newName" -ForegroundColor Gray
+			rename-item $logfile $newName -force -Confirm:$false
+		}
+	}
+	elseif (($global:answer -eq "verbose") -or ($global:answer -eq "v"))
+	{
+		$logfiles = $null
+		$LogFiles = Get-ChildItem "$installdir\*.VER"
+		Foreach ($LogFile in $LogFiles)
+		{
+			$OldName = $null
+			$OldName = $LogFile.name
+			$newNameRaw = $OldName.split('.')[0]
+			$newName = "$newNameRaw" + ".txt"
+			Time-Stamp
+			Write-Host "Renaming $LogFile back to $newName" -ForegroundColor Gray
+			rename-item $logfile $newName -force -Confirm:$false
+		}
+	}
 	if ($NetworkTrace)
 	{
 		Time-Stamp
@@ -653,9 +765,15 @@ exit 0
 	
 	#Move Files
 	Time-Stamp
-	Write-Host "Moving/Copying Files around"
+	Write-Host "Moving/Copying Files around" -ForegroundColor Gray
+	$directorycontents = Get-ChildItem $TempDirectory\*.txt
+	if ($directorycontents)
+	{
+		Time-Stamp
+		Write-Host "Moving .txt files in `"$TempDirectory`" back to `"$installdir`"" -ForegroundColor Gray
+		Move-Item $TempDirectory\*.txt "$installdir" -Force | Out-Null
+	}
 	
-	Move-Item $TempDirectory\*.txt "$installdir" -Force | Out-Null
 	$ETLFolder = "$TempETLTrace`\ETL"
 	if (!(Test-Path $ETLFolder))
 	{
@@ -668,6 +786,7 @@ exit 0
 	Copy-Item "C:\Windows\Logs\OpsMgrTrace\*" "$TempETLTrace`\ETL" -Force | Out-Null
 	
 	#Zip output
+	$Error.Clear()
 	Time-Stamp
 	Write-Host "Zipping up Trace Output." -ForegroundColor DarkCyan
 	[Reflection.Assembly]::LoadWithPartialName("System.IO.Compression.FileSystem") | Out-Null
@@ -675,7 +794,6 @@ exit 0
 	$SourcePath = Resolve-Path "$TempETLTrace"
 	
 	[string]$destfilename = "$Mod`.zip"
-	
 	[string]$destfile = "$env:HOMEDRIVE$env:HOMEPATH\Desktop\$destfilename"
 	if (Test-Path $destfile)
 	{
@@ -687,12 +805,14 @@ exit 0
 	$compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
 	$includebasedir = $false
 	[System.IO.Compression.ZipFile]::CreateFromDirectory($SourcePath, $destfile, $compressionLevel, $includebasedir) | Out-Null
-	#Remove-Item "$TempETLTrace" -Recurse -Confirm:$false
+	Time-Stamp
+	Write-Host "Removing $TempDirectory" -ForegroundColor DarkCyan
+	Remove-Item "$TempDirectory" -Recurse -Confirm:$false
 	if ($Error)
 	{
 		Time-Stamp
 		Write-Warning "Error creating zip file."
-		Write-Host $_
+		Write-Host $error
 	}
 	else
 	{
