@@ -26,7 +26,7 @@ $LabName = 'SCOM2022Preview' # (Default: SCOM2022Preview)
 ######### ISO Names / Executables ############
 ##############################################
 $SQLServerISO = 'ISOs\SQLServer2019-x64-ENU.iso' #Location of the SQL Server 2019 ISO (https://go.microsoft.com/fwlink/?linkid=866664) (Default: ISOs\SQLServer2019-x64-ENU.iso)
-$SCOM2022_Location = 'SoftwarePackages\SCOM_2022_Preview.exe' #Location of the SCOM 2019 Executable (https://www.microsoft.com/en-US/evalcenter/evaluate-system-center-2019) (Default: SoftwarePackages\SCOM_2019.exe)
+$SCOM2022_Location = 'SoftwarePackages\SCOM_2022_Preview.exe' #Location of the SCOM 2022 Preview Executable (https://www.microsoft.com/en-US/evalcenter/evaluate-system-center-2022) (Default: SoftwarePackages\SCOM_2022_Preview.exe)
 ##############################################
 
 
