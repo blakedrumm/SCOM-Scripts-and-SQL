@@ -22,7 +22,7 @@
 		Additional information about the file.
 		
 	.AUTHOR
-	        Blake Drumm (v-bldrum@microsoft.com)
+	        Blake Drumm (blakedrumm@microsoft.com)
 #>
 [CmdletBinding()]
 param
@@ -37,13 +37,6 @@ param
 			   Position = 3)]
 	[string]$CaseNumber
 )
-# --------------------------------------------------------------------
-# --------------------------------------------------------------------
-
-$DefinedServers = $null
-
-#Add FQDN of Servers here (Comment this line to run against the local machine):
-#$DefinedServers = @("Agent2.contoso.com", "Agent1.contoso.com", "MS1.contoso.com", "MS2.contoso.com", "Exch1.contoso.com")
 
 # --------------------------------------------------------------------
 # --------------------------------------------------------------------
@@ -65,33 +58,33 @@ function Get-EventLogs
 	[CmdletBinding()]
 	param
 	(
-	[Parameter(Mandatory = $false,
-			   Position = 1)]
-	[String[]]$Servers,
-	[Parameter(Mandatory = $false,
-			   Position = 2)]
-	[String[]]$Logs,
-	[Parameter(Mandatory = $false,
-			   Position = 3)]
-	[string]$CaseNumber
+		[Parameter(Mandatory = $false,
+				   Position = 1)]
+		[String[]]$Servers,
+		[Parameter(Mandatory = $false,
+				   Position = 2)]
+		[String[]]$Logs,
+		[Parameter(Mandatory = $false,
+				   Position = 3)]
+		[string]$CaseNumber
 	)
 	
 	$ScriptPath = "$env:USERPROFILE\Documents"
-
-    #Modify this if you need more logs
-    if ($Logs -eq $null)
-    {
-	    [String[]]$Logs = 'Application', 'System', 'Security', 'Operations Manager', 'Microsoft-Windows-PowerShell/Operational'
-    }	
-
+	
+	#Modify this if you need more logs
+	if ($Logs -eq $null)
+	{
+		[String[]]$Logs = 'Application', 'System', 'Security', 'Operations Manager', 'Windows PowerShell'
+	}
+	
 	if ($CaseNumber)
 	{
 		$CaseNumber | Out-String
-		$OutputPath = "$ScriptPath\Event Log Output - $CaseNumber"
+		$OutputPath = "$env:USERPROFILE\Desktop\Event Log Output - $CaseNumber"
 	}
 	else
 	{
-		$OutputPath = "$ScriptPath\Event Log Output"
+		$OutputPath = "$env:USERPROFILE\Desktop\Event Log Output"
 	}
 	
 	IF (!(Test-Path $OutputPath))
@@ -117,20 +110,7 @@ function Get-EventLogs
 		Write-Host "$server" -ForegroundColor Green
 		foreach ($log in $logs)
 		{
-            $availableLogs = $null
-            $availableLogs = Get-EventLog * -ComputerName $server | Select Log -ExpandProperty Log
-            if($log -notin $availableLogs)
-            {
-            $logText = $log.ToString().Replace("/",".")
-            Out-File "$OutputPath`\Unable to Locate $logText on $server"
-            continue
-            }
-            else
-            {
-			Time-Stamp
-			Write-Host "  Exporting log: " -NoNewline
-			Write-Host $log -ForegroundColor Magenta -NoNewline
-			Write-Host " "
+			
 			if ($server -notmatch $env:COMPUTERNAME)
 			{
 				try
@@ -139,13 +119,45 @@ function Get-EventLogs
 					{ $logname = $log.split('/')[0] }
 					else { $logname = $log }
 					Invoke-Command -ComputerName $server {
-						$fileCheck = test-path "c:\windows\Temp\$using:server`.$using:logname.evtx"
-						if ($fileCheck -eq $true)
+						Function Time-Stamp
 						{
-							Remove-Item "c:\windows\Temp\$using:server`.$using:logname.evtx" -Force
+							$TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
+							write-host "$TimeStamp - " -NoNewline
 						}
-						wevtutil epl $using:log "c:\windows\Temp\$using:server.$using:logname.evtx"
-						wevtutil al "c:\windows\Temp\$using:server`.$using:logname.evtx"
+						trap
+						{
+							Time-Stamp
+							Write-Warning "$($error[0]) at line $($_.InvocationInfo.ScriptLineNumber)"
+						}
+						IF (!(Test-Path $using:OutputPath))
+						{
+							Time-Stamp
+							Write-Host " Creating output folder on remote server: " -ForegroundColor DarkYellow -NoNewline
+							Write-Host "$using:OutputPath" -ForegroundColor DarkCyan
+							md $using:OutputPath | Out-Null
+						}
+						$availableLogs = $null
+						$availableLogs = Get-EventLog * | Select Log -ExpandProperty Log
+						$remoteLog = $using:log
+						if ($remoteLog -notin $availableLogs)
+						{
+							$logText = $remoteLog.ToString().Replace("/", ".")
+							Time-Stamp
+							Write-Host "  Unable to locate $logText event logs on $using:server."
+							Out-File "$using:OutputPath`\Unable to locate $logText event logs on $using:server."
+							continue
+						}
+						$fileCheck = test-path "$using:OutputPath\$using:server`.$using:logname.evtx"
+						if ($fileCheck)
+						{
+							Remove-Item "$using:OutputPath\$using:server`.$using:logname.evtx" -Force
+						}
+						Time-Stamp
+						Write-Host "  Exporting log: " -NoNewline
+						Write-Host $using:log -ForegroundColor Magenta -NoNewline
+						Write-Host " "
+						wevtutil epl $using:log "$using:OutputPath\$using:server.$using:logname.evtx"
+						wevtutil al "$using:OutputPath\$using:server`.$using:logname.evtx"
 					} -ErrorAction Stop
 					$fileCheck2 = test-path "$OutputPath\$server" -ErrorAction Stop
 					if (!($fileCheck2))
@@ -153,16 +165,17 @@ function Get-EventLogs
 						New-Item -ItemType directory -Path "$OutputPath" -Name "$server" -ErrorAction Stop | Out-Null
 						New-Item -ItemType directory -Path "$OutputPath\$server" -Name "localemetadata" -ErrorAction Stop | Out-Null
 					}
-					Move-Item "\\$server\c$\windows\temp\$server.$logname.evtx" "$OutputPath\$server" -force -ErrorAction Stop
-					#"Get-ChildItem \\$server\c$\windows\temp\localemetadata\"
-					Get-ChildItem "\\$server\c$\windows\temp\localemetadata\" -ErrorAction Stop |
+					$UNCPath = ($OutputPath).Replace(":", "$")
+					Move-Item "\\$server\$UNCPath\$server.$logname.evtx" "$OutputPath\$server" -force -ErrorAction Stop
+					#"Get-ChildItem \\$server\c$\Users\$env:USERNAME\Desktop\localemetadata\"
+					Get-ChildItem "\\$server\$UNCPath\localemetadata\" -ErrorAction Stop |
 					where { $_.name -like "*$server*" -and $_.name -like "*$logname*" } |
 					Move-Item -Destination "$OutputPath\$server\localemetadata\" -force -ErrorAction Stop
 				}
 				catch
 				{
 					Time-Stamp
-					Write-Warning "$_"
+					Write-Warning "$($error[0]) at line $($_.InvocationInfo.ScriptLineNumber)"
 					break
 				}
 				
@@ -172,13 +185,17 @@ function Get-EventLogs
 				if ($log -like '*/*')
 				{ $logname = $log.split('/')[0] }
 				else { $logname = $log }
-				$fileCheck = test-path "c:\windows\Temp\$server.$logname.evtx"
+				$fileCheck = test-path "$OutputPath\$server.$logname.evtx"
 				if ($fileCheck -eq $true)
 				{
-					Remove-Item "c:\windows\Temp\$server.$logname.evtx" -Force | Out-Null
+					Remove-Item "$OutputPath\$server.$logname.evtx" -Force | Out-Null
 				}
-				wevtutil epl $log "c:\windows\Temp\$server.$logname.evtx"
-				wevtutil al "c:\windows\Temp\$server.$logname.evtx"
+				Time-Stamp
+				Write-Host "  Exporting log: " -NoNewline
+				Write-Host $log -ForegroundColor Magenta -NoNewline
+				Write-Host " "
+				wevtutil epl $log "$OutputPath\$server.$logname.evtx"
+				wevtutil al "$OutputPath\$server.$logname.evtx"
 				
 				$fileCheck2 = test-path "$OutputPath\$server"
 				if (!($fileCheck2))
@@ -186,15 +203,15 @@ function Get-EventLogs
 					New-Item -ItemType directory -Path "$OutputPath" -Name "$server" | Out-Null
 					New-Item -ItemType directory -Path "$OutputPath\$server" -Name "localemetadata" | Out-Null
 				}
-				Move-Item "C:\windows\temp\$server.$logname.evtx" "$OutputPath\$server" -force
-				#"Get-ChildItem \\$server\c$\windows\temp\localemetadata\"
-				Get-ChildItem "C:\windows\temp\localemetadata\" |
+				Move-Item "$OutputPath\$server.$logname.evtx" "$OutputPath\$server" -force
+				#"Get-ChildItem \\$server\c$\Users\$env:USERNAME\Desktop\localemetadata\"
+				Get-ChildItem "$OutputPath\localemetadata\" |
 				where { $_.name -like "*$server*" -and $_.name -like "*$logname*" } |
 				Move-Item -Destination "$OutputPath\$server\localemetadata\" -force
 			}
 		}
-     }
-		
+		Remove-Item "\\$server\$UNCPath" -Recurse -Confirm:$false -Force -ErrorAction SilentlyContinue
+		Remove-Item $OutputPath\localemetadata -Confirm:$false -Force -ErrorAction SilentlyContinue
 	}
 	#Zip output
 	Time-Stamp
@@ -212,7 +229,9 @@ function Get-EventLogs
 	{
 		#File exists from a previous run on the same day - delete it
 		Time-Stamp
-		Write-Host "Found existing zip file: $destfile.`n Deleting existing file." -ForegroundColor DarkGreen
+		Write-Host "Found existing zip file: $destfile." -ForegroundColor DarkGreen
+		Time-Stamp
+		Write-Host "Deleting existing file." -ForegroundColor Gray
 		Remove-Item $destfile -Force
 	}
 	$compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
@@ -224,14 +243,12 @@ function Get-EventLogs
 	Write-Warning "Exiting script..."
 	start C:\Windows\explorer.exe -ArgumentList "/select, $destfile"
 }
-
-#Change FQDN of Servers Below
-
-if ($DefinedServers)
+if ($DefinedServers -or $Logs -or $CaseNumber)
 {
-	Get-EventLogs -Servers $DefinedServers
+	Get-EventLogs -Servers $DefinedServers -Logs $Logs -CaseNumber:$CaseNumber
 }
 else
 {
+	#Change the default action of this script by changing the below line. By default the script will run locally if no -Servers switch is present here.
 	Get-EventLogs
 }
