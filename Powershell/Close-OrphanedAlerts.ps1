@@ -40,7 +40,7 @@ $alertname
 
 Write-Host " "
 Write-Host "Output file to $env:USERPROFILE\Desktop\falsepostivealerts.txt" -ForegroundColor Gray
-$alertname | Out-File $env:USERPROFILE\Desktop\falsepostivealerts.txt
+$alertname | Out-File "$env:USERPROFILE\Desktop\falsepostivealerts.txt"
 
 $input=Read-Host "`nDo you want to close all the alerts in the above list? (Y/N)"
 
