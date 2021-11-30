@@ -23,7 +23,6 @@
 		Clear all Gray SCOM Agents
 		PS C:\> #Get the SystemCenter Agent Class
 		PS C:\>	$agent = Get-SCOMClass | where-object{$_.name -eq "microsoft.systemcenter.agent"}
-		
 		PS C:\>	#Get the grey agents
 		PS C:\>	$objects = Get-SCOMMonitoringObject -class:$agent | where {$_.IsAvailable -eq $false}
 		PS C:\>	.\Clear-SCOMCache.ps1 -Servers $objects
