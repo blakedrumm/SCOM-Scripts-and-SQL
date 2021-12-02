@@ -29,7 +29,10 @@
 	.NOTES
 		.AUTHOR
 		Blake Drumm (blakedrumm@microsoft.com)
-		
+
+		.CREATED
+		April 10th, 2021
+
 		.MODIFIED
 		December 2nd, 2021
 #>
@@ -68,7 +71,6 @@ param
 #----------------------------------------------------------------------------------------------------------------------------------
 #-Requires: SQL Server Powershell Module (https://docs.microsoft.com/en-us/sql/powershell/download-sql-server-ps-module)
 #Author: Blake Drumm (blakedrumm@microsoft.com)
-#Date Created: 4/10/2021
 function Invoke-SqlCommand
 {
     <#
@@ -431,7 +433,7 @@ ORDER BY FullName
 		
 		Write-Host "Found the following data associated with: " -NoNewline
 		Write-Host $machine -ForegroundColor Green
-		$BME_IDs | Select FullName, DisplayName, Path, IsDeleted, BaseManagedEntityId
+		$BME_IDs | Select FullName, DisplayName, Path, IsDeleted, BaseManagedEntityId | ft * -AutoSize | Out-String -Width 4096
 		$count = $BME_IDs.Count
 		if (!$yes)
 		{
@@ -540,7 +542,7 @@ if ($ManagementServer -or $SqlServer -or $Database -or $Servers -or $AssumeYes -
 }
 else
 {
-<# Edit line 547 to modify the default command run when this script is executed.
+<# Edit line 549 to modify the default command run when this script is executed.
    Example: 
    Erase-BaseManagedEntity -ManagementServer MS1-2019.contoso.com -SqlServer SQL-2019\SCOM2019 -Database OperationsManager -Servers Agent1.contoso.com, Agent2.contoso.com
    #>
