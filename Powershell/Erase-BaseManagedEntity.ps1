@@ -542,9 +542,11 @@ if ($ManagementServer -or $SqlServer -or $Database -or $Servers -or $AssumeYes -
 }
 else
 {
-<# Edit line 549 to modify the default command run when this script is executed.
+<# Edit line 551 to modify the default command run when this script is executed.
    Example: 
    Erase-BaseManagedEntity -ManagementServer MS1-2019.contoso.com -SqlServer SQL-2019\SCOM2019 -Database OperationsManager -Servers Agent1.contoso.com, Agent2.contoso.com
+   or
+   Erase-BaseManagedEntity -Servers Agent1.contoso.com
    #>
 	Erase-BaseManagedEntity
 }
