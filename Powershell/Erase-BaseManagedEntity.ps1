@@ -335,21 +335,29 @@ Function Erase-BaseManagedEntity
 	}
 	if (!$SqlServer)
 	{
-		$SqlServer = "MSSQL-2019\SCOM2019"
+		$sqlInput = Get-ItemProperty -Path 'HKLM:\Software\Microsoft\System Center\2010\Common\Database\' | Select DatabaseName, DatabaseServerName
+		$SqlServer = $sqlInput.DatabaseServerName
 	}
 	
 	if (!$Database)
 	{
-		$Database = "OperationsManager"
+		if (!$sqlInput)
+		{
+			$sqlInput = Get-ItemProperty -Path 'HKLM:\Software\Microsoft\System Center\2010\Common\Database\' | Select DatabaseName, DatabaseServerName
+		}
+		$Database = $sqlInput.DatabaseName
 	}
-	<#
 	if (!$Servers)
 	{
-		#Name of Agent to Erase from SCOM
+		<#
+		#Name of Server to Erase from SCOM DB
 		#Fully Qualified (FQDN)
 		[array]$Servers = "IIS-Server"
+		#>
+		Write-Warning "Missing Servers to be removed, run the script with -Servers argument. (ex: -Servers Agent1.contoso.com)"
+		break
 	}
-	#>
+	
 	if (!$AssumeYes)
 	{
 		#If you want to assume yes on all the questions asked typically.
@@ -376,7 +384,7 @@ DO NOT EDIT PAST THIS POINT
 			$genericListType = [System.Collections.Generic.List``1]
 			$genericList = $genericListType.MakeGenericType($agentManagedComputerType)
 			$agentList = new-object $genericList.FullName
-			foreach ($serv in $using:Agents)
+			foreach ($serv in $using:Servers)
 			{
 				Write-Host "Deleting SCOM Agent: `'$serv`' from Agent Managed Computers"
 				$agent = Get-SCOMAgent *$serv*
@@ -385,9 +393,11 @@ DO NOT EDIT PAST THIS POINT
 			$genericReadOnlyCollectionType = [System.Collections.ObjectModel.ReadOnlyCollection``1]
 			$genericReadOnlyCollection = $genericReadOnlyCollectionType.MakeGenericType($agentManagedComputerType)
 			$agentReadOnlyCollection = new-object $genericReadOnlyCollection.FullName @( ,$agentList);
-            try{
-			$administration.DeleteAgentManagedComputers($agentReadOnlyCollection);
-            }catch{Write-Host 'Unable to delete from Agent Managed Computers' -ForegroundColor Cyan}
+			try
+			{
+				$administration.DeleteAgentManagedComputers($agentReadOnlyCollection);
+			}
+			catch { Write-Host 'Unable to delete from Agent Managed Computers' -ForegroundColor Cyan }
 		} -ErrorAction Stop
 	}
 	catch
@@ -530,7 +540,7 @@ if ($ManagementServer -or $SqlServer -or $Database -or $Servers -or $AssumeYes -
 }
 else
 {
-<# Edit line 537 to modify the default command run when this script is executed.
+<# Edit line 547 to modify the default command run when this script is executed.
    Example: 
    Erase-BaseManagedEntity -ManagementServer MS1-2019.contoso.com -SqlServer SQL-2019\SCOM2019 -Database OperationsManager -Servers Agent1.contoso.com, Agent2.contoso.com
    #>
