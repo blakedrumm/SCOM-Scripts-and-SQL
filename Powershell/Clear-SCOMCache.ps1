@@ -6,18 +6,22 @@
 		The script without any switches clears the SCOM cache first and foremost.
 		If the -All switch is present: Optionally Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics.
 		If -Reboot switch is present: Reboots the server(s) along with Resetting Winsock catalog.
-	
-	.PARAMETER Servers
-		Each Server you want to clear SCOM Cache on. Can be an Agent, Management Server, or SCOM Gateway. This will always perform on the local server last.
-	
-	.PARAMETER Sleep
-		Time in seconds to sleep between each server.
+
+	.PARAMETER All
+		Optionally clear all caches that SCOM could potentially use that doesnt require a reboot. Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics. (Combine with -Reboot for a full clear cache)
 	
 	.PARAMETER Reboot
 		Optionally reset winsock catalog, stop the SCOM Services, clear SCOM Cache, then reboot the server. This will always perform on the local server last.
-	
-	.PARAMETER All
-		Optionally clear all caches that SCOM could potentially use that doesnt require a reboot. Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics. (Combine with -Reboot for a full clear cache)
+
+	.PARAMETER Servers
+		Each Server you want to clear SCOM Cache on. Can be an Agent, Management Server, or SCOM Gateway. This will always perform on the local server last.
+
+	.PARAMETER Shutdown
+		Optionally shutdown the server after clearing the SCOM cache. This will always perform on the local server last.
+
+	.PARAMETER Sleep
+		Time in seconds to sleep between each server.	
+
 	
 	.EXAMPLE
 		Clear all Gray SCOM Agents
@@ -34,34 +38,41 @@
 		PS C:\> Get-SCOMAgent | .\Clear-SCOMCache.ps1
 		
 		Clear SCOM cache and reboot the Servers specified.
-		PS C:\> .\Clear-SCOMCache.ps1 -Servers IIS-Server.contoso.com, MS2.contoso.com -Reboot
+		PS C:\> .\Clear-SCOMCache.ps1 -Servers AgentServer.contoso.com, ManagementServer.contoso.com -Reboot
+
+		Clear SCOM cache and shutdown the Servers specified.
+		PS C:\> .\Clear-SCOMCache.ps1 -Servers AgentServer.contoso.com, ManagementServer.contoso.com -Shutdown
 	
 	.NOTES
 		.AUTHOR
 		Blake Drumm (blakedrumm@microsoft.com)
 		
 		.MODIFIED
-		October 26th, 2021
+		December 7th, 2021
 #>
 [OutputType([string])]
 param
 (
 	[Parameter(Mandatory = $false,
-			   ValueFromPipeline = $true,
 			   Position = 1,
-			   HelpMessage = 'Each Server you want to clear SCOM Cache on. Can be an Agent, Management Server, or SCOM Gateway. This will always perform on the local server last.')]
-	[String[]]$Servers,
-	[Parameter(Position = 2,
-			   HelpMessage = 'Time in seconds to sleep between each server.')]
-	[int64]$Sleep,
+			   HelpMessage = 'Optionally clear all caches that SCOM could potentially use that doesnt require a reboot. Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics. (Combine with -Reboot for a full clear cache)')]
+	[Switch]$All,
 	[Parameter(Mandatory = $false,
-			   Position = 3,
+			   Position = 2,
 			   HelpMessage = 'Optionally reset winsock catalog, stop the SCOM Services, clear SCOM Cache, then reboot the server. This will always perform on the local server last.')]
 	[Switch]$Reboot,
 	[Parameter(Mandatory = $false,
+			   ValueFromPipeline = $true,
+			   Position = 3,
+			   HelpMessage = 'Each Server you want to clear SCOM Cache on. Can be an Agent, Management Server, or SCOM Gateway. This will always perform on the local server last.')]
+	[String[]]$Servers,
+	[Parameter(Mandatory = $false,
 			   Position = 4,
-			   HelpMessage = 'Optionally clear all caches that SCOM could potentially use that doesnt require a reboot. Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics. (Combine with -Reboot for a full clear cache)')]
-	[Switch]$All
+			   HelpMessage = 'Optionally shutdown the server after clearing the SCOM cache. This will always perform on the local server last.')]
+	[Switch]$Shutdown,
+	[Parameter(Position = 5,
+			   HelpMessage = 'Time in seconds to sleep between each server.')]
+	[int64]$Sleep
 )
 BEGIN
 {
@@ -133,24 +144,29 @@ PROCESS
 	}
 	Function Clear-SCOMCache
 	{
+		[OutputType([string])]
 		param
 		(
 			[Parameter(Mandatory = $false,
-					   ValueFromPipeline = $true,
 					   Position = 1,
-					   HelpMessage = 'Each Server you want to clear SCOM Cache on. Can be an Agent, Management Server, or SCOM Gateway. This will always perform on the local server last.')]
-			[String[]]$Servers,
-			[Parameter(Position = 2,
-					   HelpMessage = 'Time in seconds to sleep between each server.')]
-			[int64]$Sleep,
+					   HelpMessage = 'Optionally clear all caches that SCOM could potentially use that doesnt require a reboot. Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics. (Combine with -Reboot for a full clear cache)')]
+			[Switch]$All,
 			[Parameter(Mandatory = $false,
-					   Position = 3,
+					   Position = 2,
 					   HelpMessage = 'Optionally reset winsock catalog, stop the SCOM Services, clear SCOM Cache, then reboot the server. This will always perform on the local server last.')]
 			[Switch]$Reboot,
 			[Parameter(Mandatory = $false,
+					   ValueFromPipeline = $true,
+					   Position = 3,
+					   HelpMessage = 'Each Server you want to clear SCOM Cache on. Can be an Agent, Management Server, or SCOM Gateway. This will always perform on the local server last.')]
+			[String[]]$Servers,
+			[Parameter(Mandatory = $false,
 					   Position = 4,
-					   HelpMessage = 'Optionally clear all caches that SCOM could potentially use that doesnt require a reboot. Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics. (Combine with -Reboot for a full clear cache)')]
-			[Switch]$All
+					   HelpMessage = 'Optionally shutdown the server after clearing the SCOM cache. This will always perform on the local server last.')]
+			[Switch]$Shutdown,
+			[Parameter(Position = 5,
+					   HelpMessage = 'Time in seconds to sleep between each server.')]
+			[int64]$Sleep
 		)
 		$setdefault = $false
 		foreach ($Server in $input)
@@ -207,10 +223,13 @@ PROCESS
 			(
 				[Parameter(Mandatory = $false,
 						   Position = 1)]
-				[Switch]$Reboot,
+				[Switch]$All,
 				[Parameter(Mandatory = $false,
 						   Position = 2)]
-				[Switch]$All
+				[Switch]$Reboot,
+				[Parameter(Mandatory = $false,
+						   Position = 3)]
+				[Switch]$Shutdown
 			)
 			BEGIN
 			{
@@ -437,6 +456,12 @@ PROCESS
 					{
 						Time-Stamp
 						Write-Host "Clearing Operations Manager Console Cache for the following users:";
+						if ($Shutdown -or $Reboot)
+						{
+							Time-Stamp
+							Write-Host "  Attempting to force closure of open Operations Manager Console(s) due to Reboot or Shutdown switch present." -ForegroundColor Gray
+							Stop-Process -Name "Microsoft.EnterpriseManagement.Monitoring.Console" -Confirm:$false -ErrorAction SilentlyContinue
+						}
 						$cachePath = Get-ChildItem "$env:SystemDrive\Users\*\AppData\Local\Microsoft\Microsoft.EnterpriseManagement.Monitoring.Console\momcache.mdb"
 						foreach ($consolecachefolder in $cachePath)
 						{
@@ -448,7 +473,7 @@ PROCESS
 					catch { Write-Warning $_ }
 				}
 				
-				if ($All -or $Reboot)
+				if ($All -or $Reboot -or $Shutdown)
 				{
 					Time-Stamp
 					Write-Host "Purging Kerberos Tickets: " -NoNewline
@@ -463,7 +488,15 @@ PROCESS
 					Write-Host 'NBTStat -R' -ForegroundColor Cyan
 					Start-Process "NBTStat" "-R"
 				}
-				if ($Reboot)
+				if ($Shutdown)
+				{
+					Time-Stamp
+					Write-Host "Shutting down: " -NoNewLine
+					Write-Host "$env:COMPUTERNAME" -ForegroundColor Green
+					Shutdown /s /t 10
+					continue
+				}
+				elseif ($Reboot)
 				{
 					Time-Stamp
 					Write-Host "Resetting Winsock catalog: " -NoNewline
@@ -533,7 +566,19 @@ PROCESS
 			$InnerClearSCOMCacheFunctionScript = "function Inner-ClearSCOMCache { ${function:Inner-ClearSCOMCache} }"
 			foreach ($server in $Servers)
 			{
-				if ($Reboot)
+				if ($Shutdown)
+				{
+					try
+					{
+						Invoke-Command -ErrorAction Stop -ComputerName $server -ArgumentList $InnerClearSCOMCacheFunctionScript -ScriptBlock {
+							Param ($script)
+							. ([ScriptBlock]::Create($script))
+							return Inner-ClearSCOMCache -Shutdown
+						}
+					}
+					catch { Write-Host $Error[0] -ForegroundColor Red }
+				}
+				elseif ($Reboot)
 				{
 					if ($All)
 					{
@@ -612,6 +657,10 @@ PROCESS
 				{
 					Inner-ClearSCOMCache -Reboot
 				}
+				elseif ($Shutdown)
+				{
+					Inner-ClearSCOMCache -Shutdown
+				}
 				elseif ($Reboot -and $All)
 				{
 					Inner-ClearSCOMCache -Reboot -All
@@ -633,6 +682,10 @@ PROCESS
 			{
 				Inner-ClearSCOMCache -Reboot
 			}
+			elseif ($Shutdown)
+			{
+				Inner-ClearSCOMCache -Shutdown
+			}
 			elseif ($Reboot -and $All)
 			{
 				Inner-ClearSCOMCache -Reboot -All
@@ -647,16 +700,16 @@ PROCESS
 			}
 		}
 	}
-	if ($Servers -or $Reboot -or $All -or $Sleep)
+	if ($All -or $Reboot -or $Servers -or $Shutdown -or $Sleep)
 	{
-		Clear-SCOMCache -Servers $Servers -Reboot:$Reboot -All:$All -Sleep:$Sleep
+		Clear-SCOMCache -All:$All -Reboot:$Reboot -Servers $Servers -Shutdown:$Shutdown -Sleep:$Sleep
 	}
 	else
 	{
-<# Edit line 661 to modify the default command run when this script is executed.
+<# Edit line 714 to modify the default command run when this script is executed.
 
    Example: 
-   Clear-SCOMCache -Servers Agent1.contoso.com, Agent2.contoso.com, MS1.contoso.com, MS2.contoso.com
+   Clear-SCOMCache -Servers Agent1.contoso.com, Agent2.contoso.com, MangementServer1.contoso.com, MangementServer2.contoso.com
    #>
 		Clear-SCOMCache
 	}
