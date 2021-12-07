@@ -44,6 +44,8 @@
 		PS C:\> .\Clear-SCOMCache.ps1 -Servers AgentServer.contoso.com, ManagementServer.contoso.com -Shutdown
 	
 	.NOTES
+		For advanced users: Edit line 716 to modify the default command run when this script is executed.
+
 		.AUTHOR
 		Blake Drumm (blakedrumm@microsoft.com)
 		
@@ -706,7 +708,7 @@ PROCESS
 	}
 	else
 	{
-<# Edit line 714 to modify the default command run when this script is executed.
+<# Edit line 716 to modify the default command run when this script is executed.
 
    Example: 
    Clear-SCOMCache -Servers Agent1.contoso.com, Agent2.contoso.com, MangementServer1.contoso.com, MangementServer2.contoso.com
