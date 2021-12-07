@@ -44,7 +44,7 @@
 		PS C:\> .\Clear-SCOMCache.ps1 -Servers AgentServer.contoso.com, ManagementServer.contoso.com -Shutdown
 	
 	.NOTES
-		For advanced users: Edit line 716 to modify the default command run when this script is executed.
+		For advanced users: Edit line 720 to modify the default command run when this script is executed.
 
 		.AUTHOR
 		Blake Drumm (blakedrumm@microsoft.com)
@@ -456,21 +456,25 @@ PROCESS
 				{
 					try
 					{
-						Time-Stamp
-						Write-Host "Clearing Operations Manager Console Cache for the following users:";
 						if ($Shutdown -or $Reboot)
 						{
 							Time-Stamp
-							Write-Host "  Attempting to force closure of open Operations Manager Console(s) due to Reboot or Shutdown switch present." -ForegroundColor Gray
+							Write-Host " Attempting to force closure of open Operations Manager Console(s) due to Reboot or Shutdown switch present." -ForegroundColor Gray
 							Stop-Process -Name "Microsoft.EnterpriseManagement.Monitoring.Console" -Confirm:$false -ErrorAction SilentlyContinue
 						}
 						$cachePath = Get-ChildItem "$env:SystemDrive\Users\*\AppData\Local\Microsoft\Microsoft.EnterpriseManagement.Monitoring.Console\momcache.mdb"
-						foreach ($consolecachefolder in $cachePath)
+						if ($cachePath)
 						{
 							Time-Stamp
-							Write-Host "  $($consolecachefolder.FullName.Split("\")[2])"
-							Remove-Item $consolecachefolder -Force -ErrorAction Stop
+							Write-Host "Clearing Operations Manager Console Cache for the following users:";
+							foreach ($consolecachefolder in $cachePath)
+							{
+								Time-Stamp
+								Write-Host "  $($consolecachefolder.FullName.Split("\")[2])"
+								Remove-Item $consolecachefolder -Force -ErrorAction Stop
+							}
 						}
+						
 					}
 					catch { Write-Warning $_ }
 				}
@@ -708,7 +712,7 @@ PROCESS
 	}
 	else
 	{
-<# Edit line 716 to modify the default command run when this script is executed.
+<# Edit line 720 to modify the default command run when this script is executed.
 
    Example: 
    Clear-SCOMCache -Servers Agent1.contoso.com, Agent2.contoso.com, MangementServer1.contoso.com, MangementServer2.contoso.com
