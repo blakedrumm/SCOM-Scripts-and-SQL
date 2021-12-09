@@ -8,40 +8,40 @@
 		HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Setup
 	
 	.PARAMETER GetAdvisor
-		Gather the Advisor.
+		Gather the Advisor Trace Logs.
 	
 	.PARAMETER GetAPM
-		Gather the APM.
+		Gather the APM Trace Logs.
 	
 	.PARAMETER GetApmConnector
-		Gather the APM Connector.
+		Gather the APM Connector Trace Logs.
 	
 	.PARAMETER GetBID
-		Gather the BID.
+		Gather the BID Trace Logs.
 	
 	.PARAMETER GetConfigService
-		Gather the ConfigService.
+		Gather the ConfigService Trace Logs.
 	
 	.PARAMETER GetDAS
-		Gather the DAS.
+		Gather the DAS Trace Logs.
 	
 	.PARAMETER GetFailover
-		Gather the Failover.
+		Gather the Failover Trace Logs.
 	
 	.PARAMETER GetManaged
-		Gather the Managed.
+		Gather the Managed Trace Logs.
 	
 	.PARAMETER GetNASM
-		Gather the NASM.
+		Gather the NASM Trace Logs.
 	
 	.PARAMETER GetNative
-		Gather the Native.
+		Gather the Native Trace Logs.
 	
 	.PARAMETER GetScript
-		Gather the Script.
+		Gather the Script Trace Logs.
 	
 	.PARAMETER GetUI
-		Gather the UI.
+		Gather the UI Trace Logs.
 	
 	.PARAMETER DebugTrace
 		Gather Debug Trace, the Same as: StartTracing.cmd DBG
@@ -51,6 +51,9 @@
 	
 	.PARAMETER NetworkTrace
 		A description of the NetworkTrace parameter.
+	
+	.PARAMETER OpsMgrModuleLogging
+		Gather OpsMgr Module Logging Data as detailed here: https://docs.microsoft.com/system-center/scom/manage-monitoring-unix-linux?#enable-operations-manager-module-logging
 	
 	.PARAMETER RestartSCOMServices
 		If you want to stop the SCOM Services / start the SCOM Services back up when the ETL Trace starts running.
@@ -66,7 +69,10 @@
 		PS C:\> .\Start-ScomETLTrace.ps1 -VerboseTrace -DetectOpsMgrEventID 1210 -SleepSeconds 60
 		
 		Gather ETL Trace with all the traces gathered by default, wait 300 seconds (5 minutes) and then automatically stop the ETL Trace and zip up the output folder:
-		.\Start-ScomETLTrace.ps1 -SleepSeconds 300
+		PS C:\> .\Start-ScomETLTrace.ps1 -SleepSeconds 300
+
+		Gather logs for Operations Manager Module Logging, good for troubleshooting linux discovery issues:
+		PS C:\> .\Start-ScomETLTrace.ps1 -OpsMgrModuleLogging
 	
 	.NOTES
 		.AUTHOR
@@ -76,7 +82,7 @@
 		September 3rd 2020
 		
 		.MODIFIED
-		November 11th, 2021
+		December 9th, 2021
 #>
 [CmdletBinding()]
 [OutputType([string])]
@@ -127,14 +133,16 @@ param
 	[Parameter(Mandatory = $false,
 			   Position = 15)]
 	[switch]$NetworkTrace,
-	[Parameter(Mandatory = $false,
-			   Position = 16)]
-	[switch]$RestartSCOMServices,
+	[Parameter(Position = 16)]
+	[switch]$OpsMgrModuleLogging,
 	[Parameter(Mandatory = $false,
 			   Position = 17)]
-	[int64]$DetectOpsMgrEventID,
+	[switch]$RestartSCOMServices,
 	[Parameter(Mandatory = $false,
 			   Position = 18)]
+	[int64]$DetectOpsMgrEventID,
+	[Parameter(Mandatory = $false,
+			   Position = 19)]
 	[Alias('Sleep')]
 	[int64]$SleepSeconds
 )
@@ -198,14 +206,16 @@ Function Start-ETLTrace
 		[Parameter(Mandatory = $false,
 				   Position = 15)]
 		[switch]$NetworkTrace,
-		[Parameter(Mandatory = $false,
-				   Position = 16)]
-		[switch]$RestartSCOMServices,
+		[Parameter(Position = 16)]
+		[switch]$OpsMgrModuleLogging,
 		[Parameter(Mandatory = $false,
 				   Position = 17)]
-		[int64]$DetectOpsMgrEventID,
+		[switch]$RestartSCOMServices,
 		[Parameter(Mandatory = $false,
 				   Position = 18)]
+		[int64]$DetectOpsMgrEventID,
+		[Parameter(Mandatory = $false,
+				   Position = 19)]
 		[Alias('Sleep')]
 		[int64]$SleepSeconds
 	)
@@ -228,7 +238,7 @@ Function Start-ETLTrace
 	}
 	catch
 	{
-		Write-Warning "Exiting Script: Unable to locate the Install Directory`nHKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Setup"
+		Write-Warning "Exiting Script: Unable to locate the Install Directory: `nHKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Setup"
 		exit 1
 	}
 	$healthService = Get-Service -Name healthservice -ErrorAction SilentlyContinue
@@ -543,6 +553,27 @@ exit 0
 				Write-Warning "Attempted to Move Folder from `"C:\Windows\Logs\OpsMgrTrace`" to `"C:\Windows\Logs\OpsMgrTrace.old`" and receieved the following message:`n`t`t`t`t$_"
 			}
 		}
+		if ($OpsMgrModuleLogging)
+		{
+			Time-Stamp
+			Write-Host "Removing any related stale logs for WinRM OpsMgrTrace Logging: `n$env:windir\Temp\SCX*.log `n$env:windir\Temp\SSHCommand* `n$env:windir\Temp\*.vbs.log" -ForegroundColor DarkCyan
+			Get-Item $env:windir\Temp\SCX*.log, $env:windir\Temp\SSHCommand*, $env:windir\Temp\*.vbs.log | Remove-Item -Confirm:$false | Out-Null
+			try
+			{
+				New-Item "$env:windir\TEMP\EnableOpsMgrModuleLogging" -Confirm:$false -ErrorAction Stop | Out-Null
+			}
+			catch [System.IO.IOException]
+			{
+				#$Error[0].exception.GetType().fullname
+				#
+				# File is already there
+			}
+			catch
+			{
+				Time-Stamp
+				Write-Host "Unable to create the file for logging: $env:windir\TEMP\EnableOpsMgrModuleLogging" -ForegroundColor Red
+			}
+		}
 		if ($NetworkTrace)
 		{
 			Time-Stamp
@@ -742,6 +773,23 @@ exit 0
 			rename-item $logfile $newName -force -Confirm:$false
 		}
 	}
+	if ($OpsMgrModuleLogging)
+	{
+		Time-Stamp
+		Write-Host "Stopping Logging for WinRM OpsMgr Logging." -ForegroundColor Cyan
+		Remove-Item -Path "$env:windir\TEMP\EnableOpsMgrModuleLogging" -Confirm:$false | Out-Null
+		
+		$winRMLoggingFolder = "$TempETLTrace`\WinRM OpsMgr Logging"
+		if (!(Test-Path $winRMLoggingFolder))
+		{
+			mkdir $winRMLoggingFolder | Out-Null
+		}
+		else
+		{
+			Remove-Item -Path $winRMLoggingFolder\* -Recurse -Confirm:$false | Out-Null
+		}
+		Move-Item -Path $env:windir\Temp\SCX*.log -Destination $winRMLoggingFolder -Confirm:$false | Out-Null
+	}
 	if ($NetworkTrace)
 	{
 		Time-Stamp
@@ -825,9 +873,9 @@ exit 0
 	
 	C:\Windows\explorer.exe "/select,$destfile"
 }
-if ($GetAdvisor -or $GetAPM -or $GetApmConnector -or $GetBID -or $GetConfigService -or $GetDAS -or $GetFailover -or $GetManaged -or $GetNASM -or $GetNative -or $GetScript -or $GetUI -or $DebugTrace -or $VerboseTrace -or $NetworkTrace -or $RestartSCOMServices -or $DetectOpsMgrEventID -or $SleepSeconds)
+if ($GetAdvisor -or $GetAPM -or $GetApmConnector -or $GetBID -or $GetConfigService -or $GetDAS -or $GetFailover -or $GetManaged -or $GetNASM -or $GetNative -or $GetScript -or $GetUI -or $DebugTrace -or $VerboseTrace -or $NetworkTrace -or $RestartSCOMServices -or $DetectOpsMgrEventID -or $SleepSeconds -or $OpsMgrModuleLogging)
 {
-	Start-ETLTrace -GetAdvisor:$GetAdvisor -GetApmConnector:$GetApmConnector -GetBID:$GetBID -GetConfigService:$GetConfigService -GetDAS:$GetDAS -GetFailover:$GetFailover -GetManaged:$GetManaged -GetNASM:$GetNASM -GetNative:$GetNative -GetScript:$GetScript -GetUI:$GetUI -DebugTrace:$DebugTrace -VerboseTrace:$VerboseTrace -NetworkTrace:$NetworkTrace -RestartSCOMServices:$RestartSCOMServices -DetectOpsMgrEventID $DetectOpsMgrEventID -SleepSeconds $SleepSeconds
+	Start-ETLTrace -GetAdvisor:$GetAdvisor -GetApmConnector:$GetApmConnector -GetBID:$GetBID -GetConfigService:$GetConfigService -GetDAS:$GetDAS -GetFailover:$GetFailover -GetManaged:$GetManaged -GetNASM:$GetNASM -GetNative:$GetNative -GetScript:$GetScript -GetUI:$GetUI -DebugTrace:$DebugTrace -VerboseTrace:$VerboseTrace -NetworkTrace:$NetworkTrace -OpsMgrModuleLogging:$OpsMgrModuleLogging -RestartSCOMServices:$RestartSCOMServices -DetectOpsMgrEventID $DetectOpsMgrEventID -SleepSeconds $SleepSeconds
 }
 else
 {
