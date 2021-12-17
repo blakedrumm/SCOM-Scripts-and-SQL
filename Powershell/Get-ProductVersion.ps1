@@ -85,6 +85,7 @@ function Get-ProductVersion
 			'7.1.10226.1304' { "SCOM 2012 R2 Update Rollup 12 / 2017 January 24" }
 			'7.1.10285.0' 	 { "SCOM 2012 R2 Update Rollup 11 / 2016 August 30" } #Agent
 			'7.1.10226.1239' { "SCOM 2012 R2 Update Rollup 11 / 2016 August 30" }
+			#Never Released SCOM 2012 R2 Update Rollup 10
 			'7.1.10268.0'  	 { "SCOM 2012 R2 Update Rollup 9 / 2016 January 26" } #Agent
 			'7.1.10226.1177' { "SCOM 2012 R2 Update Rollup 9 / 2016 January 26" }
 			'7.1.10241.0' 	 { "SCOM 2012 R2 Update Rollup 8 / 2015 October 27" } #Agent
