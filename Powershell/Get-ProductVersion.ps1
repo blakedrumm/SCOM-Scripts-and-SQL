@@ -1,22 +1,20 @@
-#Author: Blake Drumm (blakedrumm@microsoft.com)
-#Last Updated SQL Build List on 11/17/2021
-#Last Updated SCOM Build List on 11/17/2021
-
 function Get-ProductVersion
 {
 	param
 	(
 		[Parameter(Mandatory = $true,
 				   Position = 1)]
+		[ValidateSet('SCOM', 'SQL', 'SSRS')]
 		[string]$Product,
-		[Parameter(Mandatory = $false,
+		[Parameter(Mandatory = $true,
 				   Position = 2)]
 		[string]$BuildVersion
 	)
-	if ($BuildVersion -eq $null)
-	{
-		return "Unknown Version"
-	}
+	
+	#Last Updated SQL Server List on 12/07/2021
+	#Last Updated SCOM Version List on 12/07/2021
+	#Last Updated SSRS Version List on 12/27/2021
+	
 	if ($Product -eq 'SCOM')
 	{
 		$Output = switch ($BuildVersion)
@@ -85,7 +83,6 @@ function Get-ProductVersion
 			'7.1.10226.1304' { "SCOM 2012 R2 Update Rollup 12 / 2017 January 24" }
 			'7.1.10285.0' 	 { "SCOM 2012 R2 Update Rollup 11 / 2016 August 30" } #Agent
 			'7.1.10226.1239' { "SCOM 2012 R2 Update Rollup 11 / 2016 August 30" }
-			#Never Released SCOM 2012 R2 Update Rollup 10
 			'7.1.10268.0'  	 { "SCOM 2012 R2 Update Rollup 9 / 2016 January 26" } #Agent
 			'7.1.10226.1177' { "SCOM 2012 R2 Update Rollup 9 / 2016 January 26" }
 			'7.1.10241.0' 	 { "SCOM 2012 R2 Update Rollup 8 / 2015 October 27" } #Agent
@@ -140,6 +137,7 @@ function Get-ProductVersion
 	{
 		$Output = switch ($BuildVersion)
 		{
+			"15.0.4188.2" { "Cumulative Update 14 (CU14) For SQL Server 2019 / 2021-11-22" }
 			"15.0.4178.1" { "Cumulative Update 13 (CU13) For SQL Server 2019 / 2021-10-05" }
 			"15.0.4153.1" { "Cumulative Update 12 (CU12) For SQL Server 2019 / 2021-08-04" }
 			"15.0.4138.2" { "Cumulative Update 11 (CU11) For SQL Server 2019 / 2021-06-10" }
@@ -567,11 +565,16 @@ function Get-ProductVersion
 			"10.50.1809.0" { "Cumulative Update Package 11 (CU11) For SQL Server 2008 R2 / 2012-01-09" }
 			"10.50.1807.0" { "Cumulative Update Package 10 (CU10) For SQL Server 2008 R2 / 2011-10-19" }
 			"10.50.1804.0" { "Cumulative Update Package 9 (CU9) For SQL Server 2008 R2 / 2011-08-16" }
-			"10.50.1800.0" { "FIX: Database Data Files Might Be Incorrectly Marked As Sparse In SQL Server 2008 R2 Or In SQL Server 2008 Even When The Physical Files Are Marked As Not Sparse In The File System / 2011-10-18" }
+			"10.50.1800.0" {
+				"FIX: Database Data Files Might Be Incorrectly Marked As Sparse In SQL Server 2008 R2 Or In SQL Server 2008 Even When The Physical Files Are Marked As Not Sparse In The File System / 
+2011-10-18"
+			}
 			"10.50.1797.0" { "Cumulative Update Package 8 (CU8) For SQL Server 2008 R2 / 2011-06-20" }
 			"10.50.1790.0" { "MS11-049: Description Of The Security Update For SQL Server 2008 R2 QFE: June 14, 2011 / 2011-06-17" }
 			"10.50.1777.0" { "Cumulative Update Package 7 (CU7) For SQL Server 2008 R2 / 2011-06-16" }
-			"10.50.1769.0" { "FIX: Non-Yielding Scheduler Error When You Run A Query That Uses A TVP In SQL Server 2008 Or In SQL Server 2008 R2 If SQL Profiler Or SQL Server Extended Events Is Used / 2011-04-18" }
+			"10.50.1769.0" {
+				"FIX: Non-Yielding Scheduler Error When You Run A Query That Uses A TVP In SQL Server 2008 Or In SQL Server 2008 R2 If SQL Profiler Or SQL Server Extended Events Is Used / 2011-04-18"
+			}
 			"10.50.1765.0" { "Cumulative Update Package 6 (CU6) For SQL Server 2008 R2 / 2011-02-21" }
 			"10.50.1753.0" { "Cumulative Update Package 5 (CU5) For SQL Server 2008 R2 / 2010-12-23" }
 			"10.50.1746.0" { "Cumulative Update Package 4 (CU4) For SQL Server 2008 R2 / 2010-10-18" }
@@ -648,11 +651,17 @@ function Get-ProductVersion
 			"10.0.2766.0" { "Cumulative Update Package 7 (CU7) For SQL Server 2008 Service Pack 1 / 2010-03-26" }
 			"10.0.2757.0" { "Cumulative Update Package 6 (CU6) For SQL Server 2008 Service Pack 1 / 2010-01-18" }
 			"10.0.2746.0" { "Cumulative Update Package 5 (CU5) For SQL Server 2008 Service Pack 1 / 2009-11-16" }
-			"10.0.2740.0" { "FIX: Error Message When You Perform A Rolling Upgrade In A SQL Server 2008 Cluster : '18401, Login Failed For User SQLTEST\Agentservice. Reason: Server Is In Script Upgrade Mode. Only Administrator Can Connect At This Time.[Sqlstate 42000]' / 2009-11-24" }
+			"10.0.2740.0" {
+				"FIX: Error Message When You Perform A Rolling Upgrade In A SQL Server 2008 Cluster : '18401, Login Failed For User SQLTEST\Agentservice. Reason: Server Is In Script Upgrade Mode. Only
+ Administrator Can Connect At This Time.[Sqlstate 42000]' / 2009-11-24"
+			}
 			"10.0.2734.0" { "Cumulative Update Package 4 (CU4) For SQL Server 2008 Service Pack 1 / 2009-09-22" }
 			"10.0.2723.0" { "Cumulative Update Package 3 (CU3) For SQL Server 2008 Service Pack 1 / 2009-07-21" }
 			"10.0.2714.0" { "Cumulative Update Package 2 (CU2) For SQL Server 2008 Service Pack 1 / 2009-05-18" }
-			"10.0.2712.0" { "FIX: Error Message In SQL Server 2008 When You Run An INSERT SELECT Statement On A Table: 'Violation Of PRIMARY KEY Constraint '<Primarykey>'. Cannot Insert Duplicate Key In Object '<Tablename>'' / 2009-07-21" }
+			"10.0.2712.0" {
+				"FIX: Error Message In SQL Server 2008 When You Run An INSERT SELECT Statement On A Table: 'Violation Of PRIMARY KEY Constraint '<Primarykey>'. Cannot Insert Duplicate Key In Object '<
+Tablename>'' / 2009-07-21"
+			}
 			"10.0.2710.0" { "Cumulative Update Package 1 (CU1) For SQL Server 2008 Service Pack 1 / 2009-04-16" }
 			"10.0.2573.0" { "MS11-049: Description Of The Security Update For SQL Server 2008 Service Pack 1 GDR: June 14, 2011 / 2011-06-14" }
 			"10.0.2531.0" { "SQL Server 2008 Service Pack 1 (SP1) / 2009-04-07" }
@@ -668,7 +677,10 @@ function Get-ProductVersion
 			"10.0.1779.0" { "Cumulative Update Package 2 (CU2) For SQL Server 2008 / 2008-11-19" }
 			"10.0.1771.0" { "FIX: You May Receive Incorrect Results When You Run A Query That References Three Or More Tables In The FROM Clause In SQL Server 2008 / 2008-10-29" }
 			"10.0.1763.0" { "Cumulative Update Package 1 (CU1) For SQL Server 2008 / 2008-10-28" }
-			"10.0.1750.0" { "FIX: A MERGE Statement May Not Enforce A Foreign Key Constraint When The Statement Updates A Unique Key Column That Is Not Part Of A Clustering Key That Has A Single Row As The Update Source In SQL Server 2008 / 2008-08-25" }
+			"10.0.1750.0" {
+				"FIX: A MERGE Statement May Not Enforce A Foreign Key Constraint When The Statement Updates A Unique Key Column That Is Not Part Of A Clustering Key That Has A Single Row As The Update
+ Source In SQL Server 2008 / 2008-08-25"
+			}
 			"10.0.1600.22" { "SQL Server 2008 RTM / 2008-08-07" }
 			"10.0.1442.32" { "Microsoft SQL Server 2008 RC0 / 2008-06-05" }
 			"10.0.1300.13" { "Microsoft SQL Server 2008 CTP, February 2008 / 2008-02-19" }
@@ -698,14 +710,22 @@ function Get-ProductVersion
 			"9.0.4294" { "Cumulative Update Package 9 (CU9) For SQL Server 2005 Service Pack 3 / 2010-04-19" }
 			"9.0.4285" { "Cumulative Update Package 8 (CU8) For SQL Server 2005 Service Pack 3 / 2010-02-16" }
 			"9.0.4273" { "Cumulative Update Package 7 (CU7) For SQL Server 2005 Service Pack 3 / 2009-12-21" }
-			"9.0.4268" { "FIX: Error Message When You Add A Subscription To A Republisher That Is In A Merge Publication In SQL Server 2005: 'Cannot Create The Subscription Because The Subscription Already Exists In The Subscription Database' / 2009-12-21" }
+			"9.0.4268" {
+				"FIX: Error Message When You Add A Subscription To A Republisher That Is In A Merge Publication In SQL Server 2005: 'Cannot Create The Subscription Because The Subscription Already Exists
+ In The Subscription Database' / 2009-12-21"
+			}
 			"9.0.4266" { "Cumulative Update Package 6 (CU6) For SQL Server 2005 Service Pack 3 / 2009-10-19" }
 			"9.0.4262" { "MS09-062: Description Of The Security Update For SQL Server 2005 Service Pack 3 QFE: October 13, 2009 / 2009-10-13" }
 			"9.0.4230" { "Cumulative Update Package 5 (CU5) For SQL Server 2005 Service Pack 3 / 2009-08-17" }
 			"9.0.4226" { "Cumulative Update Package 4 (CU4) For SQL Server 2005 Service Pack 3 / 2009-06-16" }
-			"9.0.4224" { "FIX: Error Message When You Run A Query That Contains Duplicate Join Conditions In SQL Server 2005: 'Internal Query Processor Error: The Query Processor Could Not Produce A Query Plan' / 2009-06-16" }
+			"9.0.4224" {
+				"FIX: Error Message When You Run A Query That Contains Duplicate Join Conditions In SQL Server 2005: 'Internal Query Processor Error: The Query Processor Could Not Produce A Query Plan' /
+ 2009-06-16"
+			}
 			"9.0.4220" { "Cumulative Update Package 3 (CU3) For SQL Server 2005 Service Pack 3 / 2009-04-20" }
-			"9.0.4216" { "FIX: The Performance Of Database Mirroring Decreases When You Run A Database Maintenance Job That Generates A Large Number Of Transaction Log Activities In SQL Server 2005 / 2009-04-20" }
+			"9.0.4216" {
+				"FIX: The Performance Of Database Mirroring Decreases When You Run A Database Maintenance Job That Generates A Large Number Of Transaction Log Activities In SQL Server 2005 / 2009-04-20"
+			}
 			"9.0.4211" { "Cumulative Update Package 2 (CU2) For SQL Server 2005 Service Pack 3 / 2009-02-17" }
 			"9.0.4207" { "Cumulative Update Package 1 (CU1) For SQL Server 2005 Service Pack 3 / 2008-12-20" }
 			"9.0.4060" { "MS11-049: Description Of The Security Update For SQL Server 2005 Service Pack 3 GDR: June 14, 2011 / 2011-06-14" }
@@ -719,49 +739,100 @@ function Get-ProductVersion
 			"9.0.3328" { "Cumulative Update Package 14 (CU14) For SQL Server 2005 Service Pack 2 / 2009-06-16" }
 			"9.0.3325" { "Cumulative Update Package 13 (CU13) For SQL Server 2005 Service Pack 2 / 2009-04-20" }
 			"9.0.3320" { "FIX: Error Message When You Run The DBCC CHECKDB Statement On A Database In SQL Server 2005: 'Unable To Deallocate A Kept Page' / 2009-04-01" }
-			"9.0.3318" { "FIX: The Wmiprvse.Exe Host Process Stops Responding When You Run A SQL Server 2005-Based Application That Sends A Windows Management Instrumentation (WMI) Query To The SQL Server WMI Provider / 2009-04-20" }
+			"9.0.3318" {
+				"FIX: The Wmiprvse.Exe Host Process Stops Responding When You Run A SQL Server 2005-Based Application That Sends A Windows Management Instrumentation (WMI) Query To The SQL Server WMI Pro
+vider / 2009-04-20"
+			}
 			"9.0.3315" { "Cumulative Update Package 12 (CU12) For SQL Server 2005 Service Pack 2 / 2009-02-17" }
 			"9.0.3310" { "MS09-004: Description Of The Security Update For SQL Server 2005 QFE: February 10, 2009 / 2009-02-10" }
 			"9.0.3301" { "Cumulative Update Package 11 (CU11) For SQL Server 2005 Service Pack 2 / 2008-12-16" }
 			"9.0.3294" { "Cumulative Update Package 10 (CU10) For SQL Server 2005 Service Pack 2 / 2008-10-20" }
 			"9.0.3282" { "Cumulative Update Package 9 (CU9) For SQL Server 2005 Service Pack 2 / 2008-06-16" }
-			"9.0.3260" { "FIX: Error Message When You Run A Distributed Query In SQL Server 2005: 'OLE DB Provider 'SQLNCLI' For Linked Server '<Linked Server>' Returned Message 'No Transaction Is Active'' / 2008-07-14" }
+			"9.0.3260" {
+				"FIX: Error Message When You Run A Distributed Query In SQL Server 2005: 'OLE DB Provider 'SQLNCLI' For Linked Server '<Linked Server>' Returned Message 'No Transaction Is Active'' / 2008
+-07-14"
+			}
 			"9.0.3259" { "FIX: In SQL Server 2005, The Session That Runs The TRUNCATE TABLE Statement May Stop Responding, And You Cannot End The Session / 2008-08-14" }
 			"9.0.3259" { "FIX: An Ongoing MS DTC Transaction Is Orphaned In SQL Server 2005 / 2008-07-14" }
 			"9.0.3257" { "Cumulative Update Package 8 (CU8) For SQL Server 2005 Service Pack 2 / 2008-06-18" }
-			"9.0.3246" { "FIX: All The MDX Queries That Are Running On An Instance Of SQL Server 2005 Analysis Services Are Canceled When You Start Or Stop A SQL Server Profiler Trace For The Instance / 2008-05-23" }
+			"9.0.3246" {
+				"FIX: All The MDX Queries That Are Running On An Instance Of SQL Server 2005 Analysis Services Are Canceled When You Start Or Stop A SQL Server Profiler Trace For The Instance / 2008-05-2
+3"
+			}
 			"9.0.3244" { "FIX: The Replication Log Reader Agent May Fail Intermittently When A Transactional Replication Synchronizes Data In SQL Server 2005 / 2008-06-03" }
 			"9.0.3240" { "FIX: An Access Violation Occurs When You Update A Table Through A View By Using A Cursor In SQL Server 2005 / 2008-05-21" }
 			"9.0.3239" { "Cumulative Update Package 7 (CU7) For SQL Server 2005 Service Pack 2 / 2008-04-17" }
-			"9.0.3232" { "FIX: Error Message When You Synchronize The Data Of A Merge Replication In SQL Server 2005: 'The Merge Process Is Retrying A Failed Operation Made To Article 'Articlename' - Reason: 'Invalid Input Parameter Values. Check The Status Values For Detail.'' / 2008-03-19" }
+			"9.0.3232" {
+				"FIX: Error Message When You Synchronize The Data Of A Merge Replication In SQL Server 2005: 'The Merge Process Is Retrying A Failed Operation Made To Article 'Articlename' - Reason: 'Inv
+alid Input Parameter Values. Check The Status Values For Detail.'' / 2008-03-19"
+			}
 			"9.0.3231" { "FIX: Error Message When You Run A Query That Uses A Join Condition In SQL Server 2005: 'Non-Yielding Scheduler' / 2008-03-18" }
-			"9.0.3231" { "FIX: Error Message When You Run A Transaction From A Remote Server By Using A Linked Server In SQL Server 2005: 'This Operation Conflicts With Another Pending Operation On This Transaction' / 2008-03-14" }
+			"9.0.3231" {
+				"FIX: Error Message When You Run A Transaction From A Remote Server By Using A Linked Server In SQL Server 2005: 'This Operation Conflicts With Another Pending Operation On This Transacti
+on' / 2008-03-14"
+			}
 			"9.0.3230" { "FIX: Error Message When You Run Queries On A Database That Has The SNAPSHOT Isolation Level Enabled In SQL Server 2005: 'Unable To Deallocate A Kept Page' / 2008-03-07" }
 			"9.0.3228" { "Cumulative Update Package 6 (CU6) For SQL Server 2005 Service Pack 2 / 2008-02-19" }
 			"9.0.3224" { "FIX: A Stored Procedure Cannot Finish Its Execution In SQL Server 2005 / 2008-02-04" }
 			"9.0.3221" { "FIX: The Change May Be Undone During The Later Synchronizations When You Change An Article On The Subscriber In SQL Server 2005 / 2008-01-31" }
 			"9.0.3221" { "FIX: A Query Takes Longer To Finish In SQL Server 2005 Than In SQL Server 2000 When You Open A Fast Forward-Only Cursor For The Query / 2008-01-11" }
-			"9.0.3221" { "FIX: Error Messages When You Delete Some Records Of A Table In A Transaction Or When You Update Some Records Of A Table In A Transaction In SQL Server 2005: 'Msg 9002,' 'Msg 3314,' And 'Msg 9001' / 2008-01-10" }
+			"9.0.3221" {
+				"FIX: Error Messages When You Delete Some Records Of A Table In A Transaction Or When You Update Some Records Of A Table In A Transaction In SQL Server 2005: 'Msg 9002,' 'Msg 3314,' And '
+Msg 9001' / 2008-01-10"
+			}
 			"9.0.3221" { "FIX: You Cannot Cancel The Query Execution Immediately If You Open A Fast Forward-Only Cursor For The Query In SQL Server 2005 / 2008-01-09" }
 			"9.0.3215" { "Cumulative Update Package 5 (CU5) For SQL Server 2005 Service Pack 2 / 2007-12-18" }
 			"9.0.3208" { "FIX: A Federated Database Server Stops Responding When You Run Parallel Queries On A Multiprocessor Computer That Uses NUMA Architecture In SQL Server 2005 / 2007-11-21" }
-			"9.0.3206" { "FIX: Conflicts Are Not Logged When You Use The Microsoft SQL Server Subscriber Always Wins Conflict Resolver For An Article In A Merge Replication In Microsoft SQL Server 2005 / 2007-12-11" }
+			"9.0.3206" {
+				"FIX: Conflicts Are Not Logged When You Use The Microsoft SQL Server Subscriber Always Wins Conflict Resolver For An Article In A Merge Replication In Microsoft SQL Server 2005 / 2007-12-
+11"
+			}
 			"9.0.3200" { "Cumulative Update Package 4 (CU4) For SQL Server 2005 Service Pack 2 / 2007-10-17" }
-			"9.0.3194" { "FIX: Some Changes From Subscribers Who Use SQL Server 2005 Compact Edition Or Web Synchronization Are Not Uploaded To The Publisher When You Use The Republishing Model In A Merge Publication In Microsoft SQL Server 2005 / 2007-09-24" }
+			"9.0.3194" {
+				"FIX: Some Changes From Subscribers Who Use SQL Server 2005 Compact Edition Or Web Synchronization Are Not Uploaded To The Publisher When You Use The Republishing Model In A Merge Publica
+tion In Microsoft SQL Server 2005 / 2007-09-24"
+			}
 			"9.0.3186" { "FIX: The Performance Of A Query That Performs An Insert Operation Or An Update Operation Is Much Slower In SQL Server 2005 SP2 Than In Earlier Versions Of SQL Server 2005 / 2007-08-29" }
 			"9.0.3186" { "FIX: A Cursor Uses The Incorrect Transaction Isolation Level After You Change The Transaction Isolation Level For The Cursor In SQL Server 2005 / 2007-08-24" }
-			"9.0.3186" { "FIX: Error Message When You Try To Edit A SQL Server Agent Job Or A Maintenance Plan By Using SQL Server Management Studio In SQL Server 2005: 'String Or Binary Data Would Be Truncated' / 2007-08-23" }
-			"9.0.3186" { "FIX: Performance Is Very Slow When The Same Stored Procedure Is Executed At The Same Time In Many Connections On A Multiple-Processor Computer That Is Running SQL Server 2005 / 2007-08-22" }
-			"9.0.3186" { "FIX: Error Message When You Try To Update The Index Key Columns Of A Non-Unique Clustered Index In SQL Server 2005: 'Cannot Insert Duplicate Key Row In Object 'Objectname' With Unique Index 'Indexname'' / 2007-08-21" }
-			"9.0.3186" { "FIX: Error Message When You Use The UNLOAD And REWIND Options To Back Up A Database To A Tape Device In SQL Server 2005: 'Operation On Device '<Tapedevice>' Exceeded Retry Count' / 2007-08-20" }
+			"9.0.3186" {
+				"FIX: Error Message When You Try To Edit A SQL Server Agent Job Or A Maintenance Plan By Using SQL Server Management Studio In SQL Server 2005: 'String Or Binary Data Would Be Truncated' 
+/ 2007-08-23"
+			}
+			"9.0.3186" {
+				"FIX: Performance Is Very Slow When The Same Stored Procedure Is Executed At The Same Time In Many Connections On A Multiple-Processor Computer That Is Running SQL Server 2005 / 2007-08-2
+2"
+			}
+			"9.0.3186" {
+				"FIX: Error Message When You Try To Update The Index Key Columns Of A Non-Unique Clustered Index In SQL Server 2005: 'Cannot Insert Duplicate Key Row In Object 'Objectname' With Unique In
+dex 'Indexname'' / 2007-08-21"
+			}
+			"9.0.3186" {
+				"FIX: Error Message When You Use The UNLOAD And REWIND Options To Back Up A Database To A Tape Device In SQL Server 2005: 'Operation On Device '<Tapedevice>' Exceeded Retry Count' / 2007-
+08-20"
+			}
 			"9.0.3186" { "FIX: Error Message When You Use The Copy Database Wizard To Move A Database From SQL Server 2000 To SQL Server 2005 / 2007-08-20" }
-			"9.0.3186" { "FIX: Error Message When You Run A SQL Server 2005 Integration Services Package That Contains A Script Component Transformation:'Insufficient Memory To Continue The Execution Of The Program' / 2007-08-20" }
+			"9.0.3186" {
+				"FIX: Error Message When You Run A SQL Server 2005 Integration Services Package That Contains A Script Component Transformation:'Insufficient Memory To Continue The Execution Of The Progr
+am' / 2007-08-20"
+			}
 			"9.0.3186" { "FIX: Error 9003 Is Logged In The SQL Server Error Log File When You Use Log Shipping In SQL Server 2005 / 2007-08-20" }
 			"9.0.3186" { "FIX: Data Is Not Replicated To A Subscriber In A Different Partition By Using Parameterized Row Filters In SQL Server 2005 / 2007-08-17" }
-			"9.0.3186" { "FIX: Error Message When You Run A Query That Is Associated With A Parallel Execution Plan In SQL Server 2005: 'SQL Server Assertion: File: <Lckmgr.Cpp>, Line=10850 Failed Assertion = 'Getlocallockpartition () == Xactlockinfo->Getlocallockpartition ()'' / 2007-08-17" }
-			"9.0.3186" { "FIX: Error Message When You Try To Create An Oracle Publication By Using The New Publication Wizard In SQL Server 2005 Service Pack 2: 'OLE DB Provider 'Oraoledb.ORACLE' For Linked Server <Linkedservername> Returned Message' / 2007-08-17" }
-			"9.0.3186" { "FIX: Error Message When You Run A Stored Procedure That References Tables After You Upgrade A Database From SQL Server 2000 To SQL Server 2005: 'A Time-Out Occurred While Waiting For Buffer Latch' / 2007-08-17" }
-			"9.0.3186" { "FIX: You Receive A System.Invalidcastexception Exception When You Run An Application That Calls The Server.Jobserver.Jobs.Contains Method On A Computer That Has SQL Server 2005 Service Pack 2 Installed / 2007-08-13" }
+			"9.0.3186" {
+				"FIX: Error Message When You Run A Query That Is Associated With A Parallel Execution Plan In SQL Server 2005: 'SQL Server Assertion: File: <Lckmgr.Cpp>, Line=10850 Failed Assertion = 'Ge
+tlocallockpartition () == Xactlockinfo->Getlocallockpartition ()'' / 2007-08-17"
+			}
+			"9.0.3186" {
+				"FIX: Error Message When You Try To Create An Oracle Publication By Using The New Publication Wizard In SQL Server 2005 Service Pack 2: 'OLE DB Provider 'Oraoledb.ORACLE' For Linked Serve
+r <Linkedservername> Returned Message' / 2007-08-17"
+			}
+			"9.0.3186" {
+				"FIX: Error Message When You Run A Stored Procedure That References Tables After You Upgrade A Database From SQL Server 2000 To SQL Server 2005: 'A Time-Out Occurred While Waiting For Buf
+fer Latch' / 2007-08-17"
+			}
+			"9.0.3186" {
+				"FIX: You Receive A System.Invalidcastexception Exception When You Run An Application That Calls The Server.Jobserver.Jobs.Contains Method On A Computer That Has SQL Server 2005 Service P
+ack 2 Installed / 2007-08-13"
+			}
 			"9.0.3186" { "FIX: An Access Violation May Occur, And You May Receive An Error Message, When You Query The Sys.Dm_Exe_Sessions Dynamic Management View In SQL Server 2005 / 2007-08-13" }
 			"9.0.3186" { "FIX: The Performance Of Insert Operations Against A Table That Contains An Identity Column May Be Slow In SQL Server 2005 / 2007-08-10" }
 			"9.0.3186" { "FIX: Error Message When You Try To Insert More Than 3 Megabytes Of Data Into A Distributed Partitioned View In SQL Server 2005: 'A System Assertion Check Has Failed' / 2007-08-08" }
@@ -769,58 +840,106 @@ function Get-ProductVersion
 			"9.0.3182" { "FIX: You Receive Error 8623 When You Run A Complex Query In SQL Server 2005 / 2007-08-03" }
 			"9.0.3179" { "FIX: Error Message When You Run A Full-Text Query Against A Catalog In SQL Server 2005: 'The Execution Of A Full-Text Query Failed. The Content Index Is Corrupt.' / 2007-07-30" }
 			"9.0.3178" { "FIX: A SQL Server Agent Job Fails When You Run The SQL Server Agent Job In The Context Of A Proxy Account In SQL Server 2005 / 2007-08-22" }
-			"9.0.3177" { "FIX: Error Message When You Run A Stored Procedure That Starts A Transaction That Contains A Transact-SQL Statement In SQL Server 2005: 'New Request Is Not Allowed To Start Because It Should Come With Valid Transaction Descriptor' / 2007-08-22" }
-			"9.0.3177" { "FIX: Error Message When You Run A Query That Fires An INSTEAD OF Trigger In SQL Server 2005 Service Pack 2: 'Internal Query Processor Error The Query Processor Could Not Produce A Query Plan' / 2007-08-20" }
+			"9.0.3177" {
+				"FIX: Error Message When You Run A Stored Procedure That Starts A Transaction That Contains A Transact-SQL Statement In SQL Server 2005: 'New Request Is Not Allowed To Start Because It Sh
+ould Come With Valid Transaction Descriptor' / 2007-08-22"
+			}
+			"9.0.3177" {
+				"FIX: Error Message When You Run A Query That Fires An INSTEAD OF Trigger In SQL Server 2005 Service Pack 2: 'Internal Query Processor Error The Query Processor Could Not Produce A Query 
+Plan' / 2007-08-20"
+			}
 			"9.0.3177" { "FIX: Error Message When You Synchronize A Merge Replication In Microsoft SQL Server 2005: 'Msmerge_Del_<GUID>, Line 42 String Or Binary Data Would Be Truncated' / 2007-08-09" }
 			"9.0.3175" { "FIX: Error Message When The Distribution Agent Tries To Apply The Snapshot To The Subscriber In SQL Server 2005: 'Must Declare The Scalar Variable '@Variable'' / 2007-08-20" }
 			"9.0.3175" { "FIX: The Distribution Agent May Skip Some Rows When You Configure A Transactional Replication That Uses The '-Skiperrors' Parameter In SQL Server 2005 / 2007-08-01" }
-			"9.0.3175" { "The Service Pack Update Or Hotfix Installation Stops Unexpectedly When You Try To Install Either Microsoft SQL Server 2005 Service Pack 2 Or A Hotfix For SQL Server 2005 SP2 / 2007-07-10" }
+			"9.0.3175" {
+				"The Service Pack Update Or Hotfix Installation Stops Unexpectedly When You Try To Install Either Microsoft SQL Server 2005 Service Pack 2 Or A Hotfix For SQL Server 2005 SP2 / 2007-07-10
+"
+			}
 			"9.0.3175" { "FIX: A Foreign Key Constraint That You Drop On A Table At The Publisher Is Not Dropped On The Table At The Subscriber In A SQL Server 2005 Merge Replication / 2007-06-29" }
 			"9.0.3175" { "Cumulative Update Package 2 (CU2 Build 3175) For SQL Server 2005 Service Pack 2 Is Available / 2007-06-28" }
 			"9.0.3171" { "FIX: You May Receive Error Messages When You Try To Log In To An Instance Of SQL Server 2005 And SQL Server Handles Many Concurrent Connections / 2007-07-16" }
-			"9.0.3169" { "FIX: Error Message When You Run A Linked Server Query In SQL Server 2005: 'The Oledbprovider Unisys.Dmsii.1 For Linkserver '<Servername>' Reported An Error The Provider Ran Out Of Memory' / 2007-06-19" }
-			"9.0.3169" { "FIX: Changes In The Publisher Database Are Not Replicated To The Subscribers In A Transactional Replication If The Publisher Database Runs Exposed In A Database Mirroring Session In SQL Server 2005 / 2007-05-25" }
+			"9.0.3169" {
+				"FIX: Error Message When You Run A Linked Server Query In SQL Server 2005: 'The Oledbprovider Unisys.Dmsii.1 For Linkserver '<Servername>' Reported An Error The Provider Ran Out Of Memory
+' / 2007-06-19"
+			}
+			"9.0.3169" {
+				"FIX: Changes In The Publisher Database Are Not Replicated To The Subscribers In A Transactional Replication If The Publisher Database Runs Exposed In A Database Mirroring Session In SQL 
+Server 2005 / 2007-05-25"
+			}
 			"9.0.3166" { "FIX: Blocking And Performance Problems May Occur When You Enable Trace Flag 1118 In SQL Server 2005 If The Temporary Table Creation Workload Is High / 2007-06-11" }
 			"9.0.3166" { "FIX: A Database Is Marked As Suspect When You Update A Table That Contains A Nonclustered Index In SQL Server 2005 / 2007-07-16" }
 			"9.0.3161" { "FIX: On A Computer That Is Running SQL Server 2005 And That Has Multiple Processors, You May Receive Incorrect Results When You Run A Query That Contains An Inner Join / 2007-09-24" }
-			"9.0.3161" { "FIX: Error Message When You Perform A Piecemeal Restore Operation After You Enable Vardecimal Database Compression In SQL Server 2005 Service Pack 2: 'Piecemeal Restore Is Not Supported When An Upgrade Is Involved' / 2007-06-04" }
+			"9.0.3161" {
+				"FIX: Error Message When You Perform A Piecemeal Restore Operation After You Enable Vardecimal Database Compression In SQL Server 2005 Service Pack 2: 'Piecemeal Restore Is Not Supported 
+When An Upgrade Is Involved' / 2007-06-04"
+			}
 			"9.0.3161" { "FIX: The Query Performance Is Slow When You Run A Query That Uses A User-Defined Scalar Function Against An Instance Of SQL Server 2005 / 2007-05-09" }
 			"9.0.3161" { "Cumulative Update Package (CU1 Build 3161) For SQL Server 2005 Service Pack 2 Is Available / 2007-04-16" }
-			"9.0.3159" { "FIX: The Check Database Integrity Task And The Execute T-SQL Statement Task In A Maintenance Plan May Lose Database Context In Certain Circumstances In SQL Server 2005 Builds 3150 Through 3158 / 2007-04-03" }
+			"9.0.3159" {
+				"FIX: The Check Database Integrity Task And The Execute T-SQL Statement Task In A Maintenance Plan May Lose Database Context In Certain Circumstances In SQL Server 2005 Builds 3150 Throug
+h 3158 / 2007-04-03"
+			}
 			"9.0.3156" { "FIX: Error Message When You Try To Use Database Mail To Send An E-Mail Message In SQL Server 2005: 'Profile Name Is Not Valid (Microsoft SQL Server, Error 14607)' / 2007-04-25" }
 			"9.0.3155" { "FIX: Error Message When You Run A Query That Contains Nested FOR XML Clauses In SQL Server 2005: 'The XML Data Type Is Damaged' / 2007-06-13" }
-			"9.0.3155" { "FIX: Error Message When You Use Transactional Replication To Replicate The Execution Of Stored Procedures To Subscribers In SQL Server 2005: 'Insufficient Memory To Run Query' / 2007-06-12" }
-			"9.0.3155" { "FIX: Failed Assertion Message In The Errorlog File When You Perform Various Operations In SQL Server 2005: 'Failed Assertion = 'Ffalse' Attempt To Access Expired Blob Handle (3)' / 2007-05-15" }
+			"9.0.3155" {
+				"FIX: Error Message When You Use Transactional Replication To Replicate The Execution Of Stored Procedures To Subscribers In SQL Server 2005: 'Insufficient Memory To Run Query' / 2007-06-
+12"
+			}
+			"9.0.3155" {
+				"FIX: Failed Assertion Message In The Errorlog File When You Perform Various Operations In SQL Server 2005: 'Failed Assertion = 'Ffalse' Attempt To Access Expired Blob Handle (3)' / 2007-
+05-15"
+			}
 			"9.0.3155" { "FIX: You May Receive An Access Violation When You Perform A Bulk Copy Operation In SQL Server 2005 / 2007-04-25" }
 			"9.0.3154" { "FIX: The Distribution Agent Does Not Deliver Commands To The Subscriber Even If The Distribution Agent Is Running In SQL Server 2005 / 2007-04-25" }
-			"9.0.3154" { "FIX: The Distribution Agent Generates An Access Violation When You Configure A Transactional Replication Publication To Run An Additional Script After The Snapshot Is Applied At The Subscriber In SQL Server 2005 / 2007-04-25" }
+			"9.0.3154" {
+				"FIX: The Distribution Agent Generates An Access Violation When You Configure A Transactional Replication Publication To Run An Additional Script After The Snapshot Is Applied At The Subs
+criber In SQL Server 2005 / 2007-04-25"
+			}
 			"9.0.3154" { "FIX: SQL Server 2005 Database Engine Generates Failed Assertion Errors When You Use The Replication Monitor To Monitor The Distribution Database / 2007-04-25" }
 			"9.0.3153" { "FIX: A Gradual Increase In Memory Consumption For The USERSTORE_TOKENPERM Cache Store Occurs In SQL Server 2005 / 2007-04-16" }
 			"9.0.3152" { "Cumulative Hotfix Package (Build 3152) For SQL Server 2005 Service Pack 2 Is Available / 2007-03-07" }
-			"9.0.3080" { "MS09-062: Description Of The Security Update For GDI+ For SQL Server 2005 Service Pack 2 GDR: October 13, 2009 / 2009-10-13" }
-			"9.0.3077" { "MS09-004: Description Of The Security Update For SQL Server 2005 GDR: February 10, 2009 / " }
+			"9.0.3080" { "MS09-062: Description Of The Security Update For GDI+ For SQL Server 2005 Service Pack 2 GDR: October 13, 2009 / " }
+			"9.0.3077" { "MS09-004: Description Of The Security Update For SQL Server 2005 GDR: February 10, 2009 / 2009-02-10" }
 			"9.0.3073" { "MS08-052: Description Of The Security Update For GDI+ For SQL Server 2005 Service Pack 2 GDR: September 9, 2008 / 2008-09-09" }
 			"9.0.3068" { "MS08-040: Vulnerabilities In Microsoft SQL Server Could Allow Elevation Of Privilege / 2008-08-05" }
-			"9.0.3054" { "FIX: The Check Database Integrity Task And The Execute T-SQL Statement Task In A Maintenance Plan May Lose Database Context In Certain Circumstances In SQL Server 2005 Builds 3042 Through 3053 / 2008-01-02" }
+			"9.0.3054" {
+				"FIX: The Check Database Integrity Task And The Execute T-SQL Statement Task In A Maintenance Plan May Lose Database Context In Certain Circumstances In SQL Server 2005 Builds 3042 Throug
+h 3053 / 2008-01-02"
+			}
 			"9.0.3050" { "Microsoft SQL Server 2005 Service Pack 2 Issue: Cleanup Tasks Run At Different Intervals Than Intended / 2007-03-07" }
 			"9.0.3042" { "SQL Server 2005 Service Pack 2 (SP2) / 2007-02-19" }
 			"9.0.3033" { "SQL Server 2005 Service Pack 2 (SP2) - CTP December 2006 / 2006-12-19" }
 			"9.0.3027" { "SQL Server 2005 Service Pack 2 (SP2) - CTP November 2006 / 2006-11-06" }
 			"9.0.3026" { "FIX: A '17187' Error Message May Be Logged In The Errorlog File When An Instance Of SQL Server 2005 Is Under A Heavy Load / 2007-02-14" }
 			"9.0.2239" { "FIX: Transactions That Are Being Committed On The Principal Server May Not Be Copied To The Mirror Server When A Database Mirroring Failover Occurs In SQL Server 2005 / 2007-09-24" }
-			"9.0.2237" { "FIX: A Memory Leak Occurs When You Call The Initialize Method And The Terminate Method Of The Sqldistribution Object In A Loop In An Application That You Develop By Using Microsoft Activex Replication Controls In SQL Server 2005 / 2007-09-24" }
+			"9.0.2237" {
+				"FIX: A Memory Leak Occurs When You Call The Initialize Method And The Terminate Method Of The Sqldistribution Object In A Loop In An Application That You Develop By Using Microsoft Activ
+ex Replication Controls In SQL Server 2005 / 2007-09-24"
+			}
 			"9.0.2236" { "FIX: Error Message When You Use Service Broker In SQL Server 2005: 'An Error Occurred While Receiving Data: '64(The Specified Network Name Is No Longer Available.)'' / 2007-07-29" }
 			"9.0.2236" { "FIX: A Service Broker Endpoint Stops Passing Messages In A Database Mirroring Session Of SQL Server 2005 / 2007-07-26" }
 			"9.0.2234" { "FIX: SQL Server 2005 Stops And Then Restarts Unexpectedly And Errors Occur In The Tempdb Database / 2007-06-20" }
-			"9.0.2233" { "FIX: Error Message When You Use The BULK INSERT Statement To Import A Data File Into A Table In SQL Server 2005 With SP1: 'The OLE DB Provider 'BULK' For Linked Server '(Null)' Reported An Error' / 2007-06-18" }
-			"9.0.2233" { "FIX: Error Message When You Use Transactional Replication To Replicate The Execution Of Stored Procedures To Subscribers In SQL Server 2005: 'Insufficient Memory To Run Query' / 2007-06-12" }
+			"9.0.2233" {
+				"FIX: Error Message When You Use The BULK INSERT Statement To Import A Data File Into A Table In SQL Server 2005 With SP1: 'The OLE DB Provider 'BULK' For Linked Server '(Null)' Reported 
+An Error' / 2007-06-18"
+			}
+			"9.0.2233" {
+				"FIX: Error Message When You Use Transactional Replication To Replicate The Execution Of Stored Procedures To Subscribers In SQL Server 2005: 'Insufficient Memory To Run Query' / 2007-06-
+12"
+			}
 			"9.0.2233" { "FIX: You May Receive Error 3456 When You Try To Restore A Transaction Log For A SQL Server 2005 Database / 2007-06-05" }
 			"9.0.2232" { "FIX: A Memory Leak Occurs When You Use The Sp_Oamethod Stored Procedure To Call A Method Of A COM Object In SQL Server 2005 / 2007-06-19" }
 			"9.0.2231" { "FIX: You Cannot Bring The SQL Server Group Online In A Cluster Environment After You Rename The Virtual Server Name Of The Default Instance Of SQL Server 2005 / 2007-11-06" }
-			"9.0.2230" { "FIX: Error Message When You Use SQL Native Client To Connect To An Instance Of A Principal Server In A Database Mirroring Session: 'The Connection Attempted To Fail Over To A Server That Does Not Have A Failover Partner' / 2007-09-20" }
+			"9.0.2230" {
+				"FIX: Error Message When You Use SQL Native Client To Connect To An Instance Of A Principal Server In A Database Mirroring Session: 'The Connection Attempted To Fail Over To A Server That
+ Does Not Have A Failover Partner' / 2007-09-20"
+			}
 			"9.0.2229" { "FIX: You Receive Error Messages When You Use The BULK INSERT Statement In SQL Server 2005 To Import Data In Bulk / 2007-06-11" }
 			"9.0.2227" { "FIX: You May Receive Error 1203 When You Run An INSERT Statement Against A Table That Has An Identity Column In SQL Server 2005 / 2007-06-26" }
-			"9.0.2226" { "FIX: Error Message When The Replication Merge Agent Runs To Synchronize A Merge Replication Subscription In SQL Server 2005: 'The Merge Process Failed To Execute A Query Because The Query Timed Out' / 2007-06-22" }
+			"9.0.2226" {
+				"FIX: Error Message When The Replication Merge Agent Runs To Synchronize A Merge Replication Subscription In SQL Server 2005: 'The Merge Process Failed To Execute A Query Because The Quer
+y Timed Out' / 2007-06-22"
+			}
 			"9.0.2226" { "FIX: You Receive Error 18815 When The Log Reader Agent Runs For A Transactional Publication In SQL Server 2005 / 2007-06-22" }
 			"9.0.2223" { "FIX: You May Experience Poor Performance After You Install SQL Server 2005 Service Pack 1 / 2007-06-18" }
 			"9.0.2221" { "FIX: A Script Task Or A Script Component May Not Run Correctly When You Run An SSIS Package In SQL Server 2005 Build 2153 And Later Builds / 2007-07-11" }
@@ -828,46 +947,78 @@ function Get-ProductVersion
 			"9.0.2218" { "FIX: SQL Server 2005 Does Not Reclaim The Disk Space That Is Allocated To The Temporary Table If The Stored Procedure Is Stopped / 2007-04-25" }
 			"9.0.2216" { "FIX: High CPU Utilization By SQL Server 2005 May Occur When You Use NUMA Architecture On A Computer That Has An X64-Based Version Of SQL Server 2005 Installed / 2007-05-15" }
 			"9.0.2214" { "FIX: Error Message When You Run DML Statements Against A Table That Is Published For Merge Replication In SQL Server 2005: 'Could Not Find Stored Procedure' / 2007-02-19" }
-			"9.0.2214" { "FIX: I/O Requests That Are Generated By The Checkpoint Process May Cause I/O Bottlenecks If The I/O Subsystem Is Not Fast Enough To Sustain The IO Requests In SQL Server 2005 / 2007-02-13" }
+			"9.0.2214" {
+				"FIX: I/O Requests That Are Generated By The Checkpoint Process May Cause I/O Bottlenecks If The I/O Subsystem Is Not Fast Enough To Sustain The IO Requests In SQL Server 2005 / 2007-02-1
+3"
+			}
 			"9.0.2211" { "FIX: You Receive Error 1456 When You Try To Add A Witness To A DBM Session In SQL Server 2005 / 2007-02-20" }
-			"9.0.2211" { "FIX: You Receive Error 1456 When You Add A Witness To A Database Mirroring Session And The Database Name Is The Same As An Existing Database Mirroring Session In SQL Server 2005 / 2007-02-14" }
+			"9.0.2211" {
+				"FIX: You Receive Error 1456 When You Add A Witness To A Database Mirroring Session And The Database Name Is The Same As An Existing Database Mirroring Session In SQL Server 2005 / 2007-0
+2-14"
+			}
 			"9.0.2209" { "FIX: SQL Server 2005 May Not Perform Histogram Amendments When You Use Trace Flags 2389 And 2390 / 2007-02-07" }
 			"9.0.2208" { "FIX: A Memory Leak May Occur Every Time That You Synchronize A SQL Server Mobile Subscriber In SQL Server 2005 / 2007-01-09" }
 			"9.0.2207" { "FIX: The Changes Are Not Reflected In The Publication Database After You Reinitialize The Subscriptions In SQL Server 2005 / 2006-12-19" }
 			"9.0.2207" { "FIX: Error Message When You Use A Synonym For A Stored Procedure In SQL Server 2005: 'A Severe Error Occurred On The Current Command' / 2006-12-19" }
-			"9.0.2207" { "FIX: Error Message In The Database Mail Log When You Try To Use The Sp_Send_Dbmail Stored Procedure To Send An E-Mail In SQL Server 2005: 'Invalid XML Message Format Received On The Externalmailqueue' / 2007-01-02" }
+			"9.0.2207" {
+				"FIX: Error Message In The Database Mail Log When You Try To Use The Sp_Send_Dbmail Stored Procedure To Send An E-Mail In SQL Server 2005: 'Invalid XML Message Format Received On The Exte
+rnalmailqueue' / 2007-01-02"
+			}
 			"9.0.2206" { "FIX: You May Receive An Error Message When You Run A CLR Stored Procedure Or CLR Function That Uses A Context Connection In SQL Server 2005 / 2007-02-01" }
 			"9.0.2206" { "FIX: The Full-Text Index Population For The Indexed View Is Very Slow In SQL Server 2005 / 2007-01-12" }
-			"9.0.2206" { "FIX: Error Message When You Restore A Transaction-Log Backup That Is Generated In SQL Server 2000 SP4 To An Instance Of SQL Server 2005: Msg 3456, Level 16, State 1, Line 1. Could Not Redo Log Record' / 2007-01-02" }
+			"9.0.2206" {
+				"FIX: Error Message When You Restore A Transaction-Log Backup That Is Generated In SQL Server 2000 SP4 To An Instance Of SQL Server 2005: Msg 3456, Level 16, State 1, Line 1. Could Not Re
+do Log Record' / 2007-01-02"
+			}
 			"9.0.2206" { "FIX: An Access Violation Is Logged In The SQL Server Errorlog File When You Run A Query That Uses A Plan Guide In SQL Server 2005 / 2006-12-13" }
 			"9.0.2202" { "FIX: Some Search Results Are Missing When You Perform A Full-Text Search Operation On A Windows Sharepoint Services 2.0 Site After You Upgrade To SQL Server 2005 / 2007-02-16" }
 			"9.0.2201" { "FIX: Updates To The SQL Server Mobile Subscriber May Not Be Reflected In The SQL Server 2005 Merge Publication / 2007-01-10" }
 			"9.0.2198" { "FIX: You May Receive Incorrect Results When You Query A Table That Is Published In A Transactional Replication In SQL Server 2005 / 2007-02-21" }
 			"9.0.2198" { "FIX: You Receive An Error Message When You Use The Print Preview Option On A Large Report In SQL Server 2005 Reporting Services / 2007-02-20" }
 			"9.0.2198" { "FIX: The Restore Operation May Take A Long Time To Finish When You Restore A Database In SQL Server 2005 / 2007-02-02" }
-			"9.0.2198" { "FIX: The Metadata Of The Description Object Of A Key Performance Indicator Appears In The Default Language After You Define A Translation For The Description Object In SQL Server 2005 Business Intelligence Development Studio / 2006-12-13" }
+			"9.0.2198" {
+				"FIX: The Metadata Of The Description Object Of A Key Performance Indicator Appears In The Default Language After You Define A Translation For The Description Object In SQL Server 2005 Bu
+siness Intelligence Development Studio / 2006-12-13"
+			}
 			"9.0.2198" { "FIX: SQL Server Agent Does Not Send An Alert Quickly Or Does Not Send An Alert When You Use An Alert Of The SQL Server Event Alert Type In SQL Server 2005 / 2007-01-04" }
-			"9.0.2198" { "FIX: Error Message When You Run A Query That Uses A Fast Forward-Only Cursor In SQL Server 2005: 'Query Processor Could Not Produce A Query Plan Because Of The Hints Defined In This Query' / 2006-11-16" }
-			"9.0.2198" { "FIX: SQL Server 2005 May Not Send A Message Notification That Is Based On The Specific String In The Forwarded Event When A Computer That Is Running SQL Server 2000 Forwards An Event To A Computer That Is Running SQL Server 2005 / 2006-11-28" }
+			"9.0.2198" {
+				"FIX: Error Message When You Run A Query That Uses A Fast Forward-Only Cursor In SQL Server 2005: 'Query Processor Could Not Produce A Query Plan Because Of The Hints Defined In This Quer
+y' / 2006-11-16"
+			}
+			"9.0.2198" {
+				"FIX: SQL Server 2005 May Not Send A Message Notification That Is Based On The Specific String In The Forwarded Event When A Computer That Is Running SQL Server 2000 Forwards An Event To 
+A Computer That Is Running SQL Server 2005 / 2006-11-28"
+			}
 			"9.0.2198" { "FIX: You Receive An Error Message, Or You Obtain An Incorrect Result When You Query Data In A Partitioned Table That Does Not Have A Clustered Index In SQL Server 2005 / 2006-12-13" }
 			"9.0.2198" { "FIX: You May Experience Very Large Growth Increments Of A Principal Database After You Manually Fail Over A Database Mirroring Session In SQL Server 2005 / 2007-01-02" }
-			"9.0.2196" { "Fix: Error Message When You Convert A Column From The Varbinary(Max) Data Type To The XML Data Type In SQL Server 2005: 'Msg 6322, Level 16, State 1, Line 2 Too Many Attributes Or Namespace Definitions' / 2006-11-10" }
+			"9.0.2196" {
+				"Fix: Error Message When You Convert A Column From The Varbinary(Max) Data Type To The XML Data Type In SQL Server 2005: 'Msg 6322, Level 16, State 1, Line 2 Too Many Attributes Or Namesp
+ace Definitions' / 2006-11-10"
+			}
 			"9.0.2196" { "FIX: Error Message When You Trace The Audit Database Management Event And You Try To Bring A Database Online In SQL Server 2005: 'Msg 942, Level 14, State 4, Line 1' / 2006-12-05" }
 			"9.0.2195" { "FIX: SQL Server 2005 May Stop Responding When You Use The Sqlbulkcopy Class To Import Data From Another Data Source / 2006-12-19" }
 			"9.0.2194" { "FIX: Error Message When You Try To Use A SQL Server Authenticated Login To Log On To An Instance Of SQL Server 2005: 'Logon Error: 18456' / 2006-10-20" }
-			"9.0.2192" { "FIX: Error Message When You Use A Table-Valued Function (TVF) Together With The CROSS APPLY Operator In A Query In SQL Server 2005: 'There Is Insufficient System Memory To Run This Query' / 2006-09-29" }
+			"9.0.2192" {
+				"FIX: Error Message When You Use A Table-Valued Function (TVF) Together With The CROSS APPLY Operator In A Query In SQL Server 2005: 'There Is Insufficient System Memory To Run This Query
+' / 2006-09-29"
+			}
 			"9.0.2192" { "FIX: Error Message When You Use A Label After A Transact-SQL Query In SQL Server 2005: 'Incorrect Syntax Near 'X'' / 2006-10-05" }
 			"9.0.2191" { "FIX: An Empty String Is Replicated As A NULL Value When You Synchronize A Table To A SQL Server 2005 Compact Edition Subscriber / 2006-12-06" }
 			"9.0.2190" { "FIX: Error Message When You Call The Sqltables Function Against An Instance Of SQL Server 2005: 'Invalid Cursor State (0)' / 2006-10-16" }
 			"9.0.2189" { "FIX: You May Receive Different Date Values For Each Row When You Use The Getdate Function Within A Case Statement In SQL Server 2005 / 2006-09-22" }
 			"9.0.2187" { "FIX: When You Run A Query That References A Partitioned Table In SQL Server 2005, Query Performance May Decrease / 2006-09-22" }
 			"9.0.2181" { "FIX: A Deadlock Occurs And A Query Never Finishes When You Run The Query On A Computer That Is Running SQL Server 2005 And Has Multiple Processors / 2007-02-19" }
-			"9.0.2181" { "FIX: Error Message When You Run An Application Against SQL Server 2005 That Uses Many Unique User Logins Or Performs Many User Login Impersonations: 'Insufficient System Memory To Run This Query' / 2006-10-04" }
-			"9.0.2176" { "FIX: Error Message When You Use SQL Server 2005: 'High Priority System Task Thread Operating System Error Exception 0Xae Encountered' / " }
+			"9.0.2181" {
+				"FIX: Error Message When You Run An Application Against SQL Server 2005 That Uses Many Unique User Logins Or Performs Many User Login Impersonations: 'Insufficient System Memory To Run Th
+is Query' / "
+			}
+			"9.0.2176" { "FIX: Error Message When You Use SQL Server 2005: 'High Priority System Task Thread Operating System Error Exception 0Xae Encountered' / 2007-02-12" }
 			"9.0.2176" { "FIX: Log Reader Agent Fails, And An Assertion Error Message Is Logged When You Use Transactional Replication In SQL Server 2005 / 2006-09-06" }
 			"9.0.2175" { "FIX: The Color And The Background Image May Not Appear When You Try To Display A Report In HTML Format In Report Manager In SQL Server 2005 Reporting Services / 2006-08-08" }
 			"9.0.2175" { "FIX: SQL Server 2005 Performance May Be Slower Than SQL Server 2000 Performance When You Use An API Server Cursor / 2006-08-14" }
-			"9.0.2175" { "FIX: In SQL Server 2005, The Sp_Altermessage Stored Procedure Does Not Suppress System Error Messages That Are Logged In The SQL Server Error Log And In The Application Log / 2006-08-30" }
+			"9.0.2175" {
+				"FIX: In SQL Server 2005, The Sp_Altermessage Stored Procedure Does Not Suppress System Error Messages That Are Logged In The SQL Server Error Log And In The Application Log / 2006-08-30"
+			}
 			"9.0.2175" { "FIX: A Query May Take A Long Time To Compile When The Query Contains Several JOIN Clauses Against A SQL Server 2005 Database / 2006-12-14" }
 			"9.0.2175" { "FIX: A Handled Access Violation May Occur In The Cvalswitch::Getdatax Function When You Run A Complex Query In SQL Server 2005 / 2006-12-18" }
 			"9.0.2174" { "FIX: You May Notice A Large Increase In Compile Time When You Enable Trace Flags 2389 And 2390 In SQL Server 2005 Service Pack 1 / 2006-07-25" }
@@ -880,7 +1031,10 @@ function Get-ProductVersion
 			"9.0.2164" { "FIX: System Performance May Be Slow When An Application Submits Many Queries Against A SQL Server 2005 Database That Uses Simple Parameterization / 2006-09-26" }
 			"9.0.2164" { "FIX: A Query Plan Is Not Cached In SQL Server 2005 When The Text Of The Hint Is A Large Object / 2006-09-06" }
 			"9.0.2164" { "FIX: Memory Usage Of The Compiled Query Plan May Unexpectedly Increase In SQL Server 2005 / 2006-07-26" }
-			"9.0.2164" { "FIX: The BULK INSERT Statement May Not Return Any Errors When You Try To Import Data From A Text File To A Table By Using The BULK INSERT Statement In Microsoft SQL Server 2005 / 2006-08-09" }
+			"9.0.2164" {
+				"FIX: The BULK INSERT Statement May Not Return Any Errors When You Try To Import Data From A Text File To A Table By Using The BULK INSERT Statement In Microsoft SQL Server 2005 / 2006-08
+-09"
+			}
 			"9.0.2156" { "FIX: The Value Of The Automatic Growth Increment Of A Database File May Be Very Large In SQL Server 2005 With Service Pack 1 / 2006-07-26" }
 			"9.0.2153" { "Cumulative Hotfix Package (Build 2153) For SQL Server 2005 Is Available / 2006-09-14" }
 			"9.0.2153" { "FIX: You May Receive An Error Message When You Install The Cumulative Hotfix Package (Build 2153) For SQL Server 2005 / 2006-05-23" }
@@ -889,28 +1043,46 @@ function Get-ProductVersion
 			"9.0.2040" { "SQL Server 2005 Service Pack 1 (SP1) CTP March 2006 / 2006-03-12" }
 			"9.0.2029" { "SQL Server 2005 Service Pack 1 (SP1) Beta / " }
 			"9.0.1561" { "FIX: A Script Task Or A Script Component May Not Run Correctly When You Run An SSIS Package In SQL Server 2005 Build 1500 And Later Builds / 2007-07-11" }
-			"9.0.1558" { "FIX: Error Message When You Restore A Transaction-Log Backup That Is Generated In SQL Server 2000 SP4 To An Instance Of SQL Server 2005: 'Msg 3456, Level 16, State 1, Line 1. Could Not Redo Log Record' / 2007-01-04" }
+			"9.0.1558" {
+				"FIX: Error Message When You Restore A Transaction-Log Backup That Is Generated In SQL Server 2000 SP4 To An Instance Of SQL Server 2005: 'Msg 3456, Level 16, State 1, Line 1. Could Not R
+edo Log Record' / 2007-01-04"
+			}
 			"9.0.1554" { "FIX: When You Query Through A View That Uses The ORDER BY Clause In SQL Server 2005, The Result Is Still Returned In Random Order / 2007-06-26" }
 			"9.0.1551" { "FIX: Error Message When You Schedule Some SQL Server 2005 Integration Services Packages To Run As Jobs: 'Package <Packagename> Has Been Cancelled' / 2007-01-22" }
 			"9.0.1551" { "FIX: After You Detach A Microsoft SQL Server 2005 Database That Resides On Network-Attached Storage, You Cannot Reattach The SQL Server Database / 2006-11-22" }
 			"9.0.1550" { "FIX: The Value Of The Automatic Growth Increment Of A Database File May Be Very Large In SQL Server 2005 / 2006-07-26" }
 			"9.0.1550" { "FIX: You Receive An Error Message When You Try To Create A Differential Database Backup In SQL Server 2005 / 2006-11-22" }
-			"9.0.1547" { "FIX: You Notice Additional Random Trailing Character In Values When You Retrieve The Values From A Fixed-Size Character Column Or A Fixed-Size Binary Column Of A Table In SQL Server 2005 / 2006-11-20" }
+			"9.0.1547" {
+				"FIX: You Notice Additional Random Trailing Character In Values When You Retrieve The Values From A Fixed-Size Character Column Or A Fixed-Size Binary Column Of A Table In SQL Server 2005
+ / 2006-11-20"
+			}
 			"9.0.1545" { "FIX: SQL Server 2005 Performance May Be Slower Than SQL Server 2000 Performance When You Use An API Server Cursor / 2006-08-14" }
-			"9.0.1541" { "FIX: Error Message When You Use A Server-Side Cursor To Run A Large Complex Query In SQL Server 2005: 'Error: 8623, Severity: 16, State: 1 The Query Processor Ran Out Of Internal Resources' / 2006-11-22" }
+			"9.0.1541" {
+				"FIX: Error Message When You Use A Server-Side Cursor To Run A Large Complex Query In SQL Server 2005: 'Error: 8623, Severity: 16, State: 1 The Query Processor Ran Out Of Internal Resourc
+es' / 2006-11-22"
+			}
 			"9.0.1541" { "FIX: You May Receive More Than 100,000 Page Faults When You Try To Back Up A SQL Server 2005 Database That Contains Hundreds Of Files And File Groups / 2006-11-22" }
 			"9.0.1539" { "FIX: SQL Server 2005 System Performance May Be Slow When You Use A Keyset-Driven Cursor To Execute A FETCH Statement / 2006-08-11" }
-			"9.0.1538" { "FIX: The SQL Server 2005 Sqlcommandbuilder.Deriveparameters Method Returns An Exception When The Input Parameter Is A XML Parameter That Has An Associated XSD From An SQL Schema / 2006-07-26" }
+			"9.0.1538" {
+				"FIX: The SQL Server 2005 Sqlcommandbuilder.Deriveparameters Method Returns An Exception When The Input Parameter Is A XML Parameter That Has An Associated XSD From An SQL Schema / 2006-0
+7-26"
+			}
 			"9.0.1536" { "FIX: The Monitor Server Does Not Monitor All Primary Servers And Secondary Servers When You Configure Log Shipping In SQL Server 2005 / 2006-07-26" }
-			"9.0.1534" { "FIX: When You Run The 'Dbcc Dbreindex' Command Or The 'Alter Index' Command, Some Transactions Are Not Replicated To The Subscribers In A Transactional Replication In SQL Server 2005 / 2007-05-15" }
+			"9.0.1534" {
+				"FIX: When You Run The 'Dbcc Dbreindex' Command Or The 'Alter Index' Command, Some Transactions Are Not Replicated To The Subscribers In A Transactional Replication In SQL Server 2005 / 2
+007-05-15"
+			}
 			"9.0.1533" { "FIX: Errors May Be Generated In The Tempdb Database When You Create And Then Drop Many Temporary Tables In SQL Server 2005 / 2006-07-26" }
 			"9.0.1532" { "FIX: Indexes May Grow Very Large When You Insert A Row Into A Table And Then Update The Same Row In SQL Server 2005 / 2007-01-09" }
 			"9.0.1531" { "FIX: The Internal Deadlock Monitor May Not Detect A Deadlock Between Two Or More Sessions In SQL Server 2005 / 2006-07-26" }
 			"9.0.1528" { "FIX: When You Start A Merge Agent, Synchronization Between The Subscriber And The Publisher Takes A Long Time To Be Completed In SQL Server 2005 / 2007-01-15" }
 			"9.0.1528" { "FIX: The CPU Usage Of The Server Reaches 100% When Many DML Activities Occur In SQL Server 2005 / 2007-01-04" }
-			"9.0.1528" { "FIX: You Experience A Slow Uploading Process If Conflicts Occur When Many Merge Agents Upload Changes To The Publishers At The Same Time In SQL Server 2005 / 2007-01-11" }
-			"9.0.1528" { "FIX: The Merge Agent Fails And A 'Permission Denied' Error Message Is Logged When You Synchronize A SQL Server 2005-Based Merge Publication / " }
-			"9.0.1528" { "FIX: Error Message When An ADO.NET-Connected Application Tries To Reuse A Connection From The Connection Pool In SQL Server 2005: 'The Request Failed To Run Because The Batch Is Aborted' / 2006-07-26" }
+			"9.0.1528" { "FIX: You Experience A Slow Uploading Process If Conflicts Occur When Many Merge Agents Upload Changes To The Publishers At The Same Time In SQL Server 2005 / " }
+			"9.0.1528" { "FIX: The Merge Agent Fails And A 'Permission Denied' Error Message Is Logged When You Synchronize A SQL Server 2005-Based Merge Publication / 2007-01-08" }
+			"9.0.1528" {
+				"FIX: Error Message When An ADO.NET-Connected Application Tries To Reuse A Connection From The Connection Pool In SQL Server 2005: 'The Request Failed To Run Because The Batch Is Aborted'
+ / 2006-07-26"
+			}
 			"9.0.1519" { "FIX: The Merge Agent Does Not Use A Specified Custom User Update To Handle Conflicting UPDATE Statements In SQL Server 2005 / 2007-01-20" }
 			"9.0.1518" { "FIX: A SQL Server Login May Have More Permissions When You Log On To An Instance Of SQL Server 2005 / 2006-09-22" }
 			"9.0.1518" { "FIX: An Incorrect Result May Appear In The Subscribing Database When You Set Database Mirroring For A Database And Database Failover Occurs In SQL Server 2005 / 2006-07-26" }
@@ -923,34 +1095,57 @@ function Get-ProductVersion
 			"9.0.1399" { "SQL Server 2005 RTM / 2005-11-07" }
 			"8.0.2305" { "MS12-060: Description Of The Security Update For SQL Server 2000 Service Pack 4 QFE: August 14, 2012 / 2012-08-14" }
 			"8.0.2301" { "MS12-027: Description Of The Security Update For Microsoft SQL Server 2000 Service Pack 4 QFE: April 10, 2012 / 2012-04-10" }
-			"8.0.2283" { "FIX: An Access Violation Occurs When You Run A DELETE Statement Or An UPDATE Statement In The Itanium-Based Versions Of SQL Server 2000 After You Install Security Update MS09-004 / 2009-06-15" }
+			"8.0.2283" {
+				"FIX: An Access Violation Occurs When You Run A DELETE Statement Or An UPDATE Statement In The Itanium-Based Versions Of SQL Server 2000 After You Install Security Update MS09-004 / 2009-
+06-15"
+			}
 			"8.0.2282" { "MS09-004: Description Of The Security Update For SQL Server 2000 QFE And For MSDE 2000: February 10, 2009 / 2009-02-10" }
-			"8.0.2279" { "FIX: When You Run The Spsbackup.Exe Utility To Back Up A SQL Server 2000 Database That Is Configured As A Back-End Database For A Windows Sharepoint Services Server, The Backup Operation Fails / 2009-04-08" }
+			"8.0.2279" {
+				"FIX: When You Run The Spsbackup.Exe Utility To Back Up A SQL Server 2000 Database That Is Configured As A Back-End Database For A Windows Sharepoint Services Server, The Backup Operation
+ Fails / 2009-04-08"
+			}
 			"8.0.2273" { "MS08-040: Description Of The Security Update For SQL Server 2000 QFE And MSDE 2000 July 8, 2008 / 2008-08-05" }
 			"8.0.2271" { "FIX: The SPACE Function Always Returns One Space In SQL Server 2000 If The SPACE Function Uses A Collation That Differs From The Collation Of The Current Database / 2008-03-12" }
-			"8.0.2265" { "FIX: The Data On The Publisher Does Not Match The Data On The Subscriber When You Synchronize A SQL Server 2005 Mobile Edition Subscriber With A SQL Server 2000 'Merge Replication' Publisher / 2007-12-19" }
+			"8.0.2265" {
+				"FIX: The Data On The Publisher Does Not Match The Data On The Subscriber When You Synchronize A SQL Server 2005 Mobile Edition Subscriber With A SQL Server 2000 'Merge Replication' Publi
+sher / 2007-12-19"
+			}
 			"8.0.2253" { "FIX: The CPU Utilization May Suddenly Increase To 100 Percent When There Are Many Connections To An Instance Of SQL Server 2000 On A Computer That Has Multiple Processors / 2007-10-09" }
 			"8.0.2249" { "FIX: An Access Violation May Occur When You Try To Log In To An Instance Of SQL Server 2000 / 2007-05-25" }
 			"8.0.2248" { "FIX: The Foreign Key That You Created Between Two Tables Does Not Work After You Run The CREATE INDEX Statement In SQL Server 2000 / 2007-06-14" }
 			"8.0.2246" { "An Updated Version Of Sqlvdi.Dll Is Now Available For SQL Server 2000 / 2007-06-18" }
-			"8.0.2245" { "FIX: You May Receive An Assertion Or Database Corruption May Occur When You Use The Bcp Utility Or The 'Bulk Insert' Transact-SQL Command To Import Data In SQL Server 2000 / 2007-04-24" }
+			"8.0.2245" {
+				"FIX: You May Receive An Assertion Or Database Corruption May Occur When You Use The Bcp Utility Or The 'Bulk Insert' Transact-SQL Command To Import Data In SQL Server 2000 / 2007-04-24"
+			}
 			"8.0.2244" { "FIX: A Hotfix For Microsoft SQL Server 2000 Service Pack 4 May Not Update All The Necessary Files On An X64-Based Computer / 2007-05-10" }
 			"8.0.2242" { "FIX: In SQL Server 2000, The Synchronization Process Is Slow, And The CPU Usage Is High On The Computer That Is Configured As The Distributor / 2007-03-28" }
 			"8.0.2238" { "FIX: The Merge Agent Fails Intermittently When You Use Merge Replication That Uses A Custom Resolver After You Install SQL Server 2000 Service Pack 4 / 2007-02-21" }
 			"8.0.2236" { "FIX: CPU Utilization May Approach 100 Percent On A Computer That Is Running SQL Server 2000 After You Run The BACKUP DATABASE Statement Or The BACKUP LOG Statement / 2007-02-02" }
 			"8.0.2234" { "FIX: Error Messages When You Try To Update Table Rows Or Insert Table Rows Into A Table In SQL Server 2000: '644' Or '2511' / 2007-02-22" }
 			"8.0.2232" { "FIX: SQL Server 2000 Stops Responding When You Cancel A Query Or When A Query Time-Out Occurs, And Error Messages Are Logged In The SQL Server Error Log File / 2007-01-15" }
-			"8.0.2231" { "FIX: The Sqldumper.Exe Utility Cannot Generate A Filtered SQL Server Dump File When You Use The Remote Desktop Connection Service Or Terminal Services To Connect To A Windows 2000 Server-Based Computer In SQL Server 2000 / 2007-06-19" }
-			"8.0.2229" { "FIX: Error Message When You Create A Merge Replication For Tables That Have Computed Columns In SQL Server 2000 Service Pack 4: 'The Process Could Not Log Conflict Information' / 2007-07-24" }
+			"8.0.2231" {
+				"FIX: The Sqldumper.Exe Utility Cannot Generate A Filtered SQL Server Dump File When You Use The Remote Desktop Connection Service Or Terminal Services To Connect To A Windows 2000 Server
+-Based Computer In SQL Server 2000 / 2007-06-19"
+			}
+			"8.0.2229" {
+				"FIX: Error Message When You Create A Merge Replication For Tables That Have Computed Columns In SQL Server 2000 Service Pack 4: 'The Process Could Not Log Conflict Information' / 2007-07
+-24"
+			}
 			"8.0.2226" { "FIX: You May Experience One Or More Symptoms When You Run A 'CREATE INDEX' Statement On An Instance Of SQL Server 2000 / 2006-11-20" }
 			"8.0.2226" { "FIX: You May Receive Inconsistent Comparison Results When You Compare Strings By Using A Width Sensitive Collation In SQL Server 2000 / 2006-11-13" }
 			"8.0.2223" { "FIX: The Server Stops Responding, The Performance Is Slow, And A Time-Out Occurs In SQL Server 2000 / 2007-07-20" }
-			"8.0.2223" { "FIX: Error Message When You Schedule A Replication Merge Agent Job To Run After You Install SQL Server 2000 Service Pack 4: 'The Process Could Not Enumerate Changes At The 'Subscriber'' / 2006-10-31" }
+			"8.0.2223" {
+				"FIX: Error Message When You Schedule A Replication Merge Agent Job To Run After You Install SQL Server 2000 Service Pack 4: 'The Process Could Not Enumerate Changes At The 'Subscriber'' 
+/ 2006-10-31"
+			}
 			"8.0.2218" { "FIX: The Result May Be Sorted In The Wrong Order When You Run A Query That Uses The ORDER BY Clause To Sort A Column In A Table In SQL Server 2000 / 2007-06-19" }
 			"8.0.2217" { "FIX: You Cannot Stop The SQL Server Service, Or Many Minidump Files And Many Log Files Are Generated In SQL Server 2000 / 2007-10-25" }
 			"8.0.2215" { "FIX: Data In A Subscriber Of A Merge Publication In SQL Server 2000 Differs From The Data In The Publisher / 2007-01-12" }
 			"8.0.2215" { "FIX: The Query Performance May Be Slow When You Query Data From A View In SQL Server 2000 / 2006-10-05" }
-			"8.0.2215" { "FIX: Error Message When You Configure An Immediate Updating Transactional Replication In SQL Server 2000: 'Implicit Conversion From Datatype 'Text' To 'Nvarchar' Is Not Allowed' / 2006-10-30" }
+			"8.0.2215" {
+				"FIX: Error Message When You Configure An Immediate Updating Transactional Replication In SQL Server 2000: 'Implicit Conversion From Datatype 'Text' To 'Nvarchar' Is Not Allowed' / 2006-1
+0-30"
+			}
 			"8.0.2215" { "FIX: You May Receive An Access Violation Error Message When You Import Data By Using The 'Bulk Insert' Command In SQL Server 2000 / 2006-12-28" }
 			"8.0.2209" { "The Knowledge Base (KB) Article You Requested Is Currently Not Available / " }
 			"8.0.2207" { "FIX: A SQL Server 2000 Session May Be Blocked For The Whole Time That A Snapshot Agent Job Runs / 2006-08-28" }
@@ -964,27 +1159,45 @@ function Get-ProductVersion
 			"8.0.2194" { "FIX: You Receive An Access Violation Error Message When You Try To Perform A Read Of A Large Binary Large Object Column In SQL Server 2000 / 2006-09-22" }
 			"8.0.2192" { "FIX: You May Notice A Decrease In Performance When You Run A Query That Uses The UNION ALL Operator In SQL Server 2000 Service Pack 4 / 2006-08-04" }
 			"8.0.2191" { "FIX: Error Message When You Run SQL Server 2000: 'Failed Assertion = 'Lockfound == TRUE'' / 2006-07-26" }
-			"8.0.2191" { "FIX: You May Experience Heap Corruption, And SQL Server 2000 May Shut Down With Fatal Access Violations When You Try To Browse Files In SQL Server 2000 Enterprise Manager On A Windows Server 2003 X64-Based Computer / 2006-10-03" }
+			"8.0.2191" {
+				"FIX: You May Experience Heap Corruption, And SQL Server 2000 May Shut Down With Fatal Access Violations When You Try To Browse Files In SQL Server 2000 Enterprise Manager On A Windows Se
+rver 2003 X64-Based Computer / 2006-10-03"
+			}
 			"8.0.2189" { "FIX: An Access Violation May Occur When You Run A Query On A Table That Has A Multicolumn Index In SQL Server 2000 / 2006-07-26" }
 			"8.0.2189" { "FIX: The SQL Server Process May End Unexpectedly When You Turn On Trace Flag -T1204 And A Profiler Trace Is Capturing The Lock:Deadlock Chain Event In SQL Server 2000 SP4 / 2006-07-19" }
 			"8.0.2187" { "FIX: A Deadlock Occurs When The Scheduled SQL Server Agent Job That You Add Or That You Update Is Running In SQL Server 2000 / 2007-06-18" }
 			"8.0.2187" { "A Cumulative Hotfix Package Is Available For SQL Server 2000 Service Pack 4 Build 2187 / 2006-10-16" }
 			"8.0.2187" { "FIX: The Database Status Changes To Suspect When You Perform A Bulk Copy In A Transaction And Then Roll Back The Transaction In SQL Server 2000 / 2006-07-26" }
 			"8.0.2187" { "FIX: Error Message When You Try To Apply A Hotfix On A SQL Server 2000-Based Computer That Is Configured As A MSCS Node: 'An Error In Updating Your System Has Occurred' / 2006-12-11" }
-			"8.0.2180" { "FIX: The Password That You Specify In A BACKUP Statement Appears In The SQL Server Errorlog File Or In The Application Event Log If The BACKUP Statement Does Not Run In SQL Server 2000 / 2007-02-19" }
+			"8.0.2180" {
+				"FIX: The Password That You Specify In A BACKUP Statement Appears In The SQL Server Errorlog File Or In The Application Event Log If The BACKUP Statement Does Not Run In SQL Server 2000 /
+ 2007-02-19"
+			}
 			"8.0.2180" { "FIX: You May Receive Error Messages When You Use Linked Servers In SQL Server 2000 On A 64-Bit Itanium Processor / 2006-07-26" }
-			"8.0.2175" { "FIX: No Rows May Be Returned, And You May Receive An Error Message When You Try To Import SQL Profiler Trace Files Into Tables By Using The Fn_Trace_Gettable Function In SQL Server 2000 / 2006-07-26" }
+			"8.0.2175" {
+				"FIX: No Rows May Be Returned, And You May Receive An Error Message When You Try To Import SQL Profiler Trace Files Into Tables By Using The Fn_Trace_Gettable Function In SQL Server 2000 
+/ 2006-07-26"
+			}
 			"8.0.2172" { "FIX: When You Query A View That Was Created By Using The VIEW_METADATA Option, An Access Violation May Occur In SQL Server 2000 / 2006-07-26" }
 			"8.0.2171" { "FIX: Automatic Checkpoints On Some SQL Server 2000 Databases Do Not Run As Expected / 2006-07-26" }
 			"8.0.2168" { "FIX: An Error Occurs When You Try To Access The Analysis Services Performance Monitor Counter Object After You Apply Windows Server 2003 SP1 / 2006-11-21" }
-			"8.0.2166" { "FIX: An Error Message Is Logged, And New Diagnostics Do Not Capture The Thread Stack When The SQL Server User Mode Scheduler (UMS) Experiences A Nonyielding Thread In SQL Server 2000 Service Pack 4 / 2006-07-26" }
+			"8.0.2166" {
+				"FIX: An Error Message Is Logged, And New Diagnostics Do Not Capture The Thread Stack When The SQL Server User Mode Scheduler (UMS) Experiences A Nonyielding Thread In SQL Server 2000 Ser
+vice Pack 4 / 2006-07-26"
+			}
 			"8.0.2162" { "A Cumulative Hotfix Package Is Available For SQL Server 2000 Service Pack 4 Build 2162 / 2006-09-15" }
 			"8.0.2159" { "FIX: You May Experience Concurrency Issues When You Run The DBCC INDEXDEFRAG Statement In SQL Server 2000 / 2006-07-26" }
 			"8.0.2156" { "FIX: You Receive An Error Message When You Try To Rebuild The Master Database After You Have Installed Hotfix Builds In SQL Server 2000 SP4 64-Bit / 2006-07-25" }
-			"8.0.2151" { "FIX: You Receive An 'Error: 8526, Severity: 16, State: 2' Error Message In SQL Profiler When You Use SQL Query Analyzer To Start Or To Enlist Into A Distributed Transaction After You Have Installed SQL Server 2000 SP4 / 2006-07-25" }
+			"8.0.2151" {
+				"FIX: You Receive An 'Error: 8526, Severity: 16, State: 2' Error Message In SQL Profiler When You Use SQL Query Analyzer To Start Or To Enlist Into A Distributed Transaction After You Hav
+e Installed SQL Server 2000 SP4 / 2006-07-25"
+			}
 			"8.0.2151" { "FIX: Incorrect Data Is Inserted Unexpectedly When You Perform A Bulk Copy Operation By Using The DB-Library API In SQL Server 2000 Service Pack 4 / 2007-06-13" }
 			"8.0.2148" { "FIX: An Access Violation May Occur When You Run A SELECT Query And The NO_BROWSETABLE Option Is Set To ON In Microsoft SQL Server 2000 / 2006-07-25" }
-			"8.0.2148" { "FIX: An Access Violation Occurs In The Mssdi98.Dll File, And SQL Server Crashes When You Use SQL Query Analyzer To Debug A Stored Procedure In SQL Server 2000 Service Pack 4 / 2006-07-25" }
+			"8.0.2148" {
+				"FIX: An Access Violation Occurs In The Mssdi98.Dll File, And SQL Server Crashes When You Use SQL Query Analyzer To Debug A Stored Procedure In SQL Server 2000 Service Pack 4 / 2006-07-25
+"
+			}
 			"8.0.2148" { "FIX: The Mssdmn.Exe Process May Use Lots Of CPU Capacity When You Perform A SQL Server 2000 Full Text Search Of Office Word Documents / 2006-06-01" }
 			"8.0.2148" { "FIX: The Results Of The Query May Be Returned Much Slower Than You Expect When You Run A Query That Includes A GROUP BY Statement In SQL Server 2000 / 2006-06-01" }
 			"8.0.2148" { "FIX: You Receive An Error Message If You Use The Sp_Addalias Or Sp_Dropalias Procedures When The IMPLICIT_TRANSACTIONS Option Is Set To ON In SQL Server 2000 SP4 / 2006-07-25" }
@@ -1001,11 +1214,14 @@ function Get-ProductVersion
 			"8.0.2039" { "SQL Server 2000 Service Pack 4 (SP4) / 2005-05-06" }
 			"8.0.2026" { "SQL Server 2000 Service Pack 4 (SP4) Beta / " }
 			"8.0.1547" { "FIX: You May Experience Slow Server Performance When You Start A Trace In An Instance Of SQL Server 2000 That Runs On A Computer That Has More Than Four Processors / 2006-06-01" }
-			"8.0.1077" { "983814 MS12-070: Description Of The Security Update For SQL Server 2000 Reporting Services Service Pack 2 / 2012-10-09" }
-			"8.0.1037" { "FIX: CPU Utilization May Approach 100 Percent On A Computer That Is Running SQL Server 2000 After You Run The BACKUP DATABASE Statement Or The BACKUP LOG Statement / " }
+			"8.0.1077" { "983814 MS12-070: Description Of The Security Update For SQL Server 2000 Reporting Services Service Pack 2 / " }
+			"8.0.1037" { "FIX: CPU Utilization May Approach 100 Percent On A Computer That Is Running SQL Server 2000 After You Run The BACKUP DATABASE Statement Or The BACKUP LOG Statement / 2007-02-02" }
 			"8.0.1036" { "FIX: Error Message When You Run A Full-Text Query In SQL Server 2000: 'Error: 17883, Severity: 1, State: 0' / 2007-01-11" }
 			"8.0.1035" { "FIX: The 'Audit Logout' Event Does Not Appear In The Trace Results File When You Run A Profiler Trace Against A Linked Server Instance In SQL Server 2000 / 2006-09-22" }
-			"8.0.1034" { "FIX: You May Intermittently Experience An Access Violation Error When A Query Is Executed In A Parallel Plan And The Execution Plan Contains Either A HASH JOIN Operation Or A Sort Operation In SQL Server 2000 / 2006-08-09" }
+			"8.0.1034" {
+				"FIX: You May Intermittently Experience An Access Violation Error When A Query Is Executed In A Parallel Plan And The Execution Plan Contains Either A HASH JOIN Operation Or A Sort Operat
+ion In SQL Server 2000 / 2006-08-09"
+			}
 			"8.0.1029" { "FIX: Error Message When You Run An UPDATE Statement That Uses Two JOIN Hints To Update A Table In SQL Server 2000: 'Internal SQL Server Error' / 2006-06-01" }
 			"8.0.1027" { "FIX: A 17883 Error May Occur You Run A Query That Uses A Hash Join In SQL Server 2000 / 2006-07-25" }
 			"8.0.1025" { "FIX: You Receive Incorrect Results When You Run A Query That Uses A Cross Join Operator In SQL Server 2000 SP3 / 2006-06-01" }
@@ -1013,8 +1229,14 @@ function Get-ProductVersion
 			"8.0.1024" { "FIX: Error Message When You Use SQL Server 2000: 'Time Out Occurred While Waiting For Buffer Latch Type 3' / 2006-07-25" }
 			"8.0.1021" { "FIX: Server Network Utility May Display Incorrect Protocol Properties In SQL Server 2000 / 2006-07-25" }
 			"8.0.1020" { "FIX: The Subscriber May Not Be Able To Upload Changes To The Publisher When You Incrementally Add An Article To A Publication In SQL Server 2000 SP3 / 2006-07-25" }
-			"8.0.1019" { "FIX: You May Receive A Memory-Related Error Message When You Repeatedly Create And Destroy An Out-Of-Process COM Object Within The Same Batch Or Stored Procedure In SQL Server 2000 / 2006-06-01" }
-			"8.0.1017" { "FIX: The BULK INSERT Statement Silently Skips Insert Attempts When The Data Value Is NULL And The Column Is Defined As NOT NULL For INT, SMALLINT, And BIGINT Data Types In SQL Server 2000 / 2006-06-01" }
+			"8.0.1019" {
+				"FIX: You May Receive A Memory-Related Error Message When You Repeatedly Create And Destroy An Out-Of-Process COM Object Within The Same Batch Or Stored Procedure In SQL Server 2000 / 200
+6-06-01"
+			}
+			"8.0.1017" {
+				"FIX: The BULK INSERT Statement Silently Skips Insert Attempts When The Data Value Is NULL And The Column Is Defined As NOT NULL For INT, SMALLINT, And BIGINT Data Types In SQL Server 200
+0 / 2006-06-01"
+			}
 			"8.0.1014" { "FIX: You May Receive Error Message 701, Error Message 802, And Error Message 17803 When Many Hashed Buffers Are Available In SQL Server 2000 / 2006-06-01" }
 			"8.0.1014" { "FIX: You Receive An Error Message When You Try To Delete Records By Running A Delete Transact-SQL Statement In SQL Server 2000 / 2006-07-25" }
 			"8.0.1013" { "FIX: The Query Runs Slower Than You Expected When You Try To Parse A Query In SQL Server 2000 / 2006-06-01" }
@@ -1028,10 +1250,19 @@ function Get-ProductVersion
 			"8.0.996" { "FIX: You Receive A 17883 Error Message And SQL Server 2000 May Stop Responding To Other Requests When You Perform Large In-Memory Sort Operations / 2006-06-01" }
 			"8.0.994" { "FIX: Some Complex Queries Are Slower After You Install SQL Server 2000 Service Pack 2 Or SQL Server 2000 Service Pack 3 / 2006-06-01" }
 			"8.0.994" { "FIX: You Experience Non-Convergence In A Replication Topology When You Unpublish Or Drop Columns From A Dynamically Filtered Publication In SQL Server 2000 / 2006-06-01" }
-			"8.0.994" { "FIX: You Receive A 'Server: Msg 107, Level 16, State 3, Procedure TEMP_VIEW_Merge, Line 1' Error Message When The Sum Of The Length Of The Published Column Names In A Merge Publication Exceeds 4,000 Characters In SQL Server 2000 / 2006-06-01" }
-			"8.0.993" { "FIX: The @@ERROR System Function May Return An Incorrect Value When You Execute A Transact-SQL Statement That Uses A Parallel Execution Plan In SQL Server 2000 32-Bit Or In SQL Server 2000 64-Bit / 2006-06-01" }
+			"8.0.994" {
+				"FIX: You Receive A 'Server: Msg 107, Level 16, State 3, Procedure TEMP_VIEW_Merge, Line 1' Error Message When The Sum Of The Length Of The Published Column Names In A Merge Publication Ex
+ceeds 4,000 Characters In SQL Server 2000 / 2006-06-01"
+			}
+			"8.0.993" {
+				"FIX: The @@ERROR System Function May Return An Incorrect Value When You Execute A Transact-SQL Statement That Uses A Parallel Execution Plan In SQL Server 2000 32-Bit Or In SQL Server 200
+0 64-Bit / 2006-06-01"
+			}
 			"8.0.993" { "FIX: You Receive A 17883 Error In SQL Server 2000 Service Pack 3 Or In SQL Server 2000 Service Pack 3A When A Worker Thread Becomes Stuck In A Registry Call / 2006-06-01" }
-			"8.0.993" { "FIX: Error Message When You Use A Loopback Linked Server To Run A Distributed Query In SQL Server 2000: 'Could Not Perform The Requested Operation Because The Minimum Query Memory Is Not Available' / 2006-05-15" }
+			"8.0.993" {
+				"FIX: Error Message When You Use A Loopback Linked Server To Run A Distributed Query In SQL Server 2000: 'Could Not Perform The Requested Operation Because The Minimum Query Memory Is Not 
+Available' / 2006-05-15"
+			}
 			"8.0.991" { "FIX: Non-Convergence May Occur In A Merge Replication Topology If The Primary Connection To The Publisher Is Disconnected / 2006-06-01" }
 			"8.0.990" { "FIX: SQL Server 2000 Stops Listening For New TCP/IP Socket Connections Unexpectedly After Error Message 17882 Is Written To The SQL Server 2000 Error Log / 2006-06-01" }
 			"8.0.988" { "FIX: You Receive A 'Msg 3628' Error Message When You Run An Inner Join Query In SQL Server 2000 / 2006-06-01" }
@@ -1043,11 +1274,20 @@ function Get-ProductVersion
 			"8.0.970" { "FIX: A CHECKDB Statement Reports A 2537 Corruption Error After SQL Server Transfers Data To A Sql_Variant Column In SQL Server 2000 / 2006-06-01" }
 			"8.0.967" { "FIX: You May Receive An Error Message When You Run A SET IDENTITY_INSERT ON Statement On A Table And Then Try To Insert A Row Into The Table In SQL Server 2000 / 2006-06-01" }
 			"8.0.962" { "FIX: A User-Defined Function Returns Results That Are Not Correct For A Query / 2006-06-01" }
-			"8.0.961" { "FIX: An Access Violation Exception May Occur When Multiple Users Try To Perform Data Modification Operations At The Same Time That Fire Triggers That Reference A Deleted Or An Inserted Table In SQL Server 2000 On A Computer That Is Running SMP / 2006-06-01" }
+			"8.0.961" {
+				"FIX: An Access Violation Exception May Occur When Multiple Users Try To Perform Data Modification Operations At The Same Time That Fire Triggers That Reference A Deleted Or An Inserted Ta
+ble In SQL Server 2000 On A Computer That Is Running SMP / 2006-06-01"
+			}
 			"8.0.959" { "FIX: An Audit Object Permission Event Is Not Produced When You Run A TRUNCATE TABLE Statement / 2006-06-01" }
 			"8.0.957" { "FIX: An Access Violation Exception May Occur When You Run A Query That Uses Index Names In The WITH INDEX Option To Specify An Index Hint / 2006-06-01" }
-			"8.0.955" { "FIX: The @Date_Received Parameter Of The Xp_Readmail Extended Stored Procedure Incorrectly Returns The Date And The Time That An E-Mail Message Is Submitted By The Sender In SQL Server 2000 / 2007-01-08" }
-			"8.0.954" { "FIX: The Osql.Exe Utility Does Not Run A Transact-SQL Script Completely If You Start The Program From A Remote Session By Using A Background Service And Then Log Off The Console Session / 2007-01-05" }
+			"8.0.955" {
+				"FIX: The @Date_Received Parameter Of The Xp_Readmail Extended Stored Procedure Incorrectly Returns The Date And The Time That An E-Mail Message Is Submitted By The Sender In SQL Server 20
+00 / 2007-01-08"
+			}
+			"8.0.954" {
+				"FIX: The Osql.Exe Utility Does Not Run A Transact-SQL Script Completely If You Start The Program From A Remote Session By Using A Background Service And Then Log Off The Console Session /
+ 2007-01-05"
+			}
 			"8.0.952" { "FIX: The Log Reader Agent May Cause 17883 Error Messages / 2006-06-01" }
 			"8.0.952" { "FIX: Merge Replication Non-Convergence Occurs With SQL Server CE Subscribers / 2006-06-01" }
 			"8.0.952" { "FIX: Merge Agent May Fail With An 'Invalid Character Value For Cast Specification' Error Message / 2006-06-01" }
@@ -1056,11 +1296,17 @@ function Get-ProductVersion
 			"8.0.944" { "FIX: SQL Debugging Does Not Work In Visual Studio .NET After You Install Windows XP Service Pack 2 / 2006-06-05" }
 			"8.0.937" { "FIX: Additional Diagnostics Have Been Added To SQL Server 2000 To Detect Unreported Read Operation Failures / 2006-06-01" }
 			"8.0.936" { "FIX: SQL Server 2000 May Underestimate The Cardinality Of A Query Expression Under Certain Circumstances / 2006-06-01" }
-			"8.0.935" { "FIX: You May Notice Incorrect Values For The 'Active Transactions' Counter When You Perform Multiple Transactions On An Instance Of SQL Server 2000 That Is Running On An SMP Computer / 2006-06-01" }
-			"8.0.934" { "FIX: You May Receive A 'The Query Processor Could Not Produce A Query Plan' Error Message In SQL Server When You Run A Query That Includes Multiple Subqueries That Use Self-Joins / 2006-06-01" }
+			"8.0.935" {
+				"FIX: You May Notice Incorrect Values For The 'Active Transactions' Counter When You Perform Multiple Transactions On An Instance Of SQL Server 2000 That Is Running On An SMP Computer / 20
+06-06-01"
+			}
+			"8.0.934" {
+				"FIX: You May Receive A 'The Query Processor Could Not Produce A Query Plan' Error Message In SQL Server When You Run A Query That Includes Multiple Subqueries That Use Self-Joins / 2006-0
+6-01"
+			}
 			"8.0.933" { "FIX: The Mssqlserver Service Exits Unexpectedly In SQL Server 2000 Service Pack 3 / 2006-06-02" }
-			"8.0.929" { "FIX: 8621 Error Conditions May Cause SQL Server 2000 64-Bit To Close Unexpectedly / 2006-06-01" }
-			"8.0.928" { "FIX: The Thread Priority Is Raised For Some Threads In A Parallel Query / " }
+			"8.0.929" { "FIX: 8621 Error Conditions May Cause SQL Server 2000 64-Bit To Close Unexpectedly / " }
+			"8.0.928" { "FIX: The Thread Priority Is Raised For Some Threads In A Parallel Query / 2006-06-01" }
 			"8.0.927" { "FIX: Profiler RPC Events Truncate Parameters That Have A Text Data Type To 16 Characters / 2006-06-01" }
 			"8.0.926" { "FIX: An Access Violation Exception May Occur When You Update A Text Column By Using A Stored Procedure In SQL Server 2000 / 2006-06-01" }
 			"8.0.923" { "FIX: The Xp_Logininfo Procedure May Fail With Error 8198 After You Install Q825042 Or Any Hotfix With SQL Server 8.0.0840 Or Later / 2006-06-01" }
@@ -1087,7 +1333,9 @@ function Get-ProductVersion
 			"8.0.869" { "FIX: Access Violation When You Trace Keyset-Driven Cursors By Using SQL Profiler / 2005-10-25" }
 			"8.0.866" { "FIX: An Access Violation Occurs In SQL Server 2000 When A High Volume Of Local Shared Memory Connections Occur After You Install Security Update MS03-031 / 2006-01-16" }
 			"8.0.865" { "FIX: An Access Violation Occurs During Compilation If The Table Contains Statistics For A Computed Column / 2005-10-25" }
-			"8.0.865" { "FIX: You Cannot Insert Explicit Values In An IDENTITY Column Of A SQL Server Table By Using The Sqlbulkoperations Function Or The Sqlsetpos ODBC Function In SQL Server 2000 / 2005-10-25" }
+			"8.0.865" {
+				"FIX: You Cannot Insert Explicit Values In An IDENTITY Column Of A SQL Server Table By Using The Sqlbulkoperations Function Or The Sqlsetpos ODBC Function In SQL Server 2000 / 2005-10-25"
+			}
 			"8.0.863" { "FIX: Query Performance May Be Slow And May Be Inconsistent When You Run A Query While Another Query That Contains An IN Operator With Many Values Is Compiled / 2005-10-25" }
 			"8.0.863" { "FIX: A Floating Point Exception Occurs During The Optimization Of A Query / 2005-10-25" }
 			"8.0.859" { "FIX: Issues That Are Resolved In SQL Server 2000 Build 8.00.0859 / 2005-03-31" }
@@ -1108,31 +1356,31 @@ function Get-ProductVersion
 			"8.0.845" { "FIX: A Query With A LIKE Comparison Results In A Non-Optimal Query Plan When You Use A Hungarian SQL Server Collation / 2005-10-05" }
 			"8.0.845" { "FIX: No Exclusive Locks May Be Taken If The Disallowspagelocks Value Is Set To True / 2005-10-25" }
 			"8.0.844" { "FIX: SQL Server 2000 Protocol Encryption Applies To JDBC Clients / 2006-10-17" }
-			"8.0.842" { "FIX: Rows Are Unexpectedly Deleted When You Run A Distributed Query To Delete Or To Update A Linked Server Table / 2005-10-25" }
+			"8.0.842" { "FIX: Rows Are Unexpectedly Deleted When You Run A Distributed Query To Delete Or To Update A Linked Server Table / " }
 			"8.0.841" { "FIX: You Receive An Error Message When You Run A Parallel Query That Uses An Aggregation Function Or The GROUP BY Clause / " }
-			"8.0.840" { "FIX: Extremely Large Number Of User Tables On AWE System May Cause Bpool::Map Errors / " }
 			"8.0.840" { "FIX: Extremely Large Number Of User Tables On AWE System May Cause Bpool::Map Errors / 2005-09-27" }
-			"8.0.839" { "FIX: An Access Violation May Occur When You Run A Query That Contains 32,000 Or More OR Clauses / " }
+			"8.0.840" { "FIX: Extremely Large Number Of User Tables On AWE System May Cause Bpool::Map Errors / " }
+			"8.0.839" { "FIX: An Access Violation May Occur When You Run A Query That Contains 32,000 Or More OR Clauses / 2005-10-25" }
 			"8.0.839" { "FIX: A Cursor With A Large Object Parameter May Cause An Access Violation On Cstmtcond::Xretexecute / 2005-10-25" }
 			"8.0.837" { "FIX: Delayed Domain Authentication May Cause SQL Server To Stop Responding / 2005-10-25" }
 			"8.0.837" { "FIX: Lock Monitor Exception In Deadlockmonitor::Resolvedeadlock / 2005-10-25" }
 			"8.0.837" { "FIX: A Parallel Query May Generate An Access Violation After You Install SQL Server 2000 SP3 / 2005-10-25" }
-			"8.0.837" { "FIX: MS DTC Transaction Commit Operation Blocks Itself / 2005-10-25" }
-			"8.0.837" { "FIX: Build 8.0.0837: A Query That Contains A Correlated Subquery Runs Slowly / " }
+			"8.0.837" { "FIX: MS DTC Transaction Commit Operation Blocks Itself / " }
+			"8.0.837" { "FIX: Build 8.0.0837: A Query That Contains A Correlated Subquery Runs Slowly / 2005-10-25" }
 			"8.0.819" { "FIX: You Are Prompted For Password Confirmation After You Change A Standard SQL Server Login / 2005-10-25" }
 			"8.0.818" { "MS03-031: Security Patch For SQL Server 2000 Service Pack 3 / 2006-01-09" }
 			"8.0.818" { "FIX: Localized Versions Of SQL Mail And The Web Assistant Wizard May Not Work As Expected In SQL Server 2000 64 Bit / 2005-03-16" }
 			"8.0.818" { "FIX: A Transact-SQL Statement That Is Embedded In The Database Name Runs With System Administrator Permissions / 2005-02-10" }
 			"8.0.818" { "FIX: You Are Prompted For Password Confirmation After You Change A Standard SQL Server Login / 2005-10-25" }
-			"8.0.818" { "MS03-031: Security Patch For SQL Server 2000 64-Bit / 2006-03-14" }
-			"8.0.816" { "FIX: Intense SQL Server Activity Results In Spinloop Wait / " }
+			"8.0.818" { "MS03-031: Security Patch For SQL Server 2000 64-Bit / " }
+			"8.0.816" { "FIX: Intense SQL Server Activity Results In Spinloop Wait / 2005-10-25" }
 			"8.0.814" { "FIX: Distribution Cleanup Agent Incorrectly Cleans Up Entries For Anonymous Subscribers / 2005-10-25" }
-			"8.0.811" { "FIX: An Access Violation Exception May Occur When You Insert A Row In A Table That Is Referenced By Indexed Views In SQL Server 2000 / 2006-04-03" }
-			"8.0.811" { "FIX: Distribution Cleanup Agent Incorrectly Cleans Up Entries For Anonymous Subscribers / " }
-			"8.0.811" { "FIX: Invalid TDS Sent To SQL Server Results In Access Violation / 2005-10-25" }
-			"8.0.807" { "FIX: Error Message 3628 May Occur When You Run A Complex Query / " }
-			"8.0.804" { "FIX: Internal Query Processor Error 8623 When Microsoft SQL Server Tries To Compile A Plan For A Complex Query / 2005-10-25" }
-			"8.0.801" { "FIX: SQL Server Enterprise Manager Unexpectedly Quits When You Modify A DTS Package / " }
+			"8.0.811" { "FIX: An Access Violation Exception May Occur When You Insert A Row In A Table That Is Referenced By Indexed Views In SQL Server 2000 / " }
+			"8.0.811" { "FIX: Distribution Cleanup Agent Incorrectly Cleans Up Entries For Anonymous Subscribers / 2005-10-25" }
+			"8.0.811" { "FIX: Invalid TDS Sent To SQL Server Results In Access Violation / " }
+			"8.0.807" { "FIX: Error Message 3628 May Occur When You Run A Complex Query / 2005-10-25" }
+			"8.0.804" { "FIX: Internal Query Processor Error 8623 When Microsoft SQL Server Tries To Compile A Plan For A Complex Query / " }
+			"8.0.801" { "FIX: SQL Server Enterprise Manager Unexpectedly Quits When You Modify A DTS Package / 2006-01-26" }
 			"8.0.800" { "FIX: The Sqldumper.Exe File Does Not Generate A Userdump File When It Runs Against A Windows Service / 2005-09-27" }
 			"8.0.800" { "FIX: An Access Violation May Occur When You Run DBCC DBREINDEX On A Table That Has Hypothetical Indexes / 2005-09-27" }
 			"8.0.800" { "FIX: Query On The Sysmembers Virtual Table May Fail With A Stack Overflow / 2005-09-27" }
@@ -1333,6 +1581,339 @@ function Get-ProductVersion
 			# If nothing else found then default to version number
 			default { "Unknown Version" }
 		}
+	}
+	elseif ($Product -eq 'SSRS')
+	{
+		$Output = switch ($BuildVersion)
+		{
+    <# 
+       SQL Server Reporting Services (SSRS) 2019 Versions
+    #>
+			'15.0.1102.932' { "SQL Server Reporting Services 2019 - October 2021 Release / 2021 October 20" }
+			'15.0.7961.31630' { "SQL Server Reporting Services 2019 - October 2021 Release / 2021 October 20" } #File Version
+			'15.0.1102.911' { "SQL Server Reporting Services 2019 - June 2021 Release / 2021 June 24" }
+			'15.0.7842.32355' { "SQL Server Reporting Services 2019 - June 2021 Release / 2021 June 24" } #File Version
+			'15.0.1102.896' { "SQL Server Reporting Services 2019 - April 2021 Release / 2021 April 07" }
+			'15.0.7765.17516' { "SQL Server Reporting Services 2019 - April 2021 Release / 2021 April 07" } #File Version
+			'15.0.1102.861' { "SQL Server Reporting Services 2019 - August 2020 Release / 2020 August 31" }
+			'15.0.7545.4810' { "SQL Server Reporting Services 2019 - August 2020 Release / 2020 August 31" } #File Version
+			'15.0.1102.675' { "SQL Server Reporting Services 2019 - October 2021 Release / 2021 October 20" }
+			'15.0.7243.37714' { "SQL Server Reporting Services 2019 - Initial Release / 2019 November 1" } #File Version
+    <# 
+       SQL Server Reporting Services (SSRS) 2017 Versions
+    #>
+			'14.0.600.1763' { "SQL Server Reporting Services 2017 - June 2021 Release / 2021 June 28" }
+			'14.0.7844.42503' { "SQL Server Reporting Services 2017 - June 2021 Release / 2021 June 28" } #File Version
+			
+			'14.0.600.1669' { "SQL Server Reporting Services 2017 - August 2020 Release / 2020 August 31" }
+			'14.0.7544.5078' { "SQL Server Reporting Services 2017 - August 2020 Release / 2020 August 31" } #File Version
+			'14.0.600.1572' { "SQL Server Reporting Services 2017 - April 2020 Release / 2020 April 6" }
+			'14.0.600.1453' { "SQL Server Reporting Services 2017 - November 2019 Release 2 / 2019 November 14" }
+			'14.0.600.1451' { "SQL Server Reporting Services 2017 - November 2019 Release / 2019 November 13" }
+			'14.0.600.1274' { "SQL Server Reporting Services 2017 - July 2019 Release / 2019 July 1" }
+			'14.0.600.1109' { "SQL Server Reporting Services 2017 - February 2019 Release / 2019 February 12" }
+			'14.0.600.906' { "SQL Server Reporting Services 2017 - September 2018 Release / 2018 September 12" }
+			'14.0.600.892' { "SQL Server Reporting Services 2017 - August 2018 Release / 2018 August 31" }
+			'14.0.600.744' { "SQL Server Reporting Services 2017 - April 2018 Release / 2018 April 25" }
+			'14.0.600.689' { "SQL Server Reporting Services 2017 - February 2018 Release / 2018 February 28" }
+			'14.0.600.594' { "SQL Server Reporting Services 2017 - January 2018 Release / 2018 January 9" }
+			'14.0.600.490' { "SQL Server Reporting Services 2017 - November 2017 Release / 2017 November 1" }
+			'14.0.600.451' { "SQL Server Reporting Services 2017 - Initial Release / 2017 September 30" }
+			
+    <# 
+       SQL Server Reporting Services (SSRS) 2016 and below Versions (these were integrated into SQL Install Directly)
+    #>
+			"13.0.6404.1" { "On-Demand Hotfix Update Package For SQL Server 2016 Service Pack 3 (SP3) / 2021 October 27" }
+			"13.0.6300.2" { "Microsoft SQL Server 2016 Service Pack 3 (SP3) / 2021 September 15" }
+			"13.0.5888.11" { "Cumulative Update 17 (CU17) For SQL Server 2016 Service Pack 2 / 2021 March 29" }
+			"13.0.5882.1" { "Cumulative Update 16 (CU16) For SQL Server 2016 Service Pack 2 / 2021 February 11" }
+			"13.0.5865.1" { "Security Update For SQL Server 2016 SP2 CU15: January 12, 2021 / 2021 January 12" }
+			"13.0.5850.14" { "Cumulative Update 15 (CU15) For SQL Server 2016 Service Pack 2 / 2020 September 28" }
+			"13.0.5830.85" { "Cumulative Update 14 (CU14) For SQL Server 2016 Service Pack 2 / 2020 August 06" }
+			"13.0.5820.21" { "Cumulative Update 13 (CU13) For SQL Server 2016 Service Pack 2 / 2020 May 28" }
+			"13.0.5698.0" { "Cumulative Update 12 (CU12) For SQL Server 2016 Service Pack 2 / 2020 February 25" }
+			"13.0.5622.0" { "Security Update For SQL Server 2016 SP2 CU11: February 11, 2020 / 2020 February 11" }
+			"13.0.5598.27" { "Cumulative Update 11 (CU11) For SQL Server 2016 Service Pack 2 / 2019 December 09" }
+			"13.0.5492.2" { "Cumulative Update 10 (CU10) For SQL Server 2016 Service Pack 2 / 2019 October 08" }
+			"13.0.5479.0" { "4515435 Cumulative Update 9 (CU9) For SQL Server 2016 Service Pack 2 / 2019 September 30" }
+			"13.0.5426.0" { "Cumulative Update 8 (CU8) For SQL Server 2016 Service Pack 2 / 2019 July 31" }
+			"13.0.5382.0" { "On-Demand Hotfix Update Package 2 For SQL Server 2016 Service Pack 2 (SP2) Cumulative Update 7 (CU7) / 2019 July 09" }
+			"13.0.5366.0" { "Security Update For SQL Server 2016 SP2 CU7 GDR: July 9, 2019 / 2019 July 09" }
+			"13.0.5343.1" { "On-Demand Hotfix Update Package For SQL Server 2016 Service Pack 2 (SP2) Cumulative Update 7 (CU7) / 2019 June 24" }
+			"13.0.5337.0" { "Cumulative Update 7 (CU7) For SQL Server 2016 Service Pack 2 / 2019 May 22" }
+			"13.0.5292.0" { "Cumulative Update 6 (CU6) For SQL Server 2016 Service Pack 2 / 2019 March 19" }
+			"13.0.5270.0" { "On-Demand Hotfix Update Package For SQL Server 2016 SP2 CU5 / 2019 February 14" }
+			"13.0.5264.1" { "Cumulative Update 5 (CU5) For SQL Server 2016 Service Pack 2 / 2019 January 23" }
+			"13.0.5239.0" { "On-Demand Hotfix Update Package 2 For SQL Server 2016 SP2 CU4 / 2018 December 21" }
+			"13.0.5233.0" { "Cumulative Update 4 (CU4) For SQL Server 2016 Service Pack 2 / 2018 November 13" }
+			"13.0.5221.0" { "FIX: Assertion Error Occurs When You Restart The SQL Server 2016 Database / 2018 October 09" }
+			"13.0.5221.0" { "FIX: '3414' And '9003' Errors And A .Pmm Log File Grows Large In SQL Server 2016 / 2018 October 09" }
+			"13.0.5216.0" { "Cumulative Update 3 (CU3) For SQL Server 2016 Service Pack 2 / 2018 September 21" }
+			"13.0.5201.2" { "Security Update For The Remote Code Execution Vulnerability In SQL Server 2016 SP2 CU: August 19, 2018 / 2018 August 19" }
+			"13.0.5161.0" { "Security Update For The Remote Code Execution Vulnerability In SQL Server 2016 SP2 CU: August 14, 2018 / 2018 August 14" }
+			"13.0.5153.0" { "Cumulative Update 2 (CU2) For SQL Server 2016 Service Pack 2 / 2018 July 17" }
+			"13.0.5149.0" { "Cumulative Update 1 (CU1) For SQL Server 2016 Service Pack 2 / 2018 May 30" }
+			"13.0.5103.6" { "Security Update For SQL Server 2016 SP2 GDR: January 12, 2021 / 2021 January 12" }
+			"13.0.5102.14" { "Security Update For SQL Server 2016 SP2 GDR: February 11, 2020 / 2020 February 11" }
+			"13.0.5101.9" { "Security Update For SQL Server 2016 SP2 GDR: July 9, 2019 / 2019 July 09" }
+			"13.0.5081.1" { "Security Update For The Remote Code Execution Vulnerability In SQL Server 2016 SP2 GDR: August 14, 2018 / 2018 August 14" }
+			"13.0.5026.0" { "Microsoft SQL Server 2016 Service Pack 2 (SP2) / 2018 April 24" }
+			"13.0.4604.0" { "Security Update For SQL Server 2016 SP1 CU15 GDR: July 9, 2019 / 2019 July 09" }
+			"13.0.4577.0" { "On-Demand Hotfix Update Package For SQL Server 2016 Service Pack 1 (SP1) Cumulative Update 15 (CU15) / 2019 June 20" }
+			"13.0.4574.0" { "Cumulative Update 15 (CU15) For SQL Server 2016 Service Pack 1 / 2019 May 16" }
+			"13.0.4560.0" { "Cumulative Update 14 (CU14) For SQL Server 2016 Service Pack 1 / 2019 March 19" }
+			"13.0.4550.1" { "Cumulative Update 13 (CU13) For SQL Server 2016 Service Pack 1 / 2019 January 23" }
+			"13.0.4541.0" { "Cumulative Update 12 (CU12) For SQL Server 2016 Service Pack 1 / 2018 November 13" }
+			"13.0.4531.0" { "FIX: The 'Modification_Counter' In DMV Sys.Dm_Db_Stats_Properties Shows Incorrect Value When Partitions Are Merged Through ALTER PARTITION In SQL Server 2016 / 2018 September 27" }
+			"13.0.4528.0" { "Cumulative Update 11 (CU11) For SQL Server 2016 Service Pack 1 / 2018 September 18" }
+			"13.0.4522.0" { "Security Update For The Remote Code Execution Vulnerability In SQL Server 2016 SP1 CU: August 14, 2018 / 2018 August 14" }
+			"13.0.4514.0" { "Cumulative Update 10 (CU10) For SQL Server 2016 Service Pack 1 / 2018 July 16" }
+			"13.0.4502.0" { "Cumulative Update 9 (CU9) For SQL Server 2016 Service Pack 1 / 2018 May 30" }
+			"13.0.4477.0" { "On-Demand Hotfix Update Package For SQL Server 2016 SP1 / 2018 June 02" }
+			"13.0.4474.0" { "Cumulative Update 8 (CU8) For SQL Server 2016 Service Pack 1 / 2018 March 19" }
+			"13.0.4466.4" { "Cumulative Update 7 (CU7) For SQL Server 2016 Service Pack 1 - Security Advisory ADV180002 / 2018 January 04" }
+			"13.0.4457.0" { "Cumulative Update 6 (CU6) For SQL Server 2016 Service Pack 1 / 2017 November 21" }
+			"13.0.4451.0" { "Cumulative Update 5 (CU5) For SQL Server 2016 Service Pack 1 / 2017 September 18" }
+			"13.0.4446.0" { "Cumulative Update 4 (CU4) For SQL Server 2016 Service Pack 1 / 2017 August 08" }
+			"13.0.4435.0" { "Cumulative Update 3 (CU3) For SQL Server 2016 Service Pack 1 / 2017 May 15" }
+			"13.0.4422.0" { "Cumulative Update 2 (CU2) For SQL Server 2016 Service Pack 1 / 2017 March 22" }
+			"13.0.4411.0" { "Cumulative Update 1 (CU1) For SQL Server 2016 Service Pack 1 / 2017 January 18" }
+			"13.0.4259.0" { "Security Update For SQL Server 2016 SP1 GDR: July 9, 2019 / 2019 July 09" }
+			"13.0.4224.16" { "Security Update For The Remote Code Execution Vulnerability In SQL Server 2016 SP1 GDR: August 22, 2018 / 2018 August 22" }
+			"13.0.4223.10" { "Security Update For The Remote Code Execution Vulnerability In SQL Server 2016 SP1 GDR: August 14, 2018 / 2018 August 14" }
+			"13.0.4210.6" { "Description Of The Security Update For SQL Server 2016 SP1 GDR: January 3, 2018 - Security Advisory ADV180002 / 2018 January 03" }
+			"13.0.4206.0" { "Security Update For SQL Server 2016 Service Pack 1 GDR: August 8, 2017 / 2017 August 08" }
+			"13.0.4202.2" { "GDR Update Package For SQL Server 2016 SP1 / 2016 December 16" }
+			"13.0.4199.0" { "Important Update For SQL Server 2016 SP1 Reporting Services / 2016 November 23" }
+			"13.0.4001.0" { "Microsoft SQL Server 2016 Service Pack 1 (SP1) / 2016 November 16" }
+			"13.0.2218.0" { "Description Of The Security Update For SQL Server 2016 CU: January 6, 2018 - Security Advisory ADV180002 / 2018 January 06" }
+			"13.0.2216.0" { "Cumulative Update 9 (CU9) For SQL Server 2016 / 2017 November 21" }
+			"13.0.2213.0" { "Cumulative Update 8 (CU8) For SQL Server 2016 / 2017 September 18" }
+			"13.0.2210.0" { "Cumulative Update 7 (CU7) For SQL Server 2016 / 2017 August 08" }
+			"13.0.2204.0" { "Cumulative Update 6 (CU6) For SQL Server 2016 / 2017 May 15" }
+			"13.0.2197.0" { "Cumulative Update 5 (CU5) For SQL Server 2016 / 2017 March 21" }
+			"13.0.2193.0" { "Cumulative Update 4 (CU4) For SQL Server 2016 / 2017 January 18" }
+			"13.0.2190.2" { "On-Demand Hotfix Update Package For SQL Server 2016 CU3 / 2016 December 16" }
+			"13.0.2186.6" { "Cumulative Update 3 (CU3) For SQL Server 2016 / 2016 November 08" }
+			"13.0.2186.6" { "MS16-136: Description Of The Security Update For SQL Server 2016 CU: November 8, 2016 / 2016 November 08" }
+			"13.0.2170.0" { "On-Demand Hotfix Update Package For SQL Server 2016 CU2 / 2016 November 01" }
+			"13.0.2169.0" { "On-Demand Hotfix Update Package For SQL Server 2016 CU2 / 2016 October 26" }
+			"13.0.2164.0" { "Cumulative Update 2 (CU2) For SQL Server 2016 / 2016 September 22" }
+			"13.0.2149.0" { "Cumulative Update 1 (CU1) For SQL Server 2016 / 2016 July 26" }
+			"13.0.1745.2" { "Description Of The Security Update For SQL Server 2016 GDR: January 6, 2018 - Security Advisory ADV180002 / 2018 January 06" }
+			"13.0.1742.0" { "Security Update For SQL Server 2016 RTM GDR: August 8, 2017 / 2017 August 08" }
+			"13.0.1728.2" { "GDR Update Package For SQL Server 2016 RTM / 2016 December 16" }
+			"13.0.1722.0" { "MS16-136: Description Of The Security Update For SQL Server 2016 GDR: November 8, 2016 / 2016 November 08" }
+			"13.0.1711.0" { "Processing A Partition Causes Data Loss On Other Partitions After The Database Is Restored In SQL Server 2016 (1200) / 2016 August 17" }
+			"13.0.1708.0" { "Critical Update For SQL Server 2016 MSVCRT Prerequisites / 2016 June 03" }
+			"13.0.1601.5" { "Microsoft SQL Server 2016 RTM / 2016 June 01" }
+			"13.0.1400.361" { "Microsoft SQL Server 2016 Release Candidate 3 (RC3) / 2016 April 15" }
+			"13.0.1300.275" { "Microsoft SQL Server 2016 Release Candidate 2 (RC2) / 2016 April 01" }
+			"13.0.1200.242" { "Microsoft SQL Server 2016 Release Candidate 1 (RC1) / 2016 March 18" }
+			"13.0.1100.288" { "Microsoft SQL Server 2016 Release Candidate 0 (RC0) / 2016 March 07" }
+			"13.0.1000.281" { "Microsoft SQL Server 2016 Community Technology Preview 3.3 (CTP3.3) / 2016 February 03" }
+			"13.0.900.73" { "Microsoft SQL Server 2016 Community Technology Preview 3.2 (CTP3.2) / 2015 December 16" }
+			"13.0.800.11" { "Microsoft SQL Server 2016 Community Technology Preview 3.1 (CTP3.1) / 2015 November 30" }
+			"13.0.700.139" { "Microsoft SQL Server 2016 Community Technology Preview 3.0 (CTP3.0) / 2015 October 28" }
+			"13.0.600.65" { "Microsoft SQL Server 2016 Community Technology Preview 2.4 (CTP2.4) / 2015 September 30" }
+			"13.0.500.53" { "Microsoft SQL Server 2016 Community Technology Preview 2.3 (CTP2.3) / 2015 August 28" }
+			"13.0.407.1" { "Microsoft SQL Server 2016 Community Technology Preview 2.2 (CTP2.2) / 2015 July 23" }
+			"13.0.400.91" { "Microsoft SQL Server 2016 Community Technology Preview 2.2 (CTP2.2) / 2015 July 22" }
+			"13.0.300.44" { "Microsoft SQL Server 2016 Community Technology Preview 2.1 (CTP2.1) / 2015 June 24" }
+			"13.0.200.172" { "Microsoft SQL Server 2016 Community Technology Preview 2 (CTP2) / 2015 May 27" }
+			"12.0.6433.1" { "Security Update For SQL Server 2014 SP3 CU4: January 12, 2021 / 2021 January 12" }
+			"12.0.6372.1" { "Security Update For SQL Server 2014 SP3 CU4: February 11, 2020 / 2020 February 11" }
+			"12.0.6329.1" { "Cumulative Update Package 4 (CU4) For SQL Server 2014 Service Pack 3 / 2019 July 29" }
+			"12.0.6293.0" { "Security Update For SQL Server 2014 SP3 CU3 GDR: July 9, 2019 / 2019 July 09" }
+			"12.0.6259.0" { "Cumulative Update Package 3 (CU3) For SQL Server 2014 Service Pack 3 / 2019 April 16" }
+			"12.0.6214.1" { "Cumulative Update Package 2 (CU2) For SQL Server 2014 Service Pack 3 / 2019 February 19" }
+			"12.0.6205.1" { "Cumulative Update Package 1 (CU1) For SQL Server 2014 Service Pack 3 / 2018 December 12" }
+			"12.0.6164.21" { "Security Update For SQL Server 2014 SP3 GDR: January 12, 2021 / 2021 January 12" }
+			"12.0.6118.4" { "Security Update For SQL Server 2014 SP3 GDR: February 11, 2020 / 2020 February 11" }
+			"12.0.6108.1" { "Security Update For SQL Server 2014 SP3 GDR: July 9, 2019 / 2019 July 09" }
+			"12.0.6024.0" { "SQL Server 2014 Service Pack 3 (SP3) / 2018 October 30" }
+			"12.0.5687.1" { "Cumulative Update Package 18 (CU18) For SQL Server 2014 Service Pack 2 / 2019 July 29" }
+			"12.0.5659.1" { "Security Update For SQL Server 2014 SP2 CU17 GDR: July 9, 2019 / 2019 July 09" }
+			"12.0.5632.1" { "Cumulative Update Package 17 (CU17) For SQL Server 2014 Service Pack 2 / 2019 April 16" }
+			"12.0.5626.1" { "Cumulative Update Package 16 (CU16) For SQL Server 2014 Service Pack 2 / 2019 February 19" }
+			"12.0.5605.1" { "Cumulative Update Package 15 (CU15) For SQL Server 2014 Service Pack 2 / 2018 December 12" }
+			"12.0.5600.1" { "Cumulative Update Package 14 (CU14) For SQL Server 2014 Service Pack 2 / 2018 October 15" }
+			"12.0.5590.1" { "Cumulative Update Package 13 (CU13) For SQL Server 2014 Service Pack 2 / 2018 August 27" }
+			"12.0.5589.7" { "Cumulative Update Package 12 (CU12) For SQL Server 2014 Service Pack 2 / 2018 June 18" }
+			"12.0.5579.0" { "Cumulative Update Package 11 (CU11) For SQL Server 2014 Service Pack 2 / 2018 March 19" }
+			"12.0.5571.0" { "Cumulative Update Package 10 (CU10) For SQL Server 2014 Service Pack 2 - Security Advisory ADV180002 / 2018 January 16" }
+			"12.0.5563.0" { "Cumulative Update Package 9 (CU9) For SQL Server 2014 Service Pack 2 / 2017 December 19" }
+			"12.0.5557.0" { "Cumulative Update Package 8 (CU8) For SQL Server 2014 Service Pack 2 / 2017 October 17" }
+			"12.0.5556.0" { "Cumulative Update Package 7 (CU7) For SQL Server 2014 Service Pack 2 / 2017 August 29" }
+			"12.0.5553.0" { "Cumulative Update Package 6 (CU6) For SQL Server 2014 Service Pack 2 / 2017 August 08" }
+			"12.0.5546.0" { "Cumulative Update Package 5 (CU5) For SQL Server 2014 Service Pack 2 / 2017 April 18" }
+			"12.0.5540.0" { "Cumulative Update Package 4 (CU4) For SQL Server 2014 Service Pack 2 / 2017 February 21" }
+			"12.0.5538.0" { "Cumulative Update Package 3 (CU3) For SQL Server 2014 Service Pack 2 - The Article Incorrectly Says It's Version 12.0.5537 / 2016 December 28" }
+			"12.0.5532.0" { "MS16-136: Description Of The Security Update For SQL Server 2014 Service Pack 2 CU: November 8, 2016 / 2016 November 08" }
+			"12.0.5522.0" { "Cumulative Update Package 2 (CU2) For SQL Server 2014 Service Pack 2 / 2016 October 18" }
+			"12.0.5511.0" { "Cumulative Update Package 1 (CU1) For SQL Server 2014 Service Pack 2 / 2016 August 26" }
+			"12.0.5223.6" { "Security Update For SQL Server 2014 SP2 GDR: July 9, 2019 / 2019 July 09" }
+			"12.0.5214.6" { "Security Update For SQL Server 2014 Service Pack 2 GDR: January 16, 2018 - Security Advisory ADV180002 / 2018 January 16" }
+			"12.0.5207.0" { "Security Update For SQL Server 2014 Service Pack 2 GDR: August 8, 2017 / 2017 August 08" }
+			"12.0.5203.0" { "MS16-136: Description Of The Security Update For SQL Server 2014 Service Pack 2 GDR: November 8, 2016 / 2016 November 08" }
+			"12.0.5000.0" { "SQL Server 2014 Service Pack 2 (SP2) / 2016 July 11" }
+			"12.0.4522.0" { "Cumulative Update Package 13 (CU13) For SQL Server 2014 Service Pack 1 / 2017 August 08" }
+			"12.0.4511.0" { "Cumulative Update Package 12 (CU12) For SQL Server 2014 Service Pack 1 / 2017 April 18" }
+			"12.0.4502.0" { "Cumulative Update Package 11 (CU11) For SQL Server 2014 Service Pack 1 / 2017 February 21" }
+			"12.0.4491.0" { "Cumulative Update Package 10 (CU10) For SQL Server 2014 Service Pack 1 / 2016 December 28" }
+			"12.0.4487.0" { "MS16-136: Description Of The Security Update For SQL Server 2014 Service Pack 1 CU: November 8, 2016 / 2016 November 08" }
+			"12.0.4474.0" { "Cumulative Update Package 9 (CU9) For SQL Server 2014 Service Pack 1 / 2016 October 18" }
+			"12.0.4468.0" { "Cumulative Update Package 8 (CU8) For SQL Server 2014 Service Pack 1 / 2016 August 15" }
+			"12.0.4463.0" { "A Memory Leak Occurs When You Use Azure Storage In SQL Server 2014 / 2016 August 04" }
+			"12.0.4459.0" { "Cumulative Update Package 7 (CU7) For SQL Server 2014 Service Pack 1 / 2016 June 20" }
+			"12.0.4457.1" { "REFRESHED Cumulative Update Package 6 (CU6) For SQL Server 2014 Service Pack 1 / 2016 May 31" }
+			"12.0.4449.1" { "DEPRECATED Cumulative Update Package 6 (CU6) For SQL Server 2014 Service Pack 1 / 2016 April 19" }
+			"12.0.4439.1" { "Cumulative Update Package 5 (CU5) For SQL Server 2014 Service Pack 1 / 2016 February 22" }
+			"12.0.4437.0" { "On-Demand Hotfix Update Package For SQL Server 2014 Service Pack 1 Cumulative Update 4 / 2016 February 05" }
+			"12.0.4436.0" { "Cumulative Update Package 4 (CU4) For SQL Server 2014 Service Pack 1 / 2015 December 22" }
+			"12.0.4433.0" { "FIX: Error 3203 And A SQL Server 2014 Backup Job Can't Restart When A Network Failure Occurs / 2015 December 09" }
+			"12.0.4432.0" { "FIX: Error When Your Stored Procedure Calls Another Stored Procedure On Linked Server In SQL Server 2014 / 2015 November 19" }
+			"12.0.4237.0" { "Security Update For SQL Server 2014 Service Pack 1 GDR: August 8, 2017 / 2017 August 08" }
+			"12.0.4232.0" { "MS16-136: Description Of The Security Update For SQL Server 2014 Service Pack 1 GDR: November 8, 2016 / 2016 November 08" }
+			"12.0.4427.24" { "Cumulative Update Package 3 (CU3) For SQL Server 2014 Service Pack 1 / 2015 October 21" }
+			"12.0.4422.0" { "Cumulative Update Package 2 (CU2) For SQL Server 2014 Service Pack 1 / 2015 August 17" }
+			"12.0.4419.0" { "An On-Demand Hotfix Update Package Is Available For SQL Server 2014 SP1 / 2015 July 24" }
+			"12.0.4416.0" { "Cumulative Update Package 1 (CU1) For SQL Server 2014 Service Pack 1 / 2015 June 22" }
+			"12.0.4219.0" { "TLS 1.2 Support For SQL Server 2014 SP1 / 2016 January 27" }
+			"12.0.4213.0" { "MS15-058: Description Of The Nonsecurity Update For SQL Server 2014 Service Pack 1 GDR: July 14, 2015 / 2015 July 14" }
+			"12.0.4100.1" { "SQL Server 2014 Service Pack 1 (SP1) / 2015 May 14" }
+			"12.0.4050.0" { "SQL Server 2014 Service Pack 1 (SP1) / 2015 April 15" }
+			"12.0.2569.0" { "Cumulative Update Package 14 (CU14) For SQL Server 2014 / 2016 June 20" }
+			"12.0.2568.0" { "Cumulative Update Package 13 (CU13) For SQL Server 2014 / 2016 April 18" }
+			"12.0.2564.0" { "Cumulative Update Package 12 (CU12) For SQL Server 2014 / 2016 February 22" }
+			"12.0.2560.0" { "Cumulative Update Package 11 (CU11) For SQL Server 2014 / 2015 December 22" }
+			"12.0.2556.4" { "Cumulative Update Package 10 (CU10) For SQL Server 2014 / 2015 October 20" }
+			"12.0.2553.0" { "Cumulative Update Package 9 (CU9) For SQL Server 2014 / 2015 August 17" }
+			"12.0.2548.0" { "MS15-058: Description Of The Security Update For SQL Server 2014 QFE: July 14, 2015 / 2015 July 14" }
+			"12.0.2546.0" { "Cumulative Update Package 8 (CU8) For SQL Server 2014 / 2015 June 22" }
+			"12.0.2506.0" { "Update Enables Premium Storage Support For Data Files On Azure Storage And Resolves Backup Failures / 2015 May 19" }
+			"12.0.2505.0" { "FIX: Error 1205 When You Execute Parallel Query That Contains Outer Join Operators In SQL Server 2014 / 2015 May 19" }
+			"12.0.2504.0" { "FIX: Poor Performance When A Query Contains Table Joins In SQL Server 2014 / 2015 May 05" }
+			"12.0.2504.0" { "FIX: Unpivot Transformation Task Changes Null To Zero Or Empty Strings In SSIS 2014 / 2015 May 05" }
+			"12.0.2495.0" { "Cumulative Update Package 7 (CU7) For SQL Server 2014 / 2015 April 23" }
+			"12.0.2488.0" { "FIX: Deadlock Cannot Be Resolved Automatically When You Run A SELECT Query That Can Result In A Parallel Batch-Mode Scan / 2015 April 01" }
+			"12.0.2485.0" { "An On-Demand Hotfix Update Package Is Available For SQL Server 2014 / 2015 March 16" }
+			"12.0.2480.0" { "Cumulative Update Package 6 (CU6) For SQL Server 2014 / 2015 February 16" }
+			"12.0.2474.0" { "FIX: Alwayson Availability Groups Are Reported As NOT SYNCHRONIZING / 2015 May 15" }
+			"12.0.2472.0" { "FIX: Cannot Show Requested Dialog After You Connect To The Latest SQL Database Update V12 (Preview) With SQL Server 2014 / 2015 January 28" }
+			"12.0.2464.0" { "Large Query Compilation Waits On RESOURCE_SEMAPHORE_QUERY_COMPILE In SQL Server 2014 / 2015 January 05" }
+			"12.0.2456.0" { "Cumulative Update Package 5 (CU5) For SQL Server 2014 / 2014 December 18" }
+			"12.0.2436.0" { "FIX: 'Remote Hardening Failure' Exception Cannot Be Caught And A Potential Data Loss When You Use SQL Server 2014 / 2014 November 27" }
+			"12.0.2430.0" { "Cumulative Update Package 4 (CU4) For SQL Server 2014 / 2014 October 21" }
+			"12.0.2423.0" { "FIX: RTDATA_LIST Waits When You Run Natively Stored Procedures That Encounter Expected Failures In SQL Server 2014 / 2014 October 22" }
+			"12.0.2405.0" { "FIX: Poor Performance When A Query Contains Table Joins In SQL Server 2014 / 2014 September 25" }
+			"12.0.2402.0" { "Cumulative Update Package 3 (CU3) For SQL Server 2014 / 2014 August 18" }
+			"12.0.2381.0" { "MS14-044: Description Of The Security Update For SQL Server 2014 (QFE) / 2014 August 12" }
+			"12.0.2370.0" { "Cumulative Update Package 2 (CU2) For SQL Server 2014 / 2014 June 27" }
+			"12.0.2342.0" { "Cumulative Update Package 1 (CU1) For SQL Server 2014 / 2014 April 21" }
+			"12.0.2271.0" { "TLS 1.2 Support For SQL Server 2014 RTM / 2016 January 27" }
+			"12.0.2269.0" { "MS15-058: Description Of The Security Update For SQL Server 2014 GDR: July 14, 2015 / 2015 July 14" }
+			"12.0.2254.0" { "MS14-044: Description Of The Security Update For SQL Server 2014 (GDR) / 2014 August 12" }
+			"12.0.2000.8" { "SQL Server 2014 RTM / 2014 April 01" }
+			"12.0.1524.0" { "Microsoft SQL Server 2014 Community Technology Preview 2 (CTP2) / 2013 October 15" }
+			"11.0.9120.0" { "Microsoft SQL Server 2014 Community Technology Preview 1 (CTP1) / 2013 June 25" }
+			"11.0.7507.2" { "Security Update For SQL Server 2012 SP4 GDR: January 12, 2021 / 2021 January 12" }
+			"11.0.7493.4" { "Security Update For SQL Server 2012 SP4 GDR: February 11, 2020 / 2020 February 11" }
+			"11.0.7469.6" { "On-Demand Hotfix Update Package For SQL Server 2012 SP4 / 2018 March 28" }
+			"11.0.7462.6" { "Description Of The Security Update For SQL Server 2012 SP4 GDR: January 12, 2018 - Security Advisory ADV180002 / 2018 January 12" }
+			"11.0.7001.0" { "SQL Server 2012 Service Pack 4 (SP4) / 2017 October 05" }
+			"11.0.6615.2" { "Description Of The Security Update For SQL Server 2012 SP3 CU: January 16, 2018 - Security Advisory ADV180002 / 2018 January 16" }
+			"11.0.6607.3" { "Cumulative Update Package 10 (CU10) For SQL Server 2012 Service Pack 3 / 2017 August 08" }
+			"11.0.6607.3" { "Security Update For SQL Server 2012 Service Pack 3 CU: August 8, 2017 / 2017 August 08" }
+			"11.0.6598.0" { "Cumulative Update Package 9 (CU9) For SQL Server 2012 Service Pack 3 / 2017 May 15" }
+			"11.0.6594.0" { "Cumulative Update Package 8 (CU8) For SQL Server 2012 Service Pack 3 / 2017 March 21" }
+			"11.0.6579.0" { "Cumulative Update Package 7 (CU7) For SQL Server 2012 Service Pack 3 / 2017 January 17" }
+			"11.0.6567.0" { "Cumulative Update Package 6 (CU6) For SQL Server 2012 Service Pack 3 / 2016 November 17" }
+			"11.0.6567.0" { "MS16-136: Description Of The Security Update For SQL Server 2012 Service Pack 3 CU: November 8, 2016 / 2016 November 08" }
+			"11.0.6544.0" { "Cumulative Update Package 5 (CU5) For SQL Server 2012 Service Pack 3 / 2016 September 21" }
+			"11.0.6540.0" { "Cumulative Update Package 4 (CU4) For SQL Server 2012 Service Pack 3 / 2016 July 19" }
+			"11.0.6537.0" { "Cumulative Update Package 3 (CU3) For SQL Server 2012 Service Pack 3 / 2016 May 17" }
+			"11.0.6523.0" { "Cumulative Update Package 2 (CU2) For SQL Server 2012 Service Pack 3 / 2016 March 22" }
+			"11.0.6518.0" { "Cumulative Update Package 1 (CU1) For SQL Server 2012 Service Pack 3 / 2016 January 19" }
+			"11.0.6260.1" { "Description Of The Security Update For SQL Server 2012 SP3 GDR: January 16, 2018 - Security Advisory ADV180002 / 2018 January 16" }
+			"11.0.6251.0" { "Description Of The Security Update For SQL Server 2012 Service Pack 3 GDR: August 8, 2017 / 2017 August 08" }
+			"11.0.6248.0" { "MS16-136: Description Of The Security Update For SQL Server 2012 Service Pack 3 GDR: November 8, 2016 / 2016 November 08" }
+			"11.0.6216.27" { "TLS 1.2 Support For SQL Server 2012 SP3 GDR / 2016 January 27" }
+			"11.0.6020.0" { "SQL Server 2012 Service Pack 3 (SP3) / 2015 November 23" }
+			"11.0.5678.0" { "Cumulative Update Package 16 (CU16) For SQL Server 2012 Service Pack 2 / 2017 January 18" }
+			"11.0.5676.0" { "Cumulative Update Package 15 (CU15) For SQL Server 2012 Service Pack 2 / 2016 November 17" }
+			"11.0.5676.0" { "MS16-136: Description Of The Security Update For SQL Server 2012 Service Pack 2 CU: November 8, 2016 / 2016 November 08" }
+			"11.0.5657.0" { "Cumulative Update Package 14 (CU14) For SQL Server 2012 Service Pack 2 / 2016 September 20" }
+			"11.0.5655.0" { "Cumulative Update Package 13 (CU13) For SQL Server 2012 Service Pack 2 / 2016 July 19" }
+			"11.0.5649.0" { "Cumulative Update Package 12 (CU12) For SQL Server 2012 Service Pack 2 / 2016 May 16" }
+			"11.0.5646.0" { "Cumulative Update Package 11 (CU11) For SQL Server 2012 Service Pack 2 / 2016 March 22" }
+			"11.0.5644.0" { "Cumulative Update Package 10 (CU10) For SQL Server 2012 Service Pack 2 / 2016 January 20" }
+			"11.0.5641.0" { "Cumulative Update Package 9 (CU9) For SQL Server 2012 Service Pack 2 / 2015 November 18" }
+			"11.0.5636.3" { "FIX: Performance Decrease When Application With Connection Pooling Frequently Connects Or Disconnects In SQL Server / 2015 September 22" }
+			"11.0.5634.0" { "Cumulative Update Package 8 (CU8) For SQL Server 2012 Service Pack 2 / 2015 September 21" }
+			"11.0.5629.0" { "FIX: Access Violations When You Use The Filetable Feature In SQL Server 2012 / 2015 August 31" }
+			"11.0.5623.0" { "Cumulative Update Package 7 (CU7) For SQL Server 2012 Service Pack 2 / 2015 July 20" }
+			"11.0.5613.0" { "MS15-058: Description Of The Security Update For SQL Server 2012 Service Pack 2 QFE: July 14, 2015 / 2015 July 14" }
+			"11.0.5592.0" { "Cumulative Update Package 6 (CU6) For SQL Server 2012 Service Pack 2 / 2015 May 19" }
+			"11.0.5582.0" { "Cumulative Update Package 5 (CU5) For SQL Server 2012 Service Pack 2 / 2015 March 16" }
+			"11.0.5571.0" { "FIX: Alwayson Availability Groups Are Reported As NOT SYNCHRONIZING / 2015 May 15" }
+			"11.0.5569.0" { "Cumulative Update Package 4 (CU4) For SQL Server 2012 Service Pack 2 / 2015 January 20" }
+			"11.0.5556.0" { "Cumulative Update Package 3 (CU3) For SQL Server 2012 Service Pack 2 / 2014 November 17" }
+			"11.0.5548.0" { "Cumulative Update Package 2 (CU2) For SQL Server 2012 Service Pack 2 / 2014 September 15" }
+			"11.0.5532.0" { "Cumulative Update Package 1 (CU1) For SQL Server 2012 Service Pack 2 / 2014 July 24" }
+			"11.0.5522.0" { "FIX: Data Loss In Clustered Index Occurs When You Run Online Build Index In SQL Server 2012 (Hotfix For SQL2012 SP2) / 2014 June 20" }
+			"11.0.5388.0" { "MS16-136: Description Of The Security Update For SQL Server 2012 Service Pack 2 GDR: November 8, 2016 / 2016 November 08" }
+			"11.0.5352.0" { "TLS 1.2 Support For SQL Server 2012 SP2 GDR / 2016 January 27" }
+			"11.0.5343.0" { "MS15-058: Description Of The Security Update For SQL Server 2012 Service Pack 2 GDR: July 14, 2015 / 2015 July 14" }
+			"11.0.5058.0" { "SQL Server 2012 Service Pack 2 (SP2) / 2014 June 10" }
+			"11.0.3513.0" { "MS15-058: Description Of The Security Update For SQL Server 2012 SP1 QFE: July 14, 2015 / 2015 July 14" }
+			"11.0.3492.0" { "Cumulative Update Package 16 (CU16) For SQL Server 2012 Service Pack 1 / 2015 May 18" }
+			"11.0.3487.0" { "Cumulative Update Package 15 (CU15) For SQL Server 2012 Service Pack 1 / 2015 March 16" }
+			"11.0.3486.0" { "Cumulative Update Package 14 (CU14) For SQL Server 2012 Service Pack 1 / 2015 January 19" }
+			"11.0.3460.0" { "MS14-044: Description Of The Security Update For SQL Server 2012 Service Pack 1 (QFE) / 2014 August 12" }
+			"11.0.3482.0" { "Cumulative Update Package 13 (CU13) For SQL Server 2012 Service Pack 1 / 2014 November 17" }
+			"11.0.3470.0" { "Cumulative Update Package 12 (CU12) For SQL Server 2012 Service Pack 1 / 2014 September 15" }
+			"11.0.3449.0" { "Cumulative Update Package 11 (CU11) For SQL Server 2012 Service Pack 1 / 2014 July 21" }
+			"11.0.3437.0" { "FIX: Data Loss In Clustered Index Occurs When You Run Online Build Index In SQL Server 2012 (Hotfix For SQL2012 SP1) / 2014 June 10" }
+			"11.0.3431.0" { "Cumulative Update Package 10 (CU10) For SQL Server 2012 Service Pack 1 / 2014 May 19" }
+			"11.0.3412.0" { "Cumulative Update Package 9 (CU9) For SQL Server 2012 Service Pack 1 / 2014 March 18" }
+			"11.0.3401.0" { "Cumulative Update Package 8 (CU8) For SQL Server 2012 Service Pack 1 / 2014 January 20" }
+			"11.0.3393.0" { "Cumulative Update Package 7 (CU7) For SQL Server 2012 Service Pack 1 / 2013 November 18" }
+			"11.0.3381.0" { "Cumulative Update Package 6 (CU6) For SQL Server 2012 Service Pack 1 / 2013 September 16" }
+			"11.0.3373.0" { "Cumulative Update Package 5 (CU5) For SQL Server 2012 Service Pack 1 / 2013 July 16" }
+			"11.0.3368.0" { "Cumulative Update Package 4 (CU4) For SQL Server 2012 Service Pack 1 / 2013 May 31" }
+			"11.0.3350.0" { "FIX: You Can'T Create Or Open SSIS Projects Or Maintenance Plans After You Apply Cumulative Update 3 For SQL Server 2012 SP1 / 2013 April 17" }
+			"11.0.3349.0" { "Cumulative Update Package 3 (CU3) For SQL Server 2012 Service Pack 1 / 2013 March 18" }
+			"11.0.3339.0" { "Cumulative Update Package 2 (CU2) For SQL Server 2012 Service Pack 1 / 2013 January 25" }
+			"11.0.3335.0" { "FIX: Component Installation Process Fails After You Install SQL Server 2012 SP1 / 2013 January 14" }
+			"11.0.3321.0" { "Cumulative Update Package 1 (CU1) For SQL Server 2012 Service Pack 1 / 2012 November 20" }
+			"11.0.3156.0" { "MS15-058: Description Of The Security Update For SQL Server 2012 SP1 GDR: July 14, 2015 / 2015 July 14" }
+			"11.0.3153.0" { "MS14-044: Description Of The Security Update For SQL Server 2012 Service Pack 1 (GDR) / 2014 August 12" }
+			"11.0.3128.0" { "Windows Installer Starts Repeatedly After You Install SQL Server 2012 SP1 / 2013 January 03" }
+			"11.0.3000.0" { "SQL Server 2012 Service Pack 1 (SP1) / 2012 November 06" }
+			"11.0.2845.0" { "SQL Server 2012 Service Pack 1 Customer Technology Preview 4 (CTP4) / 2012 September 20" }
+			"11.0.2809.24" { "SQL Server 2012 Service Pack 1 Customer Technology Preview 3 (CTP3) / 2012 July 05" }
+			"11.0.2424.0" { "Cumulative Update Package 11 (CU11) For SQL Server 2012 / 2013 December 17" }
+			"11.0.2420.0" { "Cumulative Update Package 10 (CU10) For SQL Server 2012 / 2013 October 21" }
+			"11.0.2419.0" { "Cumulative Update Package 9 (CU9) For SQL Server 2012 / 2013 August 21" }
+			"11.0.2410.0" { "Cumulative Update Package 8 (CU8) For SQL Server 2012 / 2013 June 18" }
+			"11.0.2405.0" { "Cumulative Update Package 7 (CU7) For SQL Server 2012 / 2013 April 15" }
+			"11.0.2401.0" { "Cumulative Update Package 6 (CU6) For SQL Server 2012 / 2013 February 18" }
+			"11.0.2395.0" { "Cumulative Update Package 5 (CU5) For SQL Server 2012 / 2012 December 18" }
+			"11.0.9000.5" { "Microsoft SQL Server 2012 With Power View For Multidimensional Models Customer Technology Preview (CTP3) / 2012 November 27" }
+			"11.0.2383.0" { "Cumulative Update Package 4 (CU4) For SQL Server 2012 / 2012 October 18" }
+			"11.0.2376.0" { "Microsoft Security Bulletin MS12-070 / 2012 October 09" }
+			"11.0.2332.0" { "Cumulative Update Package 3 (CU3) For SQL Server 2012 / 2012 August 29" }
+			"11.0.2325.0" { "Cumulative Update Package 2 (CU2) For SQL Server 2012 / 2012 June 18" }
+			"11.0.2318.0" { "SQL Server 2012 Express Localdb RTM / 2012 April 19" }
+			"11.0.2316.0" { "Cumulative Update Package 1 (CU1) For SQL Server 2012 / 2012 April 12" }
+			"11.0.2218.0" { "Microsoft Security Bulletin MS12-070 / 2012 October 09" }
+			"11.0.2214.0" { "FIX: SSAS Uses Only 20 Cores In SQL Server 2012 Business Intelligence / 2012 April 06" }
+			"11.0.2100.60" { "SQL Server 2012 RTM / 2012 March 06" }
+			# If nothing else found then default to version number
+			default { "Unknown Version" }
+		}
+		return $Output
 	}
 	return $Output
 }
