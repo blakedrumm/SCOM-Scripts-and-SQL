@@ -7,7 +7,6 @@ title: Create your own offline Certificate Request for SCOM Workgroup Server
 description: >- # this means to ignore newlines
   Generate a certificate request with an .inf file. This will allow you to specify all the settings that are required and make things easier.
 ---
-# Create your own offline Certificate Request for Workgroup Server
 In the below example we are assuming your machine is named **IIS-2019**.
 
 Create a new file on your machine and name it:
