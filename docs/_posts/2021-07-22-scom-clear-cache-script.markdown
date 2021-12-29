@@ -13,9 +13,7 @@ description: >- # this means to ignore newlines
   The Clear SCOM Cache Script, which is located here: \
   [https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Clear-SCOMCache.ps1](https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Clear-SCOMCache.ps1)
 
-The script without any switches clears the SCOM cache first and foremost. \
-If the -All switch is present: Optionally Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics. \
-If -Reboot switch is present: Reboots the server(s) along with Resetting Winsock catalog.
+The script without any modifications clears the SCOM cache only on the local server, nothing else.
 
 Argument List | Description |
 --- | --- |
