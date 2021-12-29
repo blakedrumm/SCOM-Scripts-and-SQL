@@ -40,7 +40,7 @@ Run the following:
 Certreq -New -f .\IIS-2019-CertReq.inf .\IIS-2019-CertRequest.req
 ```
 
-Upload the above to your Certificate Authority. \
+Upload the above (IIS-2019-CertRequest.req) file to your Certificate Authority. \
 ... \
 Once you receive back your signed certificate, import the Certificate into the Computer Certificate Store:
 ```
