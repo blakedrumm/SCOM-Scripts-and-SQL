@@ -6,7 +6,7 @@
 		The script without any modifications clears the SCOM cache only on the local server, nothing else.
 
 	.PARAMETER All
-		Optionally clear all caches that SCOM could potentially use that doesnt require a reboot. Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics. (Combine with -Reboot for a full clear cache)
+		Optionally clear all caches that SCOM could potentially use that doesn't require a reboot. Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics. (Combine with -Reboot for a full clear cache)
 	
 	.PARAMETER Reboot
 		Optionally reset winsock catalog, stop the SCOM Services, clear SCOM Cache, then reboot the server. This will always perform on the local server last.
