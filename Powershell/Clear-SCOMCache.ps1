@@ -3,9 +3,7 @@
 		Clear-SCOMCache
 	
 	.DESCRIPTION
-		The script without any switches clears the SCOM cache first and foremost.
-		If the -All switch is present: Optionally Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics.
-		If -Reboot switch is present: Reboots the server(s) along with Resetting Winsock catalog.
+		The script without any modifications clears the SCOM cache only on the local server, nothing else.
 
 	.PARAMETER All
 		Optionally clear all caches that SCOM could potentially use that doesnt require a reboot. Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics. (Combine with -Reboot for a full clear cache)
@@ -44,13 +42,13 @@
 		PS C:\> .\Clear-SCOMCache.ps1 -Servers AgentServer.contoso.com, ManagementServer.contoso.com -Shutdown
 	
 	.NOTES
-		For advanced users: Edit line 720 to modify the default command run when this script is executed.
+		For advanced users: Edit line 718 to modify the default command run when this script is executed.
 
 		.AUTHOR
 		Blake Drumm (blakedrumm@microsoft.com)
 		
 		.MODIFIED
-		December 7th, 2021
+		December 29th, 2021
 #>
 [OutputType([string])]
 param
@@ -712,7 +710,7 @@ PROCESS
 	}
 	else
 	{
-<# Edit line 720 to modify the default command run when this script is executed.
+<# Edit line 718 to modify the default command run when this script is executed.
 
    Example: 
    Clear-SCOMCache -Servers Agent1.contoso.com, Agent2.contoso.com, MangementServer1.contoso.com, MangementServer2.contoso.com
