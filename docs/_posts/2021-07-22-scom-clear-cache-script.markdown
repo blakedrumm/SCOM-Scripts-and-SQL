@@ -30,31 +30,31 @@ Parameter | Description |
 ## Examples
 ### Clear all Gray SCOM Agents
 ```powershell
-PS C:\> #Get the SystemCenter Agent Class
-PS C:\>	$agent = Get-SCOMClass | where-object{$_.name -eq "microsoft.systemcenter.agent"}
-PS C:\>	#Get the grey agents
-PS C:\>	$objects = Get-SCOMMonitoringObject -class:$agent | where {$_.IsAvailable -eq $false}
-PS C:\>	.\Clear-SCOMCache.ps1 -Servers $objects
+#Get the SystemCenter Agent Class
+$agent = Get-SCOMClass | where-object{$_.name -eq "microsoft.systemcenter.agent"}
+#Get the grey agents
+$objects = Get-SCOMMonitoringObject -class:$agent | where {$_.IsAvailable -eq $false}
+.\Clear-SCOMCache.ps1 -Servers $objects
 ```
 
 ### Clear SCOM cache on every Management Server in Management Group.
 ```powershell
-PS C:\> Get-SCOMManagementServer | .\Clear-SCOMCache.ps1
+Get-SCOMManagementServer | .\Clear-SCOMCache.ps1
 ```
 
 ### Clear SCOM cache on every Agent in the in Management Group.
 ```powershell
-PS C:\> Get-SCOMAgent | .\Clear-SCOMCache.ps1
+Get-SCOMAgent | .\Clear-SCOMCache.ps1
 ```
 
 ### Clear SCOM cache and reboot the Servers specified.
 ```powershell
-PS C:\> .\Clear-SCOMCache.ps1 -Servers AgentServer.contoso.com, ManagementServer.contoso.com -Reboot
+.\Clear-SCOMCache.ps1 -Servers AgentServer.contoso.com, ManagementServer.contoso.com -Reboot
 ```
 
 ### Clear SCOM cache and shutdown the Servers specified.
 ```powershell
-PS C:\> .\Clear-SCOMCache.ps1 -Servers AgentServer.contoso.com, ManagementServer.contoso.com -Shutdown
+.\Clear-SCOMCache.ps1 -Servers AgentServer.contoso.com, ManagementServer.contoso.com -Shutdown
 ```
 <!--
 Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
