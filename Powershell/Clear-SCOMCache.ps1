@@ -42,7 +42,10 @@
 		PS C:\> .\Clear-SCOMCache.ps1 -Servers AgentServer.contoso.com, ManagementServer.contoso.com -Shutdown
 	
 	.NOTES
-		For advanced users: Edit line 718 to modify the default command run when this script is executed.
+		For advanced users: Edit line 721 to modify the default command run when this script is executed.
+
+		Originally hosted on my github:
+		https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Clear-SCOMCache.ps1
 
 		.AUTHOR
 		Blake Drumm (blakedrumm@microsoft.com)
@@ -710,7 +713,7 @@ PROCESS
 	}
 	else
 	{
-<# Edit line 718 to modify the default command run when this script is executed.
+<# Edit line 721 to modify the default command run when this script is executed.
 
    Example: 
    Clear-SCOMCache -Servers Agent1.contoso.com, Agent2.contoso.com, MangementServer1.contoso.com, MangementServer2.contoso.com
