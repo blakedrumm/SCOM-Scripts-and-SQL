@@ -43,7 +43,10 @@ Certreq -New -f .\IIS-2019-CertReq.inf .\IIS-2019-CertRequest.req
 
 Upload the above to your Certificate Authority. \
 ... \
-Once you receive back your signed certificate, import the Certificate into the Computer Certificate Store: `certlm.msc`
+Once you receive back your signed certificate, import the Certificate into the Computer Certificate Store:
+```
+certlm.msc
+```
 
 > Run this script to check the certificate you imported: \
 > https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Start-SCOMCertificateChecker.ps1
