@@ -48,8 +48,8 @@ Once you receive back your signed certificate, import the Certificate into the C
 certlm.msc
 ```
 
-> Run this script to check the certificate you imported: \
-> https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Start-SCOMCertificateChecker.ps1
+* Run this script to check the certificate you imported: \
+https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Start-SCOMCertificateChecker.ps1
 
 ![Page Views](https://counter.blakedrumm.com/count/tag.svg?url=blakedrumm.com/articles/2021/12/29/request-offline-certificate-for-workgroup-agent.html)
 
