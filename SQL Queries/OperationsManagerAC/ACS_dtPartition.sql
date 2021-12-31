@@ -1,1 +1,1 @@
-select * from dtpartition order by partitionstarttime
+select * from dtpartition order by partitionstarttime DESC
