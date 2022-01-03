@@ -103,7 +103,7 @@ PROCESS
 			}
 			Write-Output "$(Time-Stamp)Backing Up the following: $($ManagementPack.DisplayName)"
 			$ManagementPack | Export-SCOMManagementPack -Path $ExportPath -ErrorAction Stop | Out-Null
-			Write-Output "$(Time-Stamp)Saved to: $ExportPath\$($ManagementPack.Name).xml"
+			Write-Output "$(Time-Stamp)Saved to: $ExportPath\$($ManagementPack.Name).backup.xml"
 			if ($Unsealed)
 			{
 				Write-Output "$(Time-Stamp)Attempting to remove related data in the Unsealed Management Pack: $ExportPath\$($ManagementPack.Name).xml"
@@ -128,6 +128,20 @@ PROCESS
 						$nodes += $Override | Select-Object -ExpandProperty Node
 					}
 					
+					#Find all unitmonitors
+					$Monitors = $xmlData.ChildNodes | Select-Xml -Xpath "//Monitors"
+					foreach ($Monitor in $Monitors)
+					{
+						$nodes += $Monitor | Select-Object -ExpandProperty Node
+					}
+					
+					#Find all assemblies
+					$Managed = $xmlData.ChildNodes | Select-Xml -Xpath "//Managed"
+					foreach ($Item in $Managed)
+					{
+						$nodes += $Item | Select-Object -ExpandProperty Node
+					}
+					
 					foreach ($node in $nodes)
 					{
 						$aliasFound = $node.ChildNodes.Where{ $_.Context -match "$($reference.Alias)" }
@@ -140,29 +154,30 @@ PROCESS
 					}
 					[void]$reference.ParentNode.RemoveChild($reference)
 					$languagePacks = $xmlData.ManagementPack.LanguagePacks.LanguagePack.DisplayStrings.DisplayString | Where{ $_.ElementID -like $referencingId }
-					[void]$languagePacks.ParentNode.RemoveChild($languagePacks)
+					try { [void]$languagePacks.ParentNode.RemoveChild($languagePacks) }
+					catch { Write-Verbose "Nothing found in Language Packs inside XML." }
 					
 				}
 				$xmlData.Save("$ExportPath\$($ManagementPack.Name).xml")
 				Write-Output "$(Time-Stamp)Importing the modified Unsealed Management Pack: $ExportPath\$($ManagementPack.Name).xml"
-				Import-SCOMManagementPack -FullName "$ExportPath\$($ManagementPack.Name).xml" | Out-Null
-				<#
-				
-				foreach ($alias in $aliases)
+				Import-SCManagementPack -FullName "$ExportPath\$($ManagementPack.Name).xml" -ErrorAction SilentlyContinue
+				if ($ManagementPack.Name -in $unsealedMPs)
 				{
-					$xmlData.ChildNodes.Monitoring.Overrides.MonitorPropertyOverride | Where { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id = $_.Id; [void]$_.ParentNode.RemoveChild($_) }
-					$xmlData.ChildNodes.Monitoring.Overrides.DiscoveryConfigurationOverride | Where { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id += $_.Id; [void]$_.ParentNode.RemoveChild($_) }
-					$xmlData.ChildNodes.Monitoring.Overrides.RulePropertyOverride | Where { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id += $_.Id; [void]$_.ParentNode.RemoveChild($_) }
+					#Remove from master list
+					$unsealedMPs.Remove($ManagementPack.Name)
 				}
-				#>
-				
 			}
 			if ($Sealed)
 			{
 				#Start of Inner Remove MP Function
 				Write-Output "$(Time-Stamp)Removing the Sealed Management Pack: $($ManagementPack.DisplayName)"
+				Remove-SCManagementPack -ManagementPack $ManagementPack -Confirm:$false -ErrorAction Stop
+				if ($ManagementPack.Name -in $sealedMPs)
+				{
+					#Remove from master list
+					$sealedMPs.Remove($ManagementPack.Name)
+				}
 			}
-			#Remove-SCManagementPack -ManagementPack $ManagementPack -Confirm:$false -ErrorAction Stop
 			sleep 10
 		}
 		function Inner-GetMPRecurse
@@ -212,18 +227,32 @@ PROCESS
 				try
 				{
 					
-					foreach ($MP in $sealedMPs)
+					foreach ($sealedMP in $sealedMPs)
 					{
 						Write-Output @"
        ===========================================================================================
-            $MP
+            $sealedMP
        ===========================================================================================
 "@
-						Inner-GetMPRecurse -ManagementPack $MP
+						Inner-GetMPRecurse -ManagementPack $sealedMP
                         <#
-						Write-Output "$(Time-Stamp)Removing the following Sealed Management Pack: $($MP.DisplayName)"
-						Remove-SCManagementPack -ManagementPack $MP -ErrorAction Stop
-						Write-Output "$(Time-Stamp)Removed the following Sealed Management Pack: $($MP.DisplayName)"
+						Write-Output "$(Time-Stamp)Removing the following Sealed Management Pack: $($sealedMP.DisplayName)"
+						Remove-SCManagementPack -ManagementPack $sealedMP -ErrorAction Stop
+						Write-Output "$(Time-Stamp)Removed the following Sealed Management Pack: $($sealedMP.DisplayName)"
+#>
+					}
+					foreach ($unsealedMP in $unsealedMPs)
+					{
+						Write-Output @"
+       ===========================================================================================
+            $unsealedMP
+       ===========================================================================================
+"@
+						Inner-GetMPRecurse -ManagementPack $unsealedMP
+                        <#
+						Write-Output "$(Time-Stamp)Removing the following Sealed Management Pack: $($unsealedMP.DisplayName)"
+						Remove-SCManagementPack -ManagementPack $unsealedMP -ErrorAction Stop
+						Write-Output "$(Time-Stamp)Removed the following Sealed Management Pack: $($unsealedMP.DisplayName)"
 #>
 					}
 				}
