@@ -16,7 +16,7 @@ description: >- # this means to ignore newlines
 The script without any modifications clears the SCOM cache only on the local server, nothing else.
 
 Argument List | Description |
---- | --- |
+------------- | ----------- |
 -All | Optionally clear all caches that SCOM could potentially use that doesnt require a reboot. Flushing DNS, Purging Kerberos Tickets, Resetting NetBIOS over TCPIP Statistics. (Combine with -Reboot for a full clear cache) |
 -Reboot | Optionally reset winsock catalog, stop the SCOM Services, clear SCOM Cache, then reboot the server. This will always perform on the local server last. |
 -Servers | Optionally each Server you want to clear SCOM Cache on. Can be an Agent, Management Server, or SCOM Gateway. This will always perform on the local server last. |
