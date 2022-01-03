@@ -163,7 +163,7 @@ PROCESS
 				Import-SCManagementPack -FullName "$ExportPath\$($ManagementPack.Name).xml" -ErrorAction SilentlyContinue
 				if ($ManagementPack.Name -in $unsealedMPs)
 				{
-					#Remove from master list
+					#Remove from master list (not working yet)
 					$unsealedMPs.Remove($ManagementPack.Name)
 				}
 			}
@@ -174,7 +174,7 @@ PROCESS
 				Remove-SCManagementPack -ManagementPack $ManagementPack -Confirm:$false -ErrorAction Stop
 				if ($ManagementPack.Name -in $sealedMPs)
 				{
-					#Remove from master list
+					#Remove from master list (not working yet)
 					$sealedMPs.Remove($ManagementPack.Name)
 				}
 			}
