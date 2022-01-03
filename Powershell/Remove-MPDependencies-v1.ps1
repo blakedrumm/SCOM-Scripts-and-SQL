@@ -55,11 +55,11 @@ PROCESS
 			Write-Warning "$(Time-Stamp)Unable to run `'Get-SCOMManagementPack`', stopping script:`n$($error[0])"
 			break
 		}
-        if($recurseMPList.Count -eq 0)
-        {
-            Write-Output "$(Time-Stamp)Did not find any Management Packs!"
-            return
-        }
+		if ($recurseMPList.Count -eq 0)
+		{
+			Write-Output "$(Time-Stamp)Did not find any Management Packs!"
+			return
+		}
 		$sealedMPs = $recurseMPList.Where({ $_.Sealed })
 		$unsealedMPs = $recurseMPList.Where({ !$_.Sealed })
 		Write-Output "$(Time-Stamp)Sealed MPs: (Count: $($sealedMPs.Count)):"
@@ -82,8 +82,21 @@ PROCESS
 				[Parameter(Mandatory = $true,
 						   ValueFromPipeline = $true,
 						   Position = 0)]
-				$ManagementPack
+				$ManagementPack,
+				[Parameter(Mandatory = $false,
+						   Position = 1)]
+				[switch]$Sealed,
+				[Parameter(Mandatory = $false,
+						   Position = 2)]
+				[switch]$Unsealed,
+				[Parameter(Mandatory = $false,
+						   Position = 3)]
+				[string]$ReferenceToRemove,
+				[Parameter(Mandatory = $true,
+						   Position = 4)]
+				[string]$ExportPath
 			)
+			
 			trap
 			{
 				Write-Warning "$($PSItem.Exception) `nFunction: Inner-RemoveMP"
@@ -91,9 +104,65 @@ PROCESS
 			Write-Output "$(Time-Stamp)Backing Up the following: $($ManagementPack.DisplayName)"
 			$ManagementPack | Export-SCOMManagementPack -Path $ExportPath -ErrorAction Stop | Out-Null
 			Write-Output "$(Time-Stamp)Saved to: $ExportPath\$($ManagementPack.Name).xml"
-			#Start of Inner Remove MP Function
-			Write-Output "$(Time-Stamp)Removing the Management Pack: $($ManagementPack.DisplayName)"
-			Remove-SCManagementPack -ManagementPack $ManagementPack -Confirm:$false -ErrorAction Stop
+			if ($Unsealed)
+			{
+				Write-Output "$(Time-Stamp)Attempting to remove related data in the Unsealed Management Pack: $ExportPath\$($ManagementPack.Name).xml"
+				$xmldata = [xml](Get-Content "$ExportPath\$($ManagementPack.Name).xml" -ErrorAction Stop);
+				#Save a backup of the MP
+				$xmlData.Save("$ExportPath\$($ManagementPack.Name).backup.xml")
+				#Get the version of the MP
+				[version]$mpversion = $xmldata.ManagementPack.Manifest.Identity.Version
+				#Increment the version of the MP
+				$xmldata.ManagementPack.Manifest.Identity.Version = [version]::New($mpversion.Major, $mpversion.Minor, $mpversion.Build, $mpversion.Revision + 1).ToString()
+				#Grab all the references
+				$references = $xmlData.ChildNodes.Manifest.References.Reference | Where { $_.ID -eq $ReferenceToRemove } #| ForEach-Object { $removed += $_.ParentNode.InnerXML; $aliases += $_.Alias; [void]$_.ParentNode.RemoveChild($_); }
+				[array]$referencingId = @()
+				[array]$nodes = @()
+				#Go through each reference
+				foreach ($reference in $references)
+				{
+					#Find all overrides
+					$Overrides = $xmlData.ChildNodes | Select-Xml -Xpath "//Overrides"
+					foreach ($Override in $Overrides)
+					{
+						$nodes += $Override | Select-Object -ExpandProperty Node
+					}
+					
+					foreach ($node in $nodes)
+					{
+						$aliasFound = $node.ChildNodes.Where{ $_.Context -match "$($reference.Alias)" }
+						
+						foreach ($context in $aliasFound)
+						{
+							$referencingId += $context.Id
+							[void]$context.ParentNode.RemoveChild($context)
+						}
+					}
+					[void]$reference.ParentNode.RemoveChild($reference)
+					$languagePacks = $xmlData.ManagementPack.LanguagePacks.LanguagePack.DisplayStrings.DisplayString | Where{ $_.ElementID -like $referencingId }
+					[void]$languagePacks.ParentNode.RemoveChild($languagePacks)
+					
+				}
+				$xmlData.Save("$ExportPath\$($ManagementPack.Name).xml")
+				Write-Output "$(Time-Stamp)Importing the modified Unsealed Management Pack: $ExportPath\$($ManagementPack.Name).xml"
+				Import-SCOMManagementPack -FullName "$ExportPath\$($ManagementPack.Name).xml" | Out-Null
+				<#
+				
+				foreach ($alias in $aliases)
+				{
+					$xmlData.ChildNodes.Monitoring.Overrides.MonitorPropertyOverride | Where { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id = $_.Id; [void]$_.ParentNode.RemoveChild($_) }
+					$xmlData.ChildNodes.Monitoring.Overrides.DiscoveryConfigurationOverride | Where { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id += $_.Id; [void]$_.ParentNode.RemoveChild($_) }
+					$xmlData.ChildNodes.Monitoring.Overrides.RulePropertyOverride | Where { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id += $_.Id; [void]$_.ParentNode.RemoveChild($_) }
+				}
+				#>
+				
+			}
+			if ($Sealed)
+			{
+				#Start of Inner Remove MP Function
+				Write-Output "$(Time-Stamp)Removing the Sealed Management Pack: $($ManagementPack.DisplayName)"
+			}
+			#Remove-SCManagementPack -ManagementPack $ManagementPack -Confirm:$false -ErrorAction Stop
 			sleep 10
 		}
 		function Inner-GetMPRecurse
@@ -115,7 +184,14 @@ PROCESS
 			{
 				foreach ($MP in $recurseMP)
 				{
-					Inner-RemoveMP -ManagementPack $MP
+					if ($MP.Sealed -eq $false)
+					{
+						Inner-RemoveMP -ManagementPack $MP -Unsealed -ReferenceToRemove $($ManagementPack.Name) -ExportPath $ExportPath
+					}
+					else
+					{
+						Inner-RemoveMP -ManagementPack $MP -Sealed -ExportPath $ExportPath
+					}
 					$recurseMP = Get-SCManagementPack -Id $ManagementPack.Id -Recurse -ErrorAction Stop
 					if ($recurseMP.Count -gt 1)
 					{
@@ -175,5 +251,6 @@ END
 	{
 		Remove-SCOMManagementPackDependencies -ManagementPackName Microsoft.SQLServer.Windows.Discovery
 	}
+	
 	Write-Output "$(Time-Stamp)Completed Script!"
 }
