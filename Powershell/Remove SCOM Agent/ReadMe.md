@@ -1,7 +1,7 @@
-##SYNOPSIS
+## SYNOPSIS
     This script was designed to help with forcibly removing the SCOM Agent.
 
-##DESCRIPTION
+## DESCRIPTION
     If there are issues in removing the SCOM Agent, this script may be able to help forcibly remove the application from the server.
     Commands and references used in the script are taken from a SCOM 2019 agent installation and may be different in other versions.
 
@@ -13,7 +13,7 @@
 
     One external file is REQUIRED: RegistryKeys.txt
 
-##NOTES
+## NOTES
     This script assumes:
         - You are running this script as an Administrator
         - You have exhausted other options for agent removal
@@ -22,9 +22,9 @@
         - The creator and Microsoft is not liable for any damage or loss done with this script
         - You have vetted the validity of this script and is approved to use in your environment
 
-##NOTICE
+## NOTICE
     By using this script, you in no way hold the author or Microsoft responsible for any damage or loss occured to the systems it is run on.
     You agree to have validated the script in its entirety and vetted it to be safe to use, assuming all responsibility for any ensuing issues.
 
-##AUTHOR
+## AUTHOR
     Lorne Sepaugh (lornesepaugh@microsoft.com)
