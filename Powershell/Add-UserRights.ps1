@@ -30,20 +30,20 @@
 			"Deny log on as a service (SeDenyServiceLogonRight)"
 	
 	.Example
-		Usage:
-        Single Users
-            Add User Right "Log on as a service" to CONTOSO\User:
-            .\Add-UserRights.ps1 -Username CONTOSO\User -UserRight SeServiceLogonRight
-            
-            Add User Right "Log on as a batch job" to CONTOSO\User:
-            .\Add-UserRights.ps1 -Username CONTOSO\User -UserRight SeBatchLogonRight
-            
-            Add User Right "Allow log on locally" to current user:
-            .\Add-UserRights.ps1 -UserRight SeInteractiveLogonRight
+	Usage:
+		Single Users
+		    Add User Right "Log on as a service" to CONTOSO\User:
+		    .\Add-UserRights.ps1 -Username CONTOSO\User -UserRight SeServiceLogonRight
 
-        Multiple Users / Services / Computers
-            Add User Right "Log on as a service" and "Log on as a batch job" to CONTOSO\User and run on, local machine and SQL.contoso.com:
-            .\Add-UserRights.ps1 -UserRight SeServiceLogonRight, SeBatchLogonRight -ComputerName $env:COMPUTERNAME, SQL.contoso.com -UserName CONTOSO\User1, CONTOSO\User2
+		    Add User Right "Log on as a batch job" to CONTOSO\User:
+		    .\Add-UserRights.ps1 -Username CONTOSO\User -UserRight SeBatchLogonRight
+
+		    Add User Right "Allow log on locally" to current user:
+		    .\Add-UserRights.ps1 -UserRight SeInteractiveLogonRight
+
+		Multiple Users / Services / Computers
+		    Add User Right "Log on as a service" and "Log on as a batch job" to CONTOSO\User and run on, local machine and SQL.contoso.com:
+		    .\Add-UserRights.ps1 -UserRight SeServiceLogonRight, SeBatchLogonRight -ComputerName $env:COMPUTERNAME, SQL.contoso.com -UserName CONTOSO\User1, CONTOSO\User2
 	
 	.Notes
 		Original Creator: Bill Loytty (weloytty)
