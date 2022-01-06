@@ -13,7 +13,7 @@
   .\Add-LogonAsServiceRight.ps1 -Username "domain\Username"
 .Notes
   Originally found here: https://github.com/weloytty/QuirkyPSFunctions/blob/ab4b02f9cc05505eee97d2f744f4c9c798143af1/Source/Users/Grant-LogOnAsService.ps1
-  I modified to my own needs: 
+  I modified to my own needs: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/edit/master/Powershell/Add-LogonAsServiceRight.ps1
 #>
 param (
 	[array]$ComputerName,
