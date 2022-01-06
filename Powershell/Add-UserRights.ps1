@@ -50,6 +50,8 @@
 		Based heavily on the script found here: https://github.com/weloytty/QuirkyPSFunctions/blob/ab4b02f9cc05505eee97d2f744f4c9c798143af1/Source/Users/Grant-LogOnAsService.ps1
 		I modified to my own needs: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Add-UserRights.ps1
 		
+		My blog post: https://blakedrumm.com/blog/add-and-check-user-rights-assignment/#/
+		
 		Author: Blake Drumm (blakedrumm@microsoft.com)
 		First Created on: January 5th, 2022
 		Last Modified on: January 5th, 2022
@@ -196,7 +198,7 @@ PROCESS
 	}
 	else
 	{
-	 <# Edit line 203 to modify the default command run when this script is executed.
+	 <# Edit line 205 to modify the default command run when this script is executed.
 	   Example: 
 	   Add-UserRights -UserRight SeServiceLogonRight, SeBatchLogonRight -ComputerName $env:COMPUTERNAME, SQL.contoso.com -UserName CONTOSO\User1, CONTOSO\User2
 	   #>
