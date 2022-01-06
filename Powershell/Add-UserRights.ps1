@@ -16,8 +16,8 @@
 	
 	.PARAMETER UserRight
 		Defines the User Right you want to set.
-        Use the right name: SeServiceLogonRight
-        There is no default for this argument
+		Name of the right you want to add to: SeServiceLogonRight
+		There is no default for this argument
 	
 	.Example
 		Usage:
