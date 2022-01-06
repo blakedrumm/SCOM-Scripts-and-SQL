@@ -31,13 +31,19 @@
 	
 	.Example
 		Usage:
-		.\Add-UserRights.ps1 -Username "domain\Username" -UserRight SeServiceLogonRight
-		
-		Add CONTOSO\User to User Right "Log on as a batch job":
-		.\Add-UserRights.ps1 -Username "CONTOSO\User" -UserRight SeBatchLogonRight
-		
-		Add the current user to User Right "Allow log on locally":
-		.\Add-UserRights.ps1 -UserRight SeInteractiveLogonRight
+        Single Users
+            Add User Right "Log on as a service" to CONTOSO\User:
+            .\Add-UserRights.ps1 -Username CONTOSO\User -UserRight SeServiceLogonRight
+            
+            Add User Right "Log on as a batch job" to CONTOSO\User:
+            .\Add-UserRights.ps1 -Username CONTOSO\User -UserRight SeBatchLogonRight
+            
+            Add User Right "Allow log on locally" to current user:
+            .\Add-UserRights.ps1 -UserRight SeInteractiveLogonRight
+
+        Multiple Users / Services / Computers
+            Add User Right "Log on as a service" and "Log on as a batch job" to CONTOSO\User and run on, local machine and SQL.contoso.com:
+            .\Add-UserRights.ps1 -UserRight SeServiceLogonRight, SeBatchLogonRight -ComputerName $env:COMPUTERNAME, SQL.contoso.com -UserName CONTOSO\User1, CONTOSO\User2
 	
 	.Notes
 		Original Creator: Bill Loytty (weloytty)
@@ -189,7 +195,7 @@ PROCESS
 	}
 	else
 	{
- <# Edit line 196 to modify the default command run when this script is executed.
+ <# Edit line 202 to modify the default command run when this script is executed.
    Example: 
    Add-UserRights -UserRight SeServiceLogonRight, SeBatchLogonRight -ComputerName $env:COMPUTERNAME, SQL.contoso.com -UserName CONTOSO\User1, CONTOSO\User2
    #>
