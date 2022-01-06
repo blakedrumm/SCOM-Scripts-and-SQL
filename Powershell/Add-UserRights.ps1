@@ -48,13 +48,13 @@ param
 BEGIN
 {
 	
-	Write-Host '===================================================================' -ForegroundColor DarkYellow
-	Write-Host '==========================  Start of Script =======================' -ForegroundColor DarkYellow
-	Write-Host '===================================================================' -ForegroundColor DarkYellow
+	Write-Output '==================================================================='
+	Write-Output '==========================  Start of Script ======================='
+	Write-Output '==================================================================='
 	
 	$checkingpermission = "Checking for elevated permissions..."
 	$scriptout += $checkingpermission
-	Write-Host $checkingpermission -ForegroundColor Gray
+	Write-Output $checkingpermission
 	if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))
 	{
 		$currentPath = $myinvocation.mycommand.definition
@@ -69,7 +69,7 @@ BEGIN
 	else
 	{
 		$permissiongranted = " Currently running as administrator - proceeding with script execution..."
-		Write-Host $permissiongranted -ForegroundColor Green
+		Write-Output $permissiongranted
 	}
 	
 	Function Time-Stamp
@@ -95,84 +95,87 @@ PROCESS
 			[Alias('right')]
 			[array]$UserRight
 		)
-		foreach ($computer in $ComputerName)
+		foreach ($user in $Username)
 		{
-			Invoke-Command -ComputerName $Computer -Script {
-				param ([string]$Username,
-					[Parameter(Mandatory = $true)]
-					[array]$UserRight,
-					[string]$ComputerName)
-				Function Time-Stamp
+			foreach ($rights in $UserRight)
+			{
+				foreach ($computer in $ComputerName)
 				{
-					$TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
-					return "$TimeStamp - "
-				}
-				$tempPath = [System.IO.Path]::GetTempPath()
-				$import = Join-Path -Path $tempPath -ChildPath "import.inf"
-				if (Test-Path $import) { Remove-Item -Path $import -Force }
-				$export = Join-Path -Path $tempPath -ChildPath "export.inf"
-				if (Test-Path $export) { Remove-Item -Path $export -Force }
-				$secedt = Join-Path -Path $tempPath -ChildPath "secedt.sdb"
-				if (Test-Path $secedt) { Remove-Item -Path $secedt -Force }
-				try
-				{
-					foreach ($right in $UserRight)
-					{
-						$UserLogonRight = switch ($right)
+					Invoke-Command -ComputerName $Computer -Script {
+						param ([string]$Username,
+							[Parameter(Mandatory = $true)]
+							[array]$UserRight,
+							[string]$ComputerName)
+						Function Time-Stamp
 						{
-							"SeBatchLogonRight"				    { "Log on as a batch job (SeBatchLogonRight)" }
-							"SeDenyBatchLogonRight"			    { "Deny log on as a batch job (SeDenyBatchLogonRight)" }
-							"SeDenyInteractiveLogonRight"	    { "Deny log on locally (SeDenyInteractiveLogonRight)" }
-							"SeDenyNetworkLogonRight"		    { "Deny access to this computer from the network (SeDenyNetworkLogonRight)" }
-							"SeDenyRemoteInteractiveLogonRight" { "Deny log on through Remote Desktop Services (SeDenyRemoteInteractiveLogonRight)" }
-							"SeDenyServiceLogonRight"		    { "Deny log on as a service (SeDenyServiceLogonRight)" }
-							"SeInteractiveLogonRight"		    { "Allow log on locally (SeInteractiveLogonRight)" }
-							"SeNetworkLogonRight"			    { "Access this computer from the network (SeNetworkLogonRight)" }
-							"SeRemoteInteractiveLogonRight"	    { "Allow log on through Remote Desktop Services (SeRemoteInteractiveLogonRight)" }
-							"SeServiceLogonRight"			    { "Log on as a service (SeServiceLogonRight)" }
+							$TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
+							return "$TimeStamp - "
 						}
-						Write-Host ("$(Time-Stamp)Granting `"$UserLogonRight`" to user account: {0} on host: {1}." -f $Username, $ComputerName)
-						$sid = ((New-Object System.Security.Principal.NTAccount($Username)).Translate([System.Security.Principal.SecurityIdentifier])).Value
-						secedit /export /cfg $export | Out-Null
-						#Change the below to any right you would like
-						$sids = (Select-String $export -Pattern "$right").Line
-						foreach ($line in @("[Unicode]", "Unicode=yes", "[System Access]", "[Event Audit]", "[Registry Values]", "[Version]", "signature=`"`$CHICAGO$`"", "Revision=1", "[Profile Description]", "Description=GrantLogOnAsAService security template", "[Privilege Rights]", "$sids,*$sid"))
+						$tempPath = [System.IO.Path]::GetTempPath()
+						$import = Join-Path -Path $tempPath -ChildPath "import.inf"
+						if (Test-Path $import) { Remove-Item -Path $import -Force }
+						$export = Join-Path -Path $tempPath -ChildPath "export.inf"
+						if (Test-Path $export) { Remove-Item -Path $export -Force }
+						$secedt = Join-Path -Path $tempPath -ChildPath "secedt.sdb"
+						if (Test-Path $secedt) { Remove-Item -Path $secedt -Force }
+						try
 						{
-							Add-Content $import $line
+							foreach ($right in $UserRight)
+							{
+								$UserLogonRight = switch ($right)
+								{
+									"SeBatchLogonRight"				    { "Log on as a batch job (SeBatchLogonRight)" }
+									"SeDenyBatchLogonRight"			    { "Deny log on as a batch job (SeDenyBatchLogonRight)" }
+									"SeDenyInteractiveLogonRight"	    { "Deny log on locally (SeDenyInteractiveLogonRight)" }
+									"SeDenyNetworkLogonRight"		    { "Deny access to this computer from the network (SeDenyNetworkLogonRight)" }
+									"SeDenyRemoteInteractiveLogonRight" { "Deny log on through Remote Desktop Services (SeDenyRemoteInteractiveLogonRight)" }
+									"SeDenyServiceLogonRight"		    { "Deny log on as a service (SeDenyServiceLogonRight)" }
+									"SeInteractiveLogonRight"		    { "Allow log on locally (SeInteractiveLogonRight)" }
+									"SeNetworkLogonRight"			    { "Access this computer from the network (SeNetworkLogonRight)" }
+									"SeRemoteInteractiveLogonRight"	    { "Allow log on through Remote Desktop Services (SeRemoteInteractiveLogonRight)" }
+									"SeServiceLogonRight"			    { "Log on as a service (SeServiceLogonRight)" }
+								}
+								Write-Output ("$(Time-Stamp)Granting `"$UserLogonRight`" to user account: {0} on host: {1}." -f $Username, $ComputerName)
+								$sid = ((New-Object System.Security.Principal.NTAccount($Username)).Translate([System.Security.Principal.SecurityIdentifier])).Value
+								secedit /export /cfg $export | Out-Null
+								#Change the below to any right you would like
+								$sids = (Select-String $export -Pattern "$right").Line
+								foreach ($line in @("[Unicode]", "Unicode=yes", "[System Access]", "[Event Audit]", "[Registry Values]", "[Version]", "signature=`"`$CHICAGO$`"", "Revision=1", "[Profile Description]", "Description=GrantLogOnAsAService security template", "[Privilege Rights]", "$sids,*$sid"))
+								{
+									Add-Content $import $line
+								}
+							}
+							
+							secedit /import /db $secedt /cfg $import | Out-Null
+							secedit /configure /db $secedt | Out-Null
+							gpupdate /force | Out-Null
+							Remove-Item -Path $import -Force | Out-Null
+							Remove-Item -Path $export -Force | Out-Null
+							Remove-Item -Path $secedt -Force | Out-Null
 						}
-					}
-					
-					secedit /import /db $secedt /cfg $import | Out-Null
-					secedit /configure /db $secedt | Out-Null
-					gpupdate /force | Out-Null
-					Remove-Item -Path $import -Force | Out-Null
-					Remove-Item -Path $export -Force | Out-Null
-					Remove-Item -Path $secedt -Force | Out-Null
+						catch
+						{
+							Write-Output ("$(Time-Stamp)Failed to grant `"$right`" to user account: {0} on host: {1}." -f $Username, $ComputerName)
+							$error[0]
+						}
+					} -ArgumentList $user, $rights, $Computer
 				}
-				catch
-				{
-					Write-Host ("$(Time-Stamp)Failed to grant `"$right`" to user account: {0} on host: {1}." -f $Username, $ComputerName)
-					$error[0]
-				}
-			} -ArgumentList $Username, $UserRight, $Computer
+			}
 		}
+		
 	}
 	if ($ComputerName -or $Username -or $UserRight)
 	{
 		foreach ($user in $Username)
 		{
-			foreach ($right in $UserRight)
-			{
-				Add-UserRights -ComputerName $ComputerName -Username $user -UserRight $UserRight
-			}
-			
+			Add-UserRights -ComputerName $ComputerName -Username $user -UserRight $right
 		}
 	}
 	else
 	{
- <# Edit line 177 to modify the default command run when this script is executed.
+ <# Edit line 180 to modify the default command run when this script is executed.
    Example: 
-   Add-UserRights -Username CONTOSO\Administrator, CONTOSO\User -UserRight SeServiceLogonRight
+   Add-UserRights -UserRight SeServiceLogonRight, SeBatchLogonRight -ComputerName $env:COMPUTERNAME, SQL.contoso.com -UserName CONTOSO\User1, CONTOSO\User2
    #>
 		Add-UserRights
 	}
