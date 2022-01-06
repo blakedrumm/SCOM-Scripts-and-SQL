@@ -18,10 +18,26 @@
 		Defines the User Right you want to set. This can be multiple values, comma seperated.
 		Name of the right you want to add to: SeServiceLogonRight
 		There is no default for this argument
+			"Log on as a batch job (SeBatchLogonRight)"
+			"Allow log on locally (SeInteractiveLogonRight)"
+			"Access this computer from the network (SeNetworkLogonRight)"
+			"Allow log on through Remote Desktop Services (SeRemoteInteractiveLogonRight)"
+			"Log on as a service (SeServiceLogonRight)"
+			"Deny log on as a batch job (SeDenyBatchLogonRight)"
+			"Deny log on locally (SeDenyInteractiveLogonRight)"
+			"Deny access to this computer from the network (SeDenyNetworkLogonRight)"
+			"Deny log on through Remote Desktop Services (SeDenyRemoteInteractiveLogonRight)"
+			"Deny log on as a service (SeDenyServiceLogonRight)"
 	
 	.Example
 		Usage:
 		.\Add-UserRights.ps1 -Username "domain\Username" -UserRight SeServiceLogonRight
+		
+		Add CONTOSO\User to User Right "Log on as a batch job":
+		.\Add-UserRights.ps1 -Username "CONTOSO\User" -UserRight SeBatchLogonRight
+		
+		Add the current user to User Right "Allow log on locally":
+		.\Add-UserRights.ps1 -UserRight SeInteractiveLogonRight
 	
 	.Notes
 		Original Creator: Bill Loytty (weloytty)
