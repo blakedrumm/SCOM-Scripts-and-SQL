@@ -1,21 +1,21 @@
 <#
 	.Synopsis
-		Grant logon as a service right to the defined user.
+		Grant User Right(s) to defined user(s) and computer(s).
 	
 	.DESCRIPTION
 		Add User Rights via Powershell.
 	
 	.Parameter ComputerName
-		Defines the name of the computer where the user right should be granted.
+		Defines the name of the computer where the user right should be granted. This can be multiple values, comma seperated.
 		Default is the local computer on which the script is run.
 	
 	.Parameter Username
-		Defines the Username under which the service should run.
+		Defines the Username under which the service should run. This can be multiple values, comma seperated.
 		Use the form: domain\Username.
 		Default is the user under which the script is run.
 	
 	.PARAMETER UserRight
-		Defines the User Right you want to set.
+		Defines the User Right you want to set. This can be multiple values, comma seperated.
 		Name of the right you want to add to: SeServiceLogonRight
 		There is no default for this argument
 	
@@ -24,16 +24,25 @@
 		.\Add-UserRights.ps1 -Username "domain\Username" -UserRight SeServiceLogonRight
 	
 	.Notes
-		Originally found here: https://github.com/weloytty/QuirkyPSFunctions/blob/ab4b02f9cc05505eee97d2f744f4c9c798143af1/Source/Users/Grant-LogOnAsService.ps1
-		I modified to my own needs: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/edit/master/Powershell/Add-UserRights.ps1
-
-		First Modification on: January 5th, 2022
+		Original Creator: Bill Loytty (weloytty)
+		Based heavily on the script found here: https://github.com/weloytty/QuirkyPSFunctions/blob/ab4b02f9cc05505eee97d2f744f4c9c798143af1/Source/Users/Grant-LogOnAsService.ps1
+		I modified to my own needs: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Add-UserRights.ps1
+		
+		Author: Blake Drumm (blakedrumm@microsoft.com)
+		First Created on: January 5th, 2022
 		Last Modified on: January 5th, 2022
 #>
 param
 (
+	[Parameter(Mandatory = $false,
+			   Position = 0)]
 	[array]$ComputerName,
+	[Parameter(Mandatory = $false,
+			   Position = 1)]
 	[array]$Username,
+	[Parameter(Mandatory = $false,
+			   Position = 2)]
+	[ValidateSet('SeBatchLogonRight', 'SeInteractiveLogonRight', 'SeNetworkLogonRight', 'SeRemoteInteractiveLogonRight', 'SeServiceLogonRight', 'SeDenyBatchLogonRight', 'SeDenyInteractiveLogonRight', 'SeDenyNetworkLogonRight', 'SeDenyRemoteInteractiveLogonRight', 'SeDenyServiceLogonRight', IgnoreCase = $true)]
 	[array]$UserRight
 )
 BEGIN
@@ -161,7 +170,7 @@ PROCESS
 	}
 	else
 	{
- <# Edit line 168 to modify the default command run when this script is executed.
+ <# Edit line 177 to modify the default command run when this script is executed.
    Example: 
    Add-UserRights -Username CONTOSO\Administrator, CONTOSO\User -UserRight SeServiceLogonRight
    #>
