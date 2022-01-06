@@ -112,7 +112,8 @@ PROCESS
 			[Parameter(Position = 1)]
 			[Alias('user')]
 			[array]$Username = ("{0}\{1}" -f $env:USERDOMAIN, $env:Username),
-			[Parameter(Position = 2)]
+			[Parameter(Mandatory = $true,
+					   Position = 2)]
 			[ValidateSet('SeBatchLogonRight', 'SeInteractiveLogonRight', 'SeNetworkLogonRight', 'SeRemoteInteractiveLogonRight', 'SeServiceLogonRight', 'SeDenyBatchLogonRight', 'SeDenyInteractiveLogonRight', 'SeDenyNetworkLogonRight', 'SeDenyRemoteInteractiveLogonRight', 'SeDenyServiceLogonRight', IgnoreCase = $true)]
 			[Alias('right')]
 			[array]$UserRight
@@ -190,12 +191,12 @@ PROCESS
 	{
 		foreach ($user in $Username)
 		{
-			Add-UserRights -ComputerName $ComputerName -Username $user -UserRight $right
+			Add-UserRights -ComputerName $ComputerName -Username $user -UserRight $UserRight
 		}
 	}
 	else
 	{
-	 <# Edit line 202 to modify the default command run when this script is executed.
+	 <# Edit line 203 to modify the default command run when this script is executed.
 	   Example: 
 	   Add-UserRights -UserRight SeServiceLogonRight, SeBatchLogonRight -ComputerName $env:COMPUTERNAME, SQL.contoso.com -UserName CONTOSO\User1, CONTOSO\User2
 	   #>
