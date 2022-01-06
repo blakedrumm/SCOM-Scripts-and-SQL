@@ -189,7 +189,7 @@ PROCESS
 	}
 	else
 	{
- <# Edit line 180 to modify the default command run when this script is executed.
+ <# Edit line 196 to modify the default command run when this script is executed.
    Example: 
    Add-UserRights -UserRight SeServiceLogonRight, SeBatchLogonRight -ComputerName $env:COMPUTERNAME, SQL.contoso.com -UserName CONTOSO\User1, CONTOSO\User2
    #>
