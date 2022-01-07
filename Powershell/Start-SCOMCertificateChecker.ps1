@@ -27,7 +27,16 @@
 		Check a specific Certificate serial number in the Local Machine Personal Store.
 	
 	.EXAMPLE
+		Check All Certificates on 4 Servers and outputting the results to C:\Temp:
 		PS C:\> .\Check-SCOMCertificates.ps1 -Servers ManagementServer1, ManagementServer2.contoso.com, Gateway.contoso.com, Agent1.contoso.com -All -Output C:\Temp
+	
+	.EXAMPLE
+		Check for a specific Certificate serialnumber in the Local Machine Personal Certificate store:
+		PS C:\> .\Check-SCOMCertificates.ps1 -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
+	
+	.EXAMPLE
+		Check all certificates on the local machine:
+		PS C:\> .\Check-SCOMCertificates.ps1 -All
 	
 	.NOTES
 		Update 01/2022 (Blake Drumm, https://github.com/blakedrumm/ )
@@ -77,7 +86,7 @@ param
 			   Position = 4)]
 	[string]$SerialNumber
 )
-
+#region CheckPermission
 $checkingpermission = "Checking for elevated permissions..."
 $scriptout += $checkingpermission
 Write-Host $checkingpermission -ForegroundColor Gray
@@ -96,7 +105,8 @@ else
 	$out += $permissiongranted
 	Write-Host $permissiongranted -ForegroundColor Green
 }
-# START FUNCTION
+#endregion CheckPermission
+#region Function
 function SCOM-CertCheck
 {
 	[OutputType([string])]
@@ -1083,9 +1093,11 @@ $time : Script Completed
 	#return $out
 	break
 }
+#endregion Function
+#region DefaultActions
 if ($null -eq $Servers)
 {
-	#Modify line 1091 if you want to change the default behavior when running this script through Powershell ISE
+	#Modify line 1103 if you want to change the default behavior when running this script through Powershell ISE
 	# Example: SCOM-CertCheck -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
 	# Example: SCOM-CertCheck -All
 	SCOM-CertCheck
@@ -1094,3 +1106,4 @@ else
 {
 	SCOM-CertCheck -Servers $Servers -Output $Output -All:$All -SerialNumber:$SerialNumber
 }
+#endregion DefaultActions
