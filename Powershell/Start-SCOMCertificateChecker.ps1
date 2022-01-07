@@ -1,6 +1,6 @@
 <#
 	.SYNOPSIS
-		OMCertCheck.ps1
+		System Center Operations Manager - Certificate Checker
 	
 	.DESCRIPTION
 		The steps for configuring certificates in System Center Operations Manager are numerous and one can easily get them confused.
@@ -11,22 +11,28 @@
 		If you think everything is set up correctly but the machines just won't communicate, try running this script on each computer and it will hopefully point you to the issue.
 		I have tried to provide useful knowledge for fixing the problems.
 		
-		This script is for stand-alone PowerShell 1.0 - it does not require the OpsMgr PowerShell snapins.
+		This script was originally designed for stand-alone PowerShell 1.0 - it does not require the OpsMgr PowerShell snapins.
 		Technet Article: https://gallery.technet.microsoft.com/scriptcenter/Troubleshooting-OpsMgr-27be19d3
 	
 	.PARAMETER Servers
-		Each Server you want to Check Certificates for SCOM on.
+		Each Server you want to Check SCOM Certificates on.
 	
 	.PARAMETER Output
 		Where to Output the Text Log for Script.
 	
 	.PARAMETER All
 		Check All Certificates in Local Machine Store.
+
+	.PARAMETER SerialNumber
+		Check a specific Certificate serial number in the Local Machine Personal Store.
 	
 	.EXAMPLE
-		PS C:\> .\OMCertCheck.ps1 -Servers ManagementServer1, ManagementServer2.contoso.com, Gateway.contoso.com, Agent1.contoso.com -All -Output C:\Temp
+		PS C:\> .\Check-SCOMCertificates.ps1 -Servers ManagementServer1, ManagementServer2.contoso.com, Gateway.contoso.com, Agent1.contoso.com -All -Output C:\Temp
 	
 	.NOTES
+		Update 01/2022 (Blake Drumm, https://github.com/blakedrumm/ )
+		The script will now allow an -SerialNumber parameter so you can only gather the certificate you are expecting.
+
 		Update 06/2021 (Blake Drumm, https://github.com/v-bldrum/ )
 		The Script will now by default only check every Certificate only if you have the -All Switch. Otherwise it will just check the certificate Serial Number (Reversed) that is present in the Registry.
 		
@@ -60,13 +66,16 @@ param
 (
 	[Parameter(Mandatory = $false,
 			   Position = 1)]
-	[Array]$Servers,
+	[Switch]$All,
 	[Parameter(Mandatory = $false,
 			   Position = 2)]
 	[String]$Output,
 	[Parameter(Mandatory = $false,
 			   Position = 3)]
-	[Switch]$All
+	[Array]$Servers,
+	[Parameter(Mandatory = $false,
+			   Position = 4)]
+	[string]$SerialNumber
 )
 
 $checkingpermission = "Checking for elevated permissions..."
@@ -94,14 +103,18 @@ function SCOM-CertCheck
 	[CmdletBinding()]
 	param
 	(
-		[Parameter(Position = 1)]
-		[Array]$Servers,
+		[Parameter(Mandatory = $false,
+				   Position = 1)]
+		[Switch]$All,
 		[Parameter(Mandatory = $false,
 				   Position = 2)]
 		[String]$Output,
 		[Parameter(Mandatory = $false,
 				   Position = 3)]
-		[Switch]$All
+		[Array]$Servers,
+		[Parameter(Mandatory = $false,
+				   Position = 4)]
+		[string]$SerialNumber
 	)
 	if ($null -eq $Servers) { $Servers = $env:COMPUTERNAME }
 	else
@@ -122,6 +135,7 @@ Certificate Checker
 		{
 			Invoke-Command -ComputerName $server {
 				$All = $using:All
+				$SerialNumber = $using:SerialNumber
 				Function Time-Stamp
 				{
 					
@@ -157,6 +171,15 @@ $time : Starting Script
 				Write-Host $text3
 				foreach ($cert in $certs)
 				{
+					#If the serialnumber argument is present
+					if ($SerialNumber)
+					{
+						if ($SerialNumber -ne $cert.SerialNumber)
+						{
+							continue
+						}
+						$All = $true
+					}
 					if (!$All)
 					{
 						$certSerial = $cert.SerialNumber
@@ -228,7 +251,7 @@ Examining Certificate - Subject: $($cert.Subject -replace "CN=", $null) - Serial
 							continue;
 						}
 						$fqdnRegexPattern = "CN=" + $fqdn.Replace(".", "\.") + '(,.*)?$'
-
+						
 						if (!($cert.SubjectName.Name -match $fqdnRegexPattern))
 						{
 							$text5 = "Certificate Subjectname Mismatch"
@@ -621,6 +644,15 @@ $time : Starting Script
 			Write-Host $text3
 			foreach ($cert in $certs)
 			{
+				#If the serialnumber argument is present
+				if ($SerialNumber)
+				{
+					if ($SerialNumber -ne $cert.SerialNumber)
+					{
+						continue
+					}
+					$All = $true
+				}
 				if (!$All)
 				{
 					$certSerial = $cert.SerialNumber
@@ -1051,5 +1083,14 @@ $time : Script Completed
 	#return $out
 	break
 }
-if ($null -eq $Servers) { SCOM-CertCheck }
-else { SCOM-CertCheck -Servers $Servers -Output $Output -All:$All }
+if ($null -eq $Servers)
+{
+	#Modify line 1091 if you want to change the default behavior when running this script through Powershell ISE
+	# Example: SCOM-CertCheck -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
+	# Example: SCOM-CertCheck -All
+	SCOM-CertCheck
+}
+else
+{
+	SCOM-CertCheck -Servers $Servers -Output $Output -All:$All -SerialNumber:$SerialNumber
+}
