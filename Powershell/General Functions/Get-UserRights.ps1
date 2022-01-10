@@ -17,12 +17,12 @@
 	.EXAMPLE
         Usage:
             Get Local User Account Rights and output to text in console:
-				PS C:\> .\Get-UserRights.ps1
+		PS C:\> .\Get-UserRights.ps1
             
-            Get Remote ComputerName User Account Rights:
+            Get Remote Server User Account Rights:
                 PS C:\> .\Get-UserRights.ps1 -ComputerName SQL.contoso.com
 
-            Get Local Machine and Multiple ComputerName User Account Rights:
+            Get Local Machine and Multiple Server User Account Rights:
                 PS C:\> .\Get-UserRights.ps1 -ComputerName $env:COMPUTERNAME, SQL.contoso.com
 
             Output to CSV in 'C:\Temp':
