@@ -17,19 +17,19 @@
 	.EXAMPLE
         Usage:
             Get Local User Account Rights and output to text in console:
-				PS C:\> .\Get-LocalUserAccountRights.ps1
+				PS C:\> .\Get-UserRights.ps1
             
             Get Remote Server User Account Rights:
-                PS C:\> .\Get-LocalUserAccountRights.ps1 -Servers SQL.contoso.com
+                PS C:\> .\Get-UserRights.ps1 -Servers SQL.contoso.com
 
             Get Local Machine and Multiple Servers User Account Rights:
-                PS C:\> .\Get-LocalUserAccountRights.ps1 -Servers $env:COMPUTERNAME, SQL.contoso.com
+                PS C:\> .\Get-UserRights.ps1 -Servers $env:COMPUTERNAME, SQL.contoso.com
 
             Output to CSV in 'C:\Temp':
-                PS C:\> .\Get-LocalUserAccountRights.ps1 -FileOutputPath C:\Temp -FileOutputType CSV
+                PS C:\> .\Get-UserRights.ps1 -FileOutputPath C:\Temp -FileOutputType CSV
 
             Output to Text in 'C:\Temp':
-                PS C:\> .\Get-LocalUserAccountRights.ps1 -FileOutputPath C:\Temp -FileOutputType Text
+                PS C:\> .\Get-UserRights.ps1 -FileOutputPath C:\Temp -FileOutputType Text
 	
 	.NOTES
 		This script is located in the following GitHub Repository: https://github.com/blakedrumm/SCOM-Scripts-and-SQL
