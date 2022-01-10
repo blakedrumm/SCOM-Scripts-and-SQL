@@ -108,7 +108,6 @@ PROCESS
 			[string]$FileOutputPath,
 			[Parameter(Position = 2,
 					   HelpMessage = '(CSV or Text) Set the type of file you would like to output as. Combine with the OutputPath parameter.')]
-			[ValidateSet('CSV', 'Text')]
 			[string]$FileOutputType
 		)
 		if (!$ComputerName)
@@ -434,7 +433,7 @@ public static extern bool LookupPrivilegeDisplayName(
 	}
 	else
 	{
-	 <# Edit line 444 to modify the default command run when this script is executed.
+	 <# Edit line 443 to modify the default command run when this script is executed.
 	   Example for output multiple servers to a text file: 
 	   	 Get-UserRights -ComputerName MS01-2019, IIS-2019 -FileOutputPath C:\Temp -FileOutputType Text
 
