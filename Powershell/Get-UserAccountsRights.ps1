@@ -93,7 +93,7 @@ BEGIN
 PROCESS
 {
 	#region MainFunctionSection
-	function  Get-UserRights
+	function Get-UserRights
 	{
 		param
 		(
@@ -401,7 +401,7 @@ public static extern bool LookupPrivilegeDisplayName(
 			Write-Output "$(Time-Stamp)Gathering for $server completed."
 		}
 		Write-Output "$(Time-Stamp)Main script execution completed!"
-		$output = $output | Select Privilege, PrivilegeName, Principal, ComputerName -Unique
+		$output = $output | Select Privilege, PrivilegeName, Principal, ComputerName -Unique | Sort-Object Privilege, ComputerName
 		if (!$FileOutputPath)
 		{
 			$output | Format-Table -AutoSize | Out-String -Width 2048
@@ -429,7 +429,7 @@ public static extern bool LookupPrivilegeDisplayName(
 	#endregion MainFunctionSection
 	if ($FileOutputPath -or $FileOutputType -or $Servers)
 	{
-		 Get-UserRights -FileOutputPath:$FileOutputPath -FileOutputType:$FileOutputType -Servers:$Servers
+		Get-UserRights -FileOutputPath:$FileOutputPath -FileOutputType:$FileOutputType -Servers:$Servers
 	}
 	else
 	{
@@ -440,7 +440,7 @@ public static extern bool LookupPrivilegeDisplayName(
 	   Example for gathering locally:
 	   	 Get-UserRights
 	   #>
-		 Get-UserRights
+		Get-UserRights
 	}
 }
 END
