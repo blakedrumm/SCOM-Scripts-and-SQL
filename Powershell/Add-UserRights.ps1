@@ -18,6 +18,8 @@
 		Defines the User Right you want to set. This can be multiple values, comma seperated.
 		Name of the right you want to add to: SeServiceLogonRight
 		There is no default for this argument
+
+		Some (but not all) of the Options you can use:
 			"Log on as a batch job (SeBatchLogonRight)"
 			"Allow log on locally (SeInteractiveLogonRight)"
 			"Access this computer from the network (SeNetworkLogonRight)"
@@ -30,20 +32,20 @@
 			"Deny log on as a service (SeDenyServiceLogonRight)"
 	
 	.Example
-	Usage:
+		Usage:
 		Single Users
-		    Add User Right "Log on as a service" to CONTOSO\User:
-		    .\Add-UserRights.ps1 -Username CONTOSO\User -UserRight SeServiceLogonRight
-
-		    Add User Right "Log on as a batch job" to CONTOSO\User:
-		    .\Add-UserRights.ps1 -Username CONTOSO\User -UserRight SeBatchLogonRight
-
-		    Add User Right "Allow log on locally" to current user:
-		    .\Add-UserRights.ps1 -UserRight SeInteractiveLogonRight
-
+		Add User Right "Log on as a service" to CONTOSO\User:
+		.\Add-UserRights.ps1 -Username CONTOSO\User -UserRight SeServiceLogonRight
+		
+		Add User Right "Log on as a batch job" to CONTOSO\User:
+		.\Add-UserRights.ps1 -Username CONTOSO\User -UserRight SeBatchLogonRight
+		
+		Add User Right "Allow log on locally" to current user:
+		.\Add-UserRights.ps1 -UserRight SeInteractiveLogonRight
+		
 		Multiple Users / Services / Computers
-		    Add User Right "Log on as a service" and "Log on as a batch job" to CONTOSO\User and run on, local machine and SQL.contoso.com:
-		    .\Add-UserRights.ps1 -UserRight SeServiceLogonRight, SeBatchLogonRight -ComputerName $env:COMPUTERNAME, SQL.contoso.com -UserName CONTOSO\User1, CONTOSO\User2
+		Add User Right "Log on as a service" and "Log on as a batch job" to CONTOSO\User and run on, local machine and SQL.contoso.com:
+		.\Add-UserRights.ps1 -UserRight SeServiceLogonRight, SeBatchLogonRight -ComputerName $env:COMPUTERNAME, SQL.contoso.com -UserName CONTOSO\User1, CONTOSO\User2
 	
 	.Notes
 		Original Creator: Bill Loytty (weloytty)
@@ -58,15 +60,16 @@
 #>
 param
 (
-	[Parameter(Mandatory = $false,
-			   Position = 0)]
-	[array]$ComputerName,
-	[Parameter(Mandatory = $false,
-			   Position = 1)]
-	[array]$Username,
-	[Parameter(Mandatory = $false,
+	[Parameter(Position = 0)]
+	[Alias('computer')]
+	[array]$ComputerName = ("{0}.{1}" -f $env:ComputerName.ToLower(), $env:USERDNSDOMAIN.ToLower()),
+	[Parameter(Position = 1)]
+	[Alias('user')]
+	[array]$Username = ("{0}\{1}" -f $env:USERDOMAIN, $env:Username),
+	[Parameter(Mandatory = $true,
 			   Position = 2)]
-	[ValidateSet('SeBatchLogonRight', 'SeInteractiveLogonRight', 'SeNetworkLogonRight', 'SeRemoteInteractiveLogonRight', 'SeServiceLogonRight', 'SeDenyBatchLogonRight', 'SeDenyInteractiveLogonRight', 'SeDenyNetworkLogonRight', 'SeDenyRemoteInteractiveLogonRight', 'SeDenyServiceLogonRight', IgnoreCase = $true)]
+	[ValidateSet('SeAssignPrimaryTokenPrivilege', 'SeAuditPrivilege', 'SeBackupPrivilege', 'SeBatchLogonRight', 'SeChangeNotifyPrivilege', 'SeCreateGlobalPrivilege', 'SeCreatePagefilePrivilege', 'SeCreateSymbolicLinkPrivilege', 'SeDebugPrivilege', 'SeDelegateSessionUserImpersonatePrivilege', 'SeImpersonatePrivilege', 'SeIncreaseBasePriorityPrivilege', 'SeIncreaseQuotaPrivilege', 'SeIncreaseWorkingSetPrivilege', 'SeInteractiveLogonRight', 'SeLoadDriverPrivilege', 'SeManageVolumePrivilege', 'SeNetworkLogonRight', 'SeProfileSingleProcessPrivilege', 'SeRemoteInteractiveLogonRight', 'SeRemoteShutdownPrivilege', 'SeRestorePrivilege', 'SeSecurityPrivilege', 'SeServiceLogonRight', 'SeShutdownPrivilege', 'SeSystemEnvironmentPrivilege', 'SeSystemProfilePrivilege', 'SeSystemtimePrivilege', 'SeTakeOwnershipPrivilege', 'SeTimeZonePrivilege', 'SeUndockPrivilege', IgnoreCase = $true)]
+	[Alias('right')]
 	[array]$UserRight
 )
 BEGIN
@@ -116,7 +119,7 @@ PROCESS
 			[array]$Username = ("{0}\{1}" -f $env:USERDOMAIN, $env:Username),
 			[Parameter(Mandatory = $true,
 					   Position = 2)]
-			[ValidateSet('SeBatchLogonRight', 'SeInteractiveLogonRight', 'SeNetworkLogonRight', 'SeRemoteInteractiveLogonRight', 'SeServiceLogonRight', 'SeDenyBatchLogonRight', 'SeDenyInteractiveLogonRight', 'SeDenyNetworkLogonRight', 'SeDenyRemoteInteractiveLogonRight', 'SeDenyServiceLogonRight', IgnoreCase = $true)]
+			[ValidateSet('SeAssignPrimaryTokenPrivilege', 'SeAuditPrivilege', 'SeBackupPrivilege', 'SeBatchLogonRight', 'SeChangeNotifyPrivilege', 'SeCreateGlobalPrivilege', 'SeCreatePagefilePrivilege', 'SeCreateSymbolicLinkPrivilege', 'SeDebugPrivilege', 'SeDelegateSessionUserImpersonatePrivilege', 'SeImpersonatePrivilege', 'SeIncreaseBasePriorityPrivilege', 'SeIncreaseQuotaPrivilege', 'SeIncreaseWorkingSetPrivilege', 'SeInteractiveLogonRight', 'SeLoadDriverPrivilege', 'SeManageVolumePrivilege', 'SeNetworkLogonRight', 'SeProfileSingleProcessPrivilege', 'SeRemoteInteractiveLogonRight', 'SeRemoteShutdownPrivilege', 'SeRestorePrivilege', 'SeSecurityPrivilege', 'SeServiceLogonRight', 'SeShutdownPrivilege', 'SeSystemEnvironmentPrivilege', 'SeSystemProfilePrivilege', 'SeSystemtimePrivilege', 'SeTakeOwnershipPrivilege', 'SeTimeZonePrivilege', 'SeUndockPrivilege', IgnoreCase = $true)]
 			[Alias('right')]
 			[array]$UserRight
 		)
@@ -159,6 +162,7 @@ PROCESS
 									"SeNetworkLogonRight"			    { "Access this computer from the network (SeNetworkLogonRight)" }
 									"SeRemoteInteractiveLogonRight"	    { "Allow log on through Remote Desktop Services (SeRemoteInteractiveLogonRight)" }
 									"SeServiceLogonRight"			    { "Log on as a service (SeServiceLogonRight)" }
+									Default 							{ "($right)" }
 								}
 								Write-Output ("$(Time-Stamp)Granting `"$UserLogonRight`" to user account: {0} on host: {1}." -f $Username, $ComputerName)
 								$sid = ((New-Object System.Security.Principal.NTAccount($Username)).Translate([System.Security.Principal.SecurityIdentifier])).Value
@@ -198,7 +202,7 @@ PROCESS
 	}
 	else
 	{
-	 <# Edit line 205 to modify the default command run when this script is executed.
+	 <# Edit line 209 to modify the default command run when this script is executed.
 	   Example: 
 	   Add-UserRights -UserRight SeServiceLogonRight, SeBatchLogonRight -ComputerName $env:COMPUTERNAME, SQL.contoso.com -UserName CONTOSO\User1, CONTOSO\User2
 	   #>
