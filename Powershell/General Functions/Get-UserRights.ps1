@@ -46,7 +46,7 @@ param
 	[Parameter(ValueFromPipeline = $true,
 			   Position = 0,
 			   HelpMessage = '(Server1, Server2) Comma separated list of servers you want to run this script against. To run locally, run without this switch. This argument accepts values from the pipeline.')]
-	[Alias('server')]
+	[Alias('servers')]
 	[array]$ComputerName,
 	[Parameter(Position = 1,
 			   HelpMessage = '(ex. C:\Temp) Location to store the Output File. Set the Type with FileOutputType')]
@@ -258,7 +258,7 @@ public static extern bool LookupPrivilegeDisplayName(
 						Remove-Item $TemplateFilename, $LogFilename -ErrorAction SilentlyContinue
 					}
 					return Get-SecurityPolicy
-				} -computer $ComputerName -HideComputerName | Select * -ExcludeProperty RunspaceID, PSShowComputerName, PSComputerName -Unique
+				} -computer $ComputerName -HideComputerName | Select-Object * -ExcludeProperty RunspaceID, PSShowComputerName, PSComputerName -Unique
 			} #endregion Non-LocalMachine
 			else #region LocalMachine
 			{
@@ -402,7 +402,7 @@ public static extern bool LookupPrivilegeDisplayName(
 			Write-Output "$(Time-Stamp)Gathering for $ComputerName completed."
 		}
 		Write-Output "$(Time-Stamp)Main script execution completed!"
-		$output = $output | Select Privilege, PrivilegeName, Principal, ComputerName -Unique | Sort-Object Privilege, ComputerName
+		$output = $output | Select-Object Privilege, PrivilegeName, Principal, ComputerName -Unique | Sort-Object Privilege, ComputerName
 		if (!$FileOutputPath)
 		{
 			$output | Format-Table -AutoSize | Out-String -Width 2048
