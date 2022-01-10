@@ -11,7 +11,7 @@
 	.PARAMETER FileOutputType
 		Set the type of file you would like to output as. Combine with the OutputPath parameter.
 	
-	.PARAMETER Servers
+	.PARAMETER ComputerName
 		Comma seperated list of servers you want to run this script against. To run locally, run without this switch.
 	
 	.EXAMPLE
@@ -19,11 +19,11 @@
             Get Local User Account Rights and output to text in console:
 				PS C:\> .\Get-UserRights.ps1
             
-            Get Remote Server User Account Rights:
-                PS C:\> .\Get-UserRights.ps1 -Servers SQL.contoso.com
+            Get Remote ComputerName User Account Rights:
+                PS C:\> .\Get-UserRights.ps1 -ComputerName SQL.contoso.com
 
-            Get Local Machine and Multiple Servers User Account Rights:
-                PS C:\> .\Get-UserRights.ps1 -Servers $env:COMPUTERNAME, SQL.contoso.com
+            Get Local Machine and Multiple ComputerName User Account Rights:
+                PS C:\> .\Get-UserRights.ps1 -ComputerName $env:COMPUTERNAME, SQL.contoso.com
 
             Output to CSV in 'C:\Temp':
                 PS C:\> .\Get-UserRights.ps1 -FileOutputPath C:\Temp -FileOutputType CSV
@@ -53,7 +53,7 @@ param
 			   Position = 2,
 			   HelpMessage = 'Comma seperated list of servers you want to run this script against. To run locally, run without this switch.')]
 	[Alias('server')]
-	[array]$Servers
+	[array]$ComputerName
 )
 BEGIN
 {
@@ -108,18 +108,18 @@ PROCESS
 					   Position = 2,
 					   HelpMessage = 'Comma seperated list of servers you want to run this script against. To run locally, run without this switch.')]
 			[Alias('server')]
-			[array]$Servers
+			[array]$ComputerName
 		)
-		if (!$Servers)
+		if (!$ComputerName)
 		{
-			$Servers = $env:COMPUTERNAME
+			$ComputerName = $env:COMPUTERNAME
 		}
 		[array]$localrights = $null
-		foreach ($Server in $Servers)
+		foreach ($ComputerName in $ComputerName)
 		{
-			Write-Output "$(Time-Stamp)Gathering current User Account Rights on: $server"
+			Write-Output "$(Time-Stamp)Gathering current User Account Rights on: $ComputerName"
 			#region Non-LocalMachine
-			if ($Server -notmatch $env:COMPUTERNAME)
+			if ($ComputerName -notmatch $env:COMPUTERNAME)
 			{
 				$localrights += Invoke-Command -ScriptBlock {
 					function Get-SecurityPolicy
@@ -257,7 +257,7 @@ public static extern bool LookupPrivilegeDisplayName(
 						Remove-Item $TemplateFilename, $LogFilename -ErrorAction SilentlyContinue
 					}
 					return Get-SecurityPolicy
-				} -computer $Server -HideComputerName | Select * -ExcludeProperty RunspaceID, PSShowComputerName, PSComputerName -Unique
+				} -computer $ComputerName -HideComputerName | Select * -ExcludeProperty RunspaceID, PSShowComputerName, PSComputerName -Unique
 			} #endregion Non-LocalMachine
 			else #region LocalMachine
 			{
@@ -398,7 +398,7 @@ public static extern bool LookupPrivilegeDisplayName(
 				$localrights += Get-SecurityPolicy
 			} #endregion LocalMachine
 			$output += $localrights
-			Write-Output "$(Time-Stamp)Gathering for $server completed."
+			Write-Output "$(Time-Stamp)Gathering for $ComputerName completed."
 		}
 		Write-Output "$(Time-Stamp)Main script execution completed!"
 		$output = $output | Select Privilege, PrivilegeName, Principal, ComputerName -Unique | Sort-Object Privilege, ComputerName
@@ -427,15 +427,15 @@ public static extern bool LookupPrivilegeDisplayName(
 		}
 	}
 	#endregion MainFunctionSection
-	if ($FileOutputPath -or $FileOutputType -or $Servers)
+	if ($FileOutputPath -or $FileOutputType -or $ComputerName)
 	{
-		Get-UserRights -FileOutputPath:$FileOutputPath -FileOutputType:$FileOutputType -Servers:$Servers
+		Get-UserRights -FileOutputPath:$FileOutputPath -FileOutputType:$FileOutputType -ComputerName:$ComputerName
 	}
 	else
 	{
 	 <# Edit line 443 to modify the default command run when this script is executed.
 	   Example for output multiple servers to a text file: 
-	   	 Get-UserRights -Servers MS01-2019, IIS-2019 -FileOutputPath C:\Temp -FileOutputType Text
+	   	 Get-UserRights -ComputerName MS01-2019, IIS-2019 -FileOutputPath C:\Temp -FileOutputType Text
 
 	   Example for gathering locally:
 	   	 Get-UserRights
