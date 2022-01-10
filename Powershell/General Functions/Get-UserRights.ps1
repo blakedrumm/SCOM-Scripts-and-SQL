@@ -33,6 +33,7 @@
 	
 	.NOTES
 		This script is located in the following GitHub Repository: https://github.com/blakedrumm/SCOM-Scripts-and-SQL
+		Exact location: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/General%20Functions/Get-UserRights.ps1
 
 		Author: Blake Drumm (blakedrumm@microsoft.com)
 		First Created on: June 10th, 2021
@@ -433,7 +434,7 @@ public static extern bool LookupPrivilegeDisplayName(
 	}
 	else
 	{
-	 <# Edit line 443 to modify the default command run when this script is executed.
+	 <# Edit line 444 to modify the default command run when this script is executed.
 	   Example for output multiple servers to a text file: 
 	   	 Get-UserRights -ComputerName MS01-2019, IIS-2019 -FileOutputPath C:\Temp -FileOutputType Text
 
