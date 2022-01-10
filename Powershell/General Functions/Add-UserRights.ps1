@@ -62,11 +62,11 @@ param
 (
 	[Parameter(Position = 0)]
 	[Alias('computer')]
-	[array]$ComputerName = ("{0}.{1}" -f $env:ComputerName.ToLower(), $env:USERDNSDOMAIN.ToLower()),
+	[array]$ComputerName,
 	[Parameter(Position = 1)]
 	[Alias('user')]
-	[array]$Username = ("{0}\{1}" -f $env:USERDOMAIN, $env:Username),
-	[Parameter(Mandatory = $true,
+	[array]$Username,
+	[Parameter(Mandatory = $false,
 			   Position = 2)]
 	[ValidateSet('SeAssignPrimaryTokenPrivilege', 'SeAuditPrivilege', 'SeBackupPrivilege', 'SeBatchLogonRight', 'SeChangeNotifyPrivilege', 'SeCreateGlobalPrivilege', 'SeCreatePagefilePrivilege', 'SeCreateSymbolicLinkPrivilege', 'SeDebugPrivilege', 'SeDelegateSessionUserImpersonatePrivilege', 'SeImpersonatePrivilege', 'SeIncreaseBasePriorityPrivilege', 'SeIncreaseQuotaPrivilege', 'SeIncreaseWorkingSetPrivilege', 'SeInteractiveLogonRight', 'SeLoadDriverPrivilege', 'SeManageVolumePrivilege', 'SeNetworkLogonRight', 'SeProfileSingleProcessPrivilege', 'SeRemoteInteractiveLogonRight', 'SeRemoteShutdownPrivilege', 'SeRestorePrivilege', 'SeSecurityPrivilege', 'SeServiceLogonRight', 'SeShutdownPrivilege', 'SeSystemEnvironmentPrivilege', 'SeSystemProfilePrivilege', 'SeSystemtimePrivilege', 'SeTakeOwnershipPrivilege', 'SeTimeZonePrivilege', 'SeUndockPrivilege', IgnoreCase = $true)]
 	[Alias('right')]
@@ -202,7 +202,8 @@ PROCESS
 	}
 	else
 	{
-	 <# Edit line 209 to modify the default command run when this script is executed.
+		
+	 <# Edit line 210 to modify the default command run when this script is executed.
 	   Example: 
 	   Add-UserRights -UserRight SeServiceLogonRight, SeBatchLogonRight -ComputerName $env:COMPUTERNAME, SQL.contoso.com -UserName CONTOSO\User1, CONTOSO\User2
 	   #>
