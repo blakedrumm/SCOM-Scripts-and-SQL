@@ -5,36 +5,36 @@
 	.DESCRIPTION
 		This script will gather the local security policy User Rights from the local, or a remote machine.
 	
+	.PARAMETER ComputerName
+		Comma separated list of servers you want to run this script against. To run locally, run without this switch.
+	
 	.PARAMETER FileOutputPath
 		Location to store the Output File. Set the Type (CSV or Text) with FileOutputType
 	
 	.PARAMETER FileOutputType
 		Set the type of file you would like to output as. Combine with the OutputPath parameter.
 	
-	.PARAMETER ComputerName
-		Comma separated list of servers you want to run this script against. To run locally, run without this switch.
-	
 	.EXAMPLE
-        Usage:
-            Get Local User Account Rights and output to text in console:
-		PS C:\> .\Get-UserRights.ps1
-            
-            Get Remote Server User Account Rights:
-                PS C:\> .\Get-UserRights.ps1 -ComputerName SQL.contoso.com
-
-            Get Local Machine and Multiple Server User Account Rights:
-                PS C:\> .\Get-UserRights.ps1 -ComputerName $env:COMPUTERNAME, SQL.contoso.com
-
-            Output to CSV in 'C:\Temp':
-                PS C:\> .\Get-UserRights.ps1 -FileOutputPath C:\Temp -FileOutputType CSV
-
-            Output to Text in 'C:\Temp':
-                PS C:\> .\Get-UserRights.ps1 -FileOutputPath C:\Temp -FileOutputType Text
+		Usage:
+			Get Local User Account Rights and output to text in console:
+			PS C:\> .\Get-UserRights.ps1
+			
+			Get Remote Server User Account Rights:
+			PS C:\> .\Get-UserRights.ps1 -ComputerName SQL.contoso.com
+			
+			Get Local Machine and Multiple Server User Account Rights:
+			PS C:\> .\Get-UserRights.ps1 -ComputerName $env:COMPUTERNAME, SQL.contoso.com
+			
+			Output to CSV in 'C:\Temp':
+			PS C:\> .\Get-UserRights.ps1 -FileOutputPath C:\Temp -FileOutputType CSV
+			
+			Output to Text in 'C:\Temp':
+			PS C:\> .\Get-UserRights.ps1 -FileOutputPath C:\Temp -FileOutputType Text
 	
 	.NOTES
 		This script is located in the following GitHub Repository: https://github.com/blakedrumm/SCOM-Scripts-and-SQL
 		Exact location: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/General%20Functions/Get-UserRights.ps1
-
+		
 		Author: Blake Drumm (blakedrumm@microsoft.com)
 		First Created on: June 10th, 2021
 		Last Modified on: January 10th, 2022
@@ -43,18 +43,18 @@
 [OutputType([string])]
 param
 (
-	[Parameter(Position = 0,
-			   HelpMessage = '(ex. C:\Temp) Location to store the Output File. Set the Type with FileOutputType')]
-	[string]$FileOutputPath,
-	[Parameter(Position = 1,
-			   HelpMessage = '(CSV or Text) Set the type of file you would like to output as. Combine with the OutputPath parameter.')]
-	[ValidateSet('CSV', 'Text')]
-	[string]$FileOutputType,
 	[Parameter(ValueFromPipeline = $true,
-			   Position = 2,
+			   Position = 0,
 			   HelpMessage = '(Server1, Server2) Comma separated list of servers you want to run this script against. To run locally, run without this switch. This argument accepts values from the pipeline.')]
 	[Alias('server')]
-	[array]$ComputerName
+	[array]$ComputerName,
+	[Parameter(Position = 1,
+			   HelpMessage = '(ex. C:\Temp) Location to store the Output File. Set the Type with FileOutputType')]
+	[string]$FileOutputPath,
+	[Parameter(Position = 2,
+			   HelpMessage = '(CSV or Text) Set the type of file you would like to output as. Combine with the OutputPath parameter.')]
+	[ValidateSet('CSV', 'Text')]
+	[string]$FileOutputType
 )
 BEGIN
 {
@@ -98,18 +98,18 @@ PROCESS
 	{
 		param
 		(
-			[Parameter(Position = 0,
-					   HelpMessage = '(ex. C:\Temp) Location to store the Output File. Set the Type with FileOutputType')]
-			[string]$FileOutputPath,
-			[Parameter(Position = 1,
-					   HelpMessage = '(CSV or Text) Set the type of file you would like to output as. Combine with the OutputPath parameter.')]
-			[ValidateSet('CSV', 'Text')]
-			[string]$FileOutputType,
 			[Parameter(ValueFromPipeline = $true,
-					   Position = 2,
+					   Position = 0,
 					   HelpMessage = '(Server1, Server2) Comma separated list of servers you want to run this script against. To run locally, run without this switch. This argument accepts values from the pipeline.')]
 			[Alias('server')]
-			[array]$ComputerName
+			[array]$ComputerName,
+			[Parameter(Position = 1,
+					   HelpMessage = '(ex. C:\Temp) Location to store the Output File. Set the Type with FileOutputType')]
+			[string]$FileOutputPath,
+			[Parameter(Position = 2,
+					   HelpMessage = '(CSV or Text) Set the type of file you would like to output as. Combine with the OutputPath parameter.')]
+			[ValidateSet('CSV', 'Text')]
+			[string]$FileOutputType
 		)
 		if (!$ComputerName)
 		{
