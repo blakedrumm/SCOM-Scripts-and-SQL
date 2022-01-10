@@ -34,8 +34,8 @@
 		Output to Text in 'C:\Temp':
 		PS C:\> .\Get-UserRights.ps1 -FileOutputPath C:\Temp -FileOutputType Text
 
-        Pass thru object:
-    	PS C:\> .\Get-UserRights.ps1 -ComputerName SQL.contoso.com -PassThru    
+		Pass thru object:
+		PS C:\> .\Get-UserRights.ps1 -ComputerName SQL.contoso.com -PassThru | Where {$_.Principal -match "Administrator"}
 	
 	.NOTES
 		This script is located in the following GitHub Repository: https://github.com/blakedrumm/SCOM-Scripts-and-SQL
