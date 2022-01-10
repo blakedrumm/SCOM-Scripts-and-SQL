@@ -14,22 +14,28 @@
 	.PARAMETER FileOutputType
 		Set the type of file you would like to output as. Combine with the OutputPath parameter.
 	
+	.PARAMETER PassThru
+		Output as an object that you can manipulate / access.
+	
 	.EXAMPLE
 		Usage:
-			Get Local User Account Rights and output to text in console:
-			PS C:\> .\Get-UserRights.ps1
-			
-			Get Remote Server User Account Rights:
-			PS C:\> .\Get-UserRights.ps1 -ComputerName SQL.contoso.com
-			
-			Get Local Machine and Multiple Server User Account Rights:
-			PS C:\> .\Get-UserRights.ps1 -ComputerName $env:COMPUTERNAME, SQL.contoso.com
-			
-			Output to CSV in 'C:\Temp':
-			PS C:\> .\Get-UserRights.ps1 -FileOutputPath C:\Temp -FileOutputType CSV
-			
-			Output to Text in 'C:\Temp':
-			PS C:\> .\Get-UserRights.ps1 -FileOutputPath C:\Temp -FileOutputType Text
+		Get Local User Account Rights and output to text in console:
+		PS C:\> .\Get-UserRights.ps1
+		
+		Get Remote Server User Account Rights:
+		PS C:\> .\Get-UserRights.ps1 -ComputerName SQL.contoso.com
+		
+		Get Local Machine and Multiple Server User Account Rights:
+		PS C:\> .\Get-UserRights.ps1 -ComputerName $env:COMPUTERNAME, SQL.contoso.com
+		
+		Output to CSV in 'C:\Temp':
+		PS C:\> .\Get-UserRights.ps1 -FileOutputPath C:\Temp -FileOutputType CSV
+		
+		Output to Text in 'C:\Temp':
+		PS C:\> .\Get-UserRights.ps1 -FileOutputPath C:\Temp -FileOutputType Text
+
+        Pass thru object:
+    	PS C:\> .\Get-UserRights.ps1 -ComputerName SQL.contoso.com -PassThru    
 	
 	.NOTES
 		This script is located in the following GitHub Repository: https://github.com/blakedrumm/SCOM-Scripts-and-SQL
@@ -54,18 +60,29 @@ param
 	[Parameter(Position = 2,
 			   HelpMessage = '(CSV or Text) Set the type of file you would like to output as. Combine with the OutputPath parameter.')]
 	[ValidateSet('CSV', 'Text')]
-	[string]$FileOutputType
+	[string]$FileOutputType,
+	[Parameter(Position = 3,
+			   HelpMessage = 'Output as an object that you can manipulate / access.')]
+	[switch]$PassThru
 )
 BEGIN
 {
 	#region Initialization
-	Write-Output '==================================================================='
-	Write-Output '==========================  Start of Script ======================='
-	Write-Output '==================================================================='
+	if (!$PassThru)
+	{
+		Write-Host @"
+===================================================================
+==========================  Start of Script =======================
+===================================================================
+"@
+	}
 	
 	$checkingpermission = "Checking for elevated permissions..."
 	$scriptout += $checkingpermission
-	Write-Output $checkingpermission
+	if (!$PassThru)
+	{
+		Write-Host $checkingpermission
+	}
 	if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))
 	{
 		$currentPath = $myinvocation.mycommand.definition
@@ -80,7 +97,10 @@ BEGIN
 	else
 	{
 		$permissiongranted = " Currently running as administrator - proceeding with script execution..."
-		Write-Output $permissiongranted
+		if (!$PassThru)
+		{
+			Write-Host $permissiongranted
+		}
 	}
 	
 	Function Time-Stamp
@@ -88,7 +108,10 @@ BEGIN
 		$TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
 		return "$TimeStamp - "
 	}
-	Write-Output "$(Time-Stamp)Starting main script execution."
+	if (!$PassThru)
+	{
+		Write-Output "$(Time-Stamp)Starting main script execution."
+	}
 	#endregion Initialization
 }
 PROCESS
@@ -101,14 +124,17 @@ PROCESS
 			[Parameter(ValueFromPipeline = $true,
 					   Position = 0,
 					   HelpMessage = '(Server1, Server2) Comma separated list of servers you want to run this script against. To run locally, run without this switch. This argument accepts values from the pipeline.')]
-			[Alias('server')]
+			[Alias('servers')]
 			[array]$ComputerName,
 			[Parameter(Position = 1,
 					   HelpMessage = '(ex. C:\Temp) Location to store the Output File. Set the Type with FileOutputType')]
 			[string]$FileOutputPath,
 			[Parameter(Position = 2,
 					   HelpMessage = '(CSV or Text) Set the type of file you would like to output as. Combine with the OutputPath parameter.')]
-			[string]$FileOutputType
+			[string]$FileOutputType,
+			[Parameter(Position = 3,
+					   HelpMessage = 'Output as an object that you can manipulate / access.')]
+			[switch]$PassThru
 		)
 		if (!$ComputerName)
 		{
@@ -117,7 +143,10 @@ PROCESS
 		[array]$localrights = $null
 		foreach ($ComputerName in $ComputerName)
 		{
-			Write-Output "$(Time-Stamp)Gathering current User Account Rights on: $ComputerName"
+			if (!$PassThru)
+			{
+				Write-Output "$(Time-Stamp)Gathering current User Account Rights on: $ComputerName"
+			}
 			#region Non-LocalMachine
 			if ($ComputerName -notmatch $env:COMPUTERNAME)
 			{
@@ -398,11 +427,21 @@ public static extern bool LookupPrivilegeDisplayName(
 				$localrights += Get-SecurityPolicy
 			} #endregion LocalMachine
 			$output += $localrights
-			Write-Output "$(Time-Stamp)Gathering for $ComputerName completed."
+			if (!$PassThru)
+			{
+				Write-Output "$(Time-Stamp)Gathering for $ComputerName completed."
+			}
 		}
-		Write-Output "$(Time-Stamp)Main script execution completed!"
+		if (!$PassThru)
+		{
+			Write-Output "$(Time-Stamp)Main script execution completed!"
+		}
 		$output = $output | Select-Object Privilege, PrivilegeName, Principal, ComputerName -Unique | Sort-Object Privilege, ComputerName
-		if (!$FileOutputPath)
+		if ($PassThru)
+		{
+			return $output
+		}
+		elseif (!$FileOutputPath)
 		{
 			$output | Format-Table -AutoSize | Out-String -Width 2048
 		}
@@ -427,13 +466,13 @@ public static extern bool LookupPrivilegeDisplayName(
 		}
 	}
 	#endregion MainFunctionSection
-	if ($FileOutputPath -or $FileOutputType -or $ComputerName)
+	if ($FileOutputPath -or $FileOutputType -or $ComputerName -or $PassThru)
 	{
-		Get-UserRights -FileOutputPath:$FileOutputPath -FileOutputType:$FileOutputType -ComputerName:$ComputerName
+		Get-UserRights -FileOutputPath:$FileOutputPath -FileOutputType:$FileOutputType -ComputerName:$ComputerName -PassThru:$PassThru
 	}
 	else
 	{
-	 <# Edit line 443 to modify the default command run when this script is executed.
+	 <# Edit line 482 to modify the default command run when this script is executed.
 	   Example for output multiple servers to a text file: 
 	   	 Get-UserRights -ComputerName MS01-2019, IIS-2019 -FileOutputPath C:\Temp -FileOutputType Text
 
