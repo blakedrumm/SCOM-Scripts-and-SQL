@@ -56,7 +56,7 @@
 		
 		Author: Blake Drumm (blakedrumm@microsoft.com)
 		First Created on: January 5th, 2022
-		Last Modified on: January 10th, 2022
+		Last Modified on: January 11th, 2022
 #>
 param
 (
@@ -113,7 +113,7 @@ PROCESS
 		(
 			[Parameter(Position = 0)]
 			[Alias('computer')]
-			[array]$ComputerName = ("{0}.{1}" -f $env:ComputerName.ToLower(), $env:USERDNSDOMAIN.ToLower()),
+			[array]$ComputerName,
 			[Parameter(Position = 1)]
 			[Alias('user')]
 			[array]$Username = ("{0}\{1}" -f $env:USERDOMAIN, $env:Username),
@@ -123,17 +123,18 @@ PROCESS
 			[Alias('right')]
 			[array]$UserRight
 		)
+		if (!$ComputerName)
+		{
+			$ComputerName = $env:ComputerName
+		}
 		foreach ($user in $Username)
 		{
 			foreach ($rights in $UserRight)
 			{
 				foreach ($computer in $ComputerName)
 				{
-					Invoke-Command -ComputerName $Computer -Script {
-						param ([string]$Username,
-							[Parameter(Mandatory = $true)]
-							[array]$UserRight,
-							[string]$ComputerName)
+					if ($computer -match $env:COMPUTERNAME)
+					{
 						Function Time-Stamp
 						{
 							$TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
@@ -164,7 +165,7 @@ PROCESS
 									"SeServiceLogonRight"			    { "Log on as a service (SeServiceLogonRight)" }
 									Default 							{ "($right)" }
 								}
-								Write-Output ("$(Time-Stamp)Granting `"$UserLogonRight`" to user account: {0} on host: {1}." -f $Username, $ComputerName)
+								Write-Output ("$(Time-Stamp)Granting `"$UserLogonRight`" to user account: $Username on host: $ComputerName.")
 								$sid = ((New-Object System.Security.Principal.NTAccount($Username)).Translate([System.Security.Principal.SecurityIdentifier])).Value
 								secedit /export /cfg $export | Out-Null
 								#Change the below to any right you would like
@@ -184,10 +185,72 @@ PROCESS
 						}
 						catch
 						{
-							Write-Output ("$(Time-Stamp)Failed to grant `"$right`" to user account: {0} on host: {1}." -f $Username, $ComputerName)
+							Write-Output ("$(Time-Stamp)Failed to grant `"$right`" to user account: $Username on host: $ComputerName.")
 							$error[0]
 						}
-					} -ArgumentList $user, $rights, $Computer
+					}
+					else
+					{
+						Invoke-Command -ComputerName $Computer -Script {
+							param ([string]$Username,
+								[Parameter(Mandatory = $true)]
+								[array]$UserRight,
+								[string]$ComputerName)
+							Function Time-Stamp
+							{
+								$TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
+								return "$TimeStamp - "
+							}
+							$tempPath = [System.IO.Path]::GetTempPath()
+							$import = Join-Path -Path $tempPath -ChildPath "import.inf"
+							if (Test-Path $import) { Remove-Item -Path $import -Force }
+							$export = Join-Path -Path $tempPath -ChildPath "export.inf"
+							if (Test-Path $export) { Remove-Item -Path $export -Force }
+							$secedt = Join-Path -Path $tempPath -ChildPath "secedt.sdb"
+							if (Test-Path $secedt) { Remove-Item -Path $secedt -Force }
+							try
+							{
+								foreach ($right in $UserRight)
+								{
+									$UserLogonRight = switch ($right)
+									{
+										"SeBatchLogonRight"				    { "Log on as a batch job (SeBatchLogonRight)" }
+										"SeDenyBatchLogonRight"			    { "Deny log on as a batch job (SeDenyBatchLogonRight)" }
+										"SeDenyInteractiveLogonRight"	    { "Deny log on locally (SeDenyInteractiveLogonRight)" }
+										"SeDenyNetworkLogonRight"		    { "Deny access to this computer from the network (SeDenyNetworkLogonRight)" }
+										"SeDenyRemoteInteractiveLogonRight" { "Deny log on through Remote Desktop Services (SeDenyRemoteInteractiveLogonRight)" }
+										"SeDenyServiceLogonRight"		    { "Deny log on as a service (SeDenyServiceLogonRight)" }
+										"SeInteractiveLogonRight"		    { "Allow log on locally (SeInteractiveLogonRight)" }
+										"SeNetworkLogonRight"			    { "Access this computer from the network (SeNetworkLogonRight)" }
+										"SeRemoteInteractiveLogonRight"	    { "Allow log on through Remote Desktop Services (SeRemoteInteractiveLogonRight)" }
+										"SeServiceLogonRight"			    { "Log on as a service (SeServiceLogonRight)" }
+										Default 							{ "($right)" }
+									}
+									Write-Output ("$(Time-Stamp)Granting `"$UserLogonRight`" to user account: $Username on host: $ComputerName.")
+									$sid = ((New-Object System.Security.Principal.NTAccount($Username)).Translate([System.Security.Principal.SecurityIdentifier])).Value
+									secedit /export /cfg $export | Out-Null
+									#Change the below to any right you would like
+									$sids = (Select-String $export -Pattern "$right").Line
+									foreach ($line in @("[Unicode]", "Unicode=yes", "[System Access]", "[Event Audit]", "[Registry Values]", "[Version]", "signature=`"`$CHICAGO$`"", "Revision=1", "[Profile Description]", "Description=GrantLogOnAsAService security template", "[Privilege Rights]", "$sids,*$sid"))
+									{
+										Add-Content $import $line
+									}
+								}
+								
+								secedit /import /db $secedt /cfg $import | Out-Null
+								secedit /configure /db $secedt | Out-Null
+								gpupdate /force | Out-Null
+								Remove-Item -Path $import -Force | Out-Null
+								Remove-Item -Path $export -Force | Out-Null
+								Remove-Item -Path $secedt -Force | Out-Null
+							}
+							catch
+							{
+								Write-Output ("$(Time-Stamp)Failed to grant `"$right`" to user account: $Username on host: $ComputerName.")
+								$error[0]
+							}
+						} -ArgumentList $user, $rights, $Computer
+					}
 				}
 			}
 		}
@@ -203,7 +266,7 @@ PROCESS
 	else
 	{
 		
-	 <# Edit line 210 to modify the default command run when this script is executed.
+	 <# Edit line 273 to modify the default command run when this script is executed.
 	   Example: 
 	   Add-UserRights -UserRight SeServiceLogonRight, SeBatchLogonRight -ComputerName $env:COMPUTERNAME, SQL.contoso.com -UserName CONTOSO\User1, CONTOSO\User2
 	   #>
