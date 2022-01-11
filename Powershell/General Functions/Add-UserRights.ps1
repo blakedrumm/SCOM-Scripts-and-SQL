@@ -165,12 +165,12 @@ PROCESS
 									"SeServiceLogonRight"			    { "Log on as a service (SeServiceLogonRight)" }
 									Default 							{ "($right)" }
 								}
-								Write-Output ("$(Time-Stamp)Granting `"$UserLogonRight`" to user account: $Username on host: $ComputerName.")
+								Write-Output ("$(Time-Stamp)Granting `"$UserLogonRight`" to user account: $Username on host: $computer.")
 								$sid = ((New-Object System.Security.Principal.NTAccount($Username)).Translate([System.Security.Principal.SecurityIdentifier])).Value
 								secedit /export /cfg $export | Out-Null
 								#Change the below to any right you would like
 								$sids = (Select-String $export -Pattern "$right").Line
-								foreach ($line in @("[Unicode]", "Unicode=yes", "[System Access]", "[Event Audit]", "[Registry Values]", "[Version]", "signature=`"`$CHICAGO$`"", "Revision=1", "[Profile Description]", "Description=GrantLogOnAsAService security template", "[Privilege Rights]", "$sids,*$sid"))
+								foreach ($line in @("[Unicode]", "Unicode=yes", "[System Access]", "[Event Audit]", "[Registry Values]", "[Version]", "signature=`"`$CHICAGO$`"", "Revision=1", "[Profile Description]", "Description=Grant $UserLogonRight to $Username", "[Privilege Rights]", "$sids,*$sid"))
 								{
 									Add-Content $import $line
 								}
@@ -179,14 +179,22 @@ PROCESS
 							secedit /import /db $secedt /cfg $import | Out-Null
 							secedit /configure /db $secedt | Out-Null
 							gpupdate /force | Out-Null
-							Remove-Item -Path $import -Force | Out-Null
-							Remove-Item -Path $export -Force | Out-Null
-							Remove-Item -Path $secedt -Force | Out-Null
+							Write-Verbose "The script will not delete the following paths due to running in verbose mode, please remove these files manually if needed:"
+							Write-Verbose "`$import : $import"
+							Write-Verbose "`$export : $export"
+							Write-Verbose "`$secedt : $secedt"
+							
+							if ($VerbosePreference.value__ -eq 0)
+							{
+								Remove-Item -Path $import -Force | Out-Null
+								Remove-Item -Path $export -Force | Out-Null
+								Remove-Item -Path $secedt -Force | Out-Null
+							}
 						}
 						catch
 						{
-							Write-Output ("$(Time-Stamp)Failed to grant `"$right`" to user account: $Username on host: $ComputerName.")
-							$error[0]
+							Write-Output ("$(Time-Stamp)Failure occurred while granting `"$right`" to user account: $Username on host: $computer.")
+							Write-Output $error[0]
 						}
 					}
 					else
@@ -195,7 +203,8 @@ PROCESS
 							param ([string]$Username,
 								[Parameter(Mandatory = $true)]
 								[array]$UserRight,
-								[string]$ComputerName)
+								[string]$ComputerName,
+								[int]$VerbosePreference)
 							Function Time-Stamp
 							{
 								$TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
@@ -240,16 +249,24 @@ PROCESS
 								secedit /import /db $secedt /cfg $import | Out-Null
 								secedit /configure /db $secedt | Out-Null
 								gpupdate /force | Out-Null
-								Remove-Item -Path $import -Force | Out-Null
-								Remove-Item -Path $export -Force | Out-Null
-								Remove-Item -Path $secedt -Force | Out-Null
+								Write-Verbose "The script will not delete the following paths due to running in verbose mode, please remove these manually if needed:"
+								Write-Verbose "`$import : $import"
+								Write-Verbose "`$export : $export"
+								Write-Verbose "`$secedt : $secedt"
+								
+								if ($VerbosePreference.value__ -eq 0)
+								{
+									Remove-Item -Path $import -Force | Out-Null
+									Remove-Item -Path $export -Force | Out-Null
+									Remove-Item -Path $secedt -Force | Out-Null
+								}
 							}
 							catch
 							{
-								Write-Output ("$(Time-Stamp)Failed to grant `"$right`" to user account: $Username on host: $ComputerName.")
-								$error[0]
+								Write-Output ("$(Time-Stamp)Failure occurred while granting `"$right`" to user account: $Username on host: $ComputerName.")
+								Write-Output $error[0]
 							}
-						} -ArgumentList $user, $rights, $Computer
+						} -ArgumentList $user, $rights, $Computer, $VerbosePreference
 					}
 				}
 			}
@@ -266,7 +283,7 @@ PROCESS
 	else
 	{
 		
-	 <# Edit line 273 to modify the default command run when this script is executed.
+	 <# Edit line 290 to modify the default command run when this script is executed.
 	   Example: 
 	   Add-UserRights -UserRight SeServiceLogonRight, SeBatchLogonRight -ComputerName $env:COMPUTERNAME, SQL.contoso.com -UserName CONTOSO\User1, CONTOSO\User2
 	   #>
