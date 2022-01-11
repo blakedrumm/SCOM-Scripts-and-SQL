@@ -43,7 +43,7 @@
 		
 		Author: Blake Drumm (blakedrumm@microsoft.com)
 		First Created on: June 10th, 2021
-		Last Modified on: January 10th, 2022
+		Last Modified on: January 11th, 2022
 #>
 [CmdletBinding()]
 [OutputType([string])]
@@ -129,8 +129,10 @@ PROCESS
 			[Parameter(Position = 1,
 					   HelpMessage = '(ex. C:\Temp) Location to store the Output File. Set the Type with FileOutputType')]
 			[string]$FileOutputPath,
-			[Parameter(Position = 2,
+			[Parameter(Mandatory = $false,
+					   Position = 2,
 					   HelpMessage = '(CSV or Text) Set the type of file you would like to output as. Combine with the OutputPath parameter.')]
+			[ValidateSet('CSV', 'Text')]
 			[string]$FileOutputType,
 			[Parameter(Position = 3,
 					   HelpMessage = 'Output as an object that you can manipulate / access.')]
@@ -151,6 +153,7 @@ PROCESS
 			if ($ComputerName -notmatch $env:COMPUTERNAME)
 			{
 				$localrights += Invoke-Command -ScriptBlock {
+					param ([int]$VerbosePreference)
 					function Get-SecurityPolicy
 					{
 						#requires -version 2
@@ -162,7 +165,7 @@ PROCESS
 							Write-Error "File not found - '$SecEdit'" -Category ObjectNotFound
 							return
 						}
-						
+						Write-Verbose "Found Executable: $SecEdit"
 						# LookupPrivilegeDisplayName Win32 API doesn't resolve logon right display
 						# names, so use this hashtable
 						$UserLogonRights = @{
@@ -286,7 +289,7 @@ public static extern bool LookupPrivilegeDisplayName(
 						Remove-Item $TemplateFilename, $LogFilename -ErrorAction SilentlyContinue
 					}
 					return Get-SecurityPolicy
-				} -computer $ComputerName -HideComputerName | Select-Object * -ExcludeProperty RunspaceID, PSShowComputerName, PSComputerName -Unique
+				} -ArgumentList $VerbosePreference -computer $ComputerName -HideComputerName | Select-Object * -ExcludeProperty RunspaceID, PSShowComputerName, PSComputerName -Unique
 			} #endregion Non-LocalMachine
 			else #region LocalMachine
 			{
@@ -301,7 +304,7 @@ public static extern bool LookupPrivilegeDisplayName(
 						Write-Error "File not found - '$SecEdit'" -Category ObjectNotFound
 						return
 					}
-					
+					Write-Verbose "Found Executable: $SecEdit"
 					# LookupPrivilegeDisplayName Win32 API doesn't resolve logon right display
 					# names, so use this hashtable
 					$UserLogonRights = @{
@@ -472,7 +475,7 @@ public static extern bool LookupPrivilegeDisplayName(
 	}
 	else
 	{
-	 <# Edit line 482 to modify the default command run when this script is executed.
+	 <# Edit line 485 to modify the default command run when this script is executed.
 	   Example for output multiple servers to a text file: 
 	   	 Get-UserRights -ComputerName MS01-2019, IIS-2019 -FileOutputPath C:\Temp -FileOutputType Text
 
