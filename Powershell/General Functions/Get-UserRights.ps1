@@ -286,13 +286,7 @@ public static extern bool LookupPrivilegeDisplayName(
 							$OFS = ""
 							Write-Error "$StdOut"
 						}
-						Write-Verbose "The script will not delete the following paths due to running in verbose mode, please remove these manually if needed:"
-						Write-Verbose "`$TemplateFilename : $TemplateFilename"
-						Write-Verbose "`$LogFilename : $LogFilename"
-						if ($VerbosePreference.value__ -eq 0)
-						{
-							Remove-Item $TemplateFilename, $LogFilename -ErrorAction SilentlyContinue
-						}
+						Remove-Item $TemplateFilename, $LogFilename -ErrorAction SilentlyContinue
 					}
 					return Get-SecurityPolicy
 				} -ArgumentList $VerbosePreference -computer $ComputerName -HideComputerName | Select-Object * -ExcludeProperty RunspaceID, PSShowComputerName, PSComputerName -Unique
@@ -431,13 +425,7 @@ public static extern bool LookupPrivilegeDisplayName(
 						$OFS = ""
 						Write-Error "$StdOut"
 					}
-					Write-Verbose "The script will not delete the following paths due to running in verbose mode, please remove these manually if needed:"
-					Write-Verbose "`$TemplateFilename : $TemplateFilename"
-					Write-Verbose "`$LogFilename : $LogFilename"
-					if ($VerbosePreference.value__ -eq 0)
-					{
-						Remove-Item $TemplateFilename, $LogFilename -ErrorAction SilentlyContinue
-					}
+					Remove-Item $TemplateFilename, $LogFilename -ErrorAction SilentlyContinue
 				}
 				$localrights += Get-SecurityPolicy
 			} #endregion LocalMachine
@@ -487,7 +475,7 @@ public static extern bool LookupPrivilegeDisplayName(
 	}
 	else
 	{
-	 <# Edit line 497 to modify the default command run when this script is executed.
+	 <# Edit line 485 to modify the default command run when this script is executed.
 	   Example for output multiple servers to a text file: 
 	   	 Get-UserRights -ComputerName MS01-2019, IIS-2019 -FileOutputPath C:\Temp -FileOutputType Text
 
