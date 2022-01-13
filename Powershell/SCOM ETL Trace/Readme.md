@@ -37,3 +37,5 @@ Open Powershell Prompt as Administrator:
     .\Start-ScomETLTrace.ps1 -DebugTracing
 ###### Get Verbose Tracing for all the Default Tracing Available and Network Tracing (just like running this: -GetAdvisor -GetApmConnector -GetBID -GetConfigService -GetDAS -GetFailover -GetManaged -GetNASM -GetNative -GetScript -GetUI)
     .\Start-ScomETLTrace.ps1 -VerboseTracing -NetworkTrace
+##### Get Verbose Tracing for all the Default Tracing Available and OpsMgrModuleLogging for Linux Related Issues
+    .\Start-ScomETLTrace.ps1 -VerboseTracing -OpsMgrModuleLogging
