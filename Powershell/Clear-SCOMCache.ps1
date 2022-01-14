@@ -713,7 +713,7 @@ PROCESS
 	}
 	else
 	{
-<# Edit line 721 to modify the default command run when this script is executed.
+<# Edit line 721 to modify the default command run when this script is executed without any arguments. This is helpful when running from Powershell ISE.
 
    Example: 
    Clear-SCOMCache -Servers Agent1.contoso.com, Agent2.contoso.com, MangementServer1.contoso.com, MangementServer2.contoso.com
