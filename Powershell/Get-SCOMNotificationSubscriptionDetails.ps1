@@ -83,7 +83,7 @@ PROCESS
 			$templatesub = $sub.Configuration.Criteria
 			if ($templatesub)
 			{
-				Write-Verbose "$(Time-Stamp)Found Configuration Criteria: $templatesub"
+				Write-Verbose "$(Time-Stamp)Found Configuration Criteria:`n $templatesub"
 				$expression = $templatesub | Select-Xml -XPath "//SimpleExpression" -ErrorAction SilentlyContinue | foreach { $_.node.InnerXML }
 				$val = Select-Xml -Content $templatesub -XPath "//Value" -ErrorAction SilentlyContinue | foreach { $_.node.InnerXML }
 				$operators = Select-Xml -Content $templatesub -XPath "//Operator" -ErrorAction SilentlyContinue | foreach { $_.node.InnerXML }
@@ -320,7 +320,7 @@ PROCESS
    or
    Get-SCOMNotificationSubscriptionDetails
    #>
-		Get-SCOMNotificationSubscriptionDetails
+		Get-SCOMNotificationSubscriptionDetails -Verbose
 	}
 }
 END
