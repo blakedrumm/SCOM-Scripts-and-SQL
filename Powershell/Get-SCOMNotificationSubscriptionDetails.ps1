@@ -17,8 +17,11 @@
 	
 	.NOTES
 		Originally found here: https://blog.topqore.com/export-scom-subscriptions-using-powershell/
-		 Located here: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Get-SCOMNotificationSubscriptionDetails.ps1
+		Original Github Page: https://github.com/Sameer-Mhaisekar/scripts/blob/main/export-scomsubscriptions.txt
+		Original Author: Sameer Mhaisekar (Sameer-Mhaisekar)
+		 Current version (this script) is located here: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Get-SCOMNotificationSubscriptionDetails.ps1
 		 Modified by: Blake Drumm (blakedrumm@microsoft.com)
+		 Date Created: 07/16/2021
 		 Date Modified: 01/13/2022
 #>
 [CmdletBinding()]
@@ -311,7 +314,7 @@ PROCESS
 	else
 	{
 		Write-Verbose "$(Time-Stamp)Running without parameters being passed to script. We are running from Powershell ISE or you are running the script normally."
-<# Edit line 320 to modify the default command run when this script is executed without any arguments. This is helpful when running from Powershell ISE.
+<# Edit line 323 to modify the default command run when this script is executed without any arguments. This is helpful when running from Powershell ISE.
    Example: 
    Get-SCOMNotificationSubscriptionDetails -OutputFile C:\Temp
    or
