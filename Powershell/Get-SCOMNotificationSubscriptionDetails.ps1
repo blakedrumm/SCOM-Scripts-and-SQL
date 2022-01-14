@@ -313,7 +313,7 @@ PROCESS
 	}
 	else
 	{
-		Write-Verbose "$(Time-Stamp)Running without parameters being passed to script. We are running from Powershell ISE or you are running the script normally."
+		Write-Verbose "$(Time-Stamp)Running without parameters being passed to script. We may be running from Powershell ISE or you are running the script normally."
 <# Edit line 323 to modify the default command run when this script is executed without any arguments. This is helpful when running from Powershell ISE.
    Example: 
    Get-SCOMNotificationSubscriptionDetails -OutputFile C:\Temp
