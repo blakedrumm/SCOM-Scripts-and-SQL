@@ -13,7 +13,7 @@
 		Gather specific Event Logs from Remote or Local Machine.
 	
 	.PARAMETER CaseNumber
-		A description of the CaseNumber parameter.
+		Set the casenumber you would like to save with the filename in the output.
 	
 	.EXAMPLE
 		PS C:\> .\Get-EventLogs.ps1 -Servers Agent1.contoso.com, Agent2.contoso.com -Logs Application, System
@@ -21,7 +21,9 @@
 	.NOTES
 		Additional information about the file.
 		
-	.AUTHOR
+		Last Modified: 1/14/2022
+		
+	    .AUTHOR
 	        Blake Drumm (blakedrumm@microsoft.com)
 #>
 [CmdletBinding()]
@@ -190,6 +192,16 @@ function Get-EventLogs
 				{
 					Remove-Item "$OutputPath\$server.$logname.evtx" -Force | Out-Null
 				}
+				$availableLogs = $null
+				$availableLogs = Get-EventLog * | Select Log -ExpandProperty Log
+				if ($log -notin $availableLogs)
+				{
+					$logText = $log.ToString().Replace("/", ".")
+					Time-Stamp
+					Write-Host "  Unable to locate $logText event logs on $server."
+					Out-File "$OutputPath`\Unable to locate $logText event logs on $server."
+					continue
+				}
 				Time-Stamp
 				Write-Host "  Exporting log: " -NoNewline
 				Write-Host $log -ForegroundColor Magenta -NoNewline
@@ -249,6 +261,6 @@ if ($DefinedServers -or $Logs -or $CaseNumber)
 }
 else
 {
-	#Change the default action of this script by changing the below line. By default the script will run locally if no -Servers switch is present here.
+	#Change the default action of this script by changing the below line. By default the script will run locally unless a -Servers parameter is present here.
 	Get-EventLogs
 }
