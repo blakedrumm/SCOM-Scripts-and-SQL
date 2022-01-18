@@ -318,9 +318,11 @@ PROCESS
    Example: 
    Get-SCOMNotificationSubscriptionDetails -OutputFile C:\Temp
    or
+   Get-SCOMNotificationSubscriptionDetails -Verbose
+   or
    Get-SCOMNotificationSubscriptionDetails
    #>
-		Get-SCOMNotificationSubscriptionDetails -Verbose
+		Get-SCOMNotificationSubscriptionDetails
 	}
 }
 END
