@@ -924,7 +924,7 @@ Clean up Program Files
                     }
                 }
                 catch {
-                    Write-Output "Unable to locate folder: `'$progamFolder`'"
+                    Write-Output "Unable to locate folder: `'$programFolder`'"
                     Write-Verbose "$(Time-Stamp)$($error[0])"
                 }
             }
