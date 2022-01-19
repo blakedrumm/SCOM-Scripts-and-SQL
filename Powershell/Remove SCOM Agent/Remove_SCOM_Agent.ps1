@@ -49,6 +49,23 @@ BEGIN {
         $cwdOriginal = $pwd
         $cwd = $PSScriptRoot
     }
+    $checkingpermission = "Checking for elevated permissions..."
+    $scriptout += $checkingpermission
+    Write-Host $checkingpermission -ForegroundColor Gray
+    if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+        $currentPath = $myinvocation.mycommand.definition
+        $nopermission = "Insufficient permissions to run this script. Attempting to open the PowerShell script ($currentPath) as administrator."
+        $scriptout += $nopermission
+        Write-Warning $nopermission
+        # We are not running "as Administrator" - so relaunch as administrator
+        # ($MyInvocation.Line -split '\.ps1[\s\''\"]\s*', 2)[-1]
+        Start-Process powershell.exe "-File", ('"{0}"' -f $MyInvocation.MyCommand.Path) -Verb RunAs
+        break
+    }
+    else {
+        $permissiongranted = " Currently running as administrator - proceeding with script execution..."
+        Write-Host $permissiongranted -ForegroundColor Green
+    }
     try {
         Start-Transcript -Path $cwd\SCOMAgent-CleanupLog.txt -ErrorAction Stop
     }
@@ -907,7 +924,12 @@ Clean up Program Files
             }
         }
     }
-    # This is what the script will run by default when executed. Edit Line 911 to make modifications to the default, ie. Add Verbose logging -Verbose.
+    # This is what the script will run by default when executed.
+    # Edit Line 933 to make modifications to the default.
+    # 
+    # Example:
+    # Add Verbose logging:
+    #	Invoke-SCOMAgentRemoval -Verbose
     Invoke-SCOMAgentRemoval
 }
 END {
