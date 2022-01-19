@@ -940,13 +940,19 @@ Clean up Program Files
             }
         }
     }
-    # This is what the script will run by default when executed.
-    # Edit Line 949 to make modifications to the default.
-    # 
-    # Example:
-    # Add Verbose logging:
-    #	Invoke-SCOMAgentRemoval -Verbose
-    Invoke-SCOMAgentRemoval
+    if ($ComputerName) {
+        Invoke-SCOMAgentRemoval -ComputerName $ComputerName -Verbose:$VerbosePreference -Debug:$DebugPreference
+    }
+    else {
+        # This is what the script will run by default when executed.
+        # Edit Line 956 to make modifications to the default.
+        # 
+        # Example:
+        # Add Verbose logging:
+        #	Invoke-SCOMAgentRemoval -Verbose
+        #
+        Invoke-SCOMAgentRemoval
+    }
 }
 END {
     <#############################
