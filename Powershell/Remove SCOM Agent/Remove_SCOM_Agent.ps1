@@ -77,7 +77,6 @@ BEGIN {
 PROCESS {
 
     function Invoke-SCOMAgentRemoval {
-        <#
     [CmdletBinding()]
     [OutputType([string])]
     param
@@ -85,10 +84,10 @@ PROCESS {
         [Parameter(Mandatory = $false,
                    ValueFromPipeline = $true,
 			       Position = 1,
-			       HelpMessage = 'Optionally, each server you want to run this script against. You can pipe objects to this parameter.')]
+                   HelpMessage = 'Not implemented yet.')]
+			       #HelpMessage = 'Optionally, each server you want to run this script against. You can pipe objects to this parameter.')]
 	    [String[]]$ComputerName
     )
-    #>
         Function Time-Stamp {
             $TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
             return "$TimeStamp - "
@@ -132,7 +131,7 @@ PROCESS {
         Write-Output "$(Time-Stamp) $($object | Sort-Object -Property Name -Descending | Out-String)"
 
 
-<#############################
+        <#############################
 
 Stop Services, attempt MSI Uninstall
 
@@ -194,16 +193,17 @@ those keys before allowing this to continue.
         Write-Output "$(Time-Stamp)Unregistering Performance Counters"
         foreach ($perfCounter in $performanceCounters) {
             # Unregister Performance Counters
-            Write-Output "$(Time-Stamp)Attempting to unregister Performance Counter: $perfCounter"
+	    Write-Output "$(Time-Stamp)Attempting to unregister Performance Counter: $perfCounter"
             $perfCounterOutput = Unlodctr $perfCounter
             if ($perfCounterOutput -match "Unable to open driver") {
                 Write-Warning "$(Time-Stamp)Unable to locate performance counter: `'$perfCounter`'"
-                Write-Verbose "$(Time-Stamp)$perfCounterOutput"
+		Write-Verbose "$(Time-Stamp)$perfCounterOutput"
             }
-            else {
-                Write-Output "$(Time-Stamp)Successfully unregistered Performance Counter: $perfCounter"
-                Write-Verbose "$(Time-Stamp)$perfCounterOutput"
-            }
+	    else
+	    {
+	    	Write-Output "$(Time-Stamp)Successfully unregistered Performance Counter: $perfCounter"
+		Write-Verbose "$(Time-Stamp)$perfCounterOutput"
+	    }
         }
 
         Write-Output "$(Time-Stamp)Cleaning up registry entries"
@@ -874,7 +874,7 @@ HKEY_LOCAL_MACHINE\SOFTWARE\Classes\AgentConfigManager.MgmtSvcCfg
 
 
 
-        <#############################
+<#############################
 
 Clean up Program Files
 
