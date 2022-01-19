@@ -77,6 +77,10 @@ BEGIN {
         $permissiongranted = " Currently running as administrator - proceeding with script execution..."
         Write-Host $permissiongranted -ForegroundColor Green
     }
+    Function Time-Stamp {
+        $TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
+        return "$TimeStamp - "
+    }
     try {
         Start-Transcript -Path $cwd\SCOMAgent-CleanupLog.txt -ErrorAction Stop
     }
@@ -945,7 +949,7 @@ Clean up Program Files
     }
     else {
         # This is what the script will run by default when executed.
-        # Edit Line 956 to make modifications to the default.
+        # Edit Line 958 to make modifications to the default.
         # 
         # Example:
         # Add Verbose logging:
