@@ -53,7 +53,7 @@ BEGIN {
         Start-Transcript -Path $cwd\SCOMAgent-CleanupLog.txt -ErrorAction Stop
     }
     catch {
-        # This is needed when running from Powershell ISE.
+        # This may be needed when running from Powershell ISE.
         Start-Transcript -Path $cwd\SCOMAgent-CleanupLog.txt -ErrorAction SilentlyContinue
     }
 }
