@@ -172,7 +172,7 @@ Stop Services, attempt MSI Uninstall
         }
 
 
-        <#############################
+<#############################
 
 Clean up Services and Registry
 
@@ -868,7 +868,7 @@ HKEY_LOCAL_MACHINE\SOFTWARE\Classes\AgentConfigManager.MgmtSvcCfg
 
 
 
-        <#############################
+<#############################
 
 Clean up Program Files
 
@@ -933,7 +933,7 @@ Clean up Program Files
     Invoke-SCOMAgentRemoval
 }
 END {
-    <#############################
+<#############################
 
     ~fin
 
