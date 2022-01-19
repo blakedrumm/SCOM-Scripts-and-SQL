@@ -11,7 +11,7 @@
     This script will attempt to remove all registered services, performance counters, DLLs, and program files. This script makes direct deletions
     from the registry and file system.
 
-    One external file is REQUIRED: RegistryKeys.txt
+    One external file is optional: RegistryKeys.txt
 
 ## NOTES
     This script assumes:
