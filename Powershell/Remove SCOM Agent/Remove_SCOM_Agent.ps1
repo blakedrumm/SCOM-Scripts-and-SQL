@@ -12,7 +12,7 @@
         This script will attempt to remove all registered services, performance counters, DLLs, and program files. This script makes direct deletions
         from the registry and file system.
 
-        One external file is REQUIRED: RegistryKeys.txt
+        One external file is optional: RegistryKeys.txt
 
     .NOTES
         This script assumes:
@@ -32,7 +32,7 @@
         Blake Drumm (blakedrumm@microsoft.com)
 
     .MODIFIED
-        January 18th, 2022
+        January 19th, 2022
 #>
 BEGIN {
     if (!$PSScriptRoot) {
@@ -134,7 +134,7 @@ Stop Services, attempt MSI Uninstall
             }
             catch {
                 Write-Output "$(Time-Stamp)Experienced error while stopping service: $service"
-                Write-Verbose $error[0]
+                Write-Verbose "$(Time-Stamp)$($error[0])"
             }
         }
         # First, try to use the MSIExec to do the uninstall
@@ -780,7 +780,7 @@ HKEY_LOCAL_MACHINE\SOFTWARE\Classes\AgentConfigManager.MgmtSvcCfg
                 }
             }
             catch {
-                Write-Verbose $error[0]
+                Write-Verbose "$(Time-Stamp)$($error[0])"
             }
         }
 
@@ -795,7 +795,7 @@ HKEY_LOCAL_MACHINE\SOFTWARE\Classes\AgentConfigManager.MgmtSvcCfg
             }
             catch {
                 Write-Output "$(Time-Stamp)Experienced an issue when removing the Control Panel Options for: `"*System Center*`""
-                Write-Verbose $error[0]
+                Write-Verbose "$(Time-Stamp)$($error[0])"
             }
             try {
                 Write-Output "$(Time-Stamp)Attempting to remove the Control Panel Options for: `"*Microsoft Monitoring Agent*`""
@@ -804,7 +804,7 @@ HKEY_LOCAL_MACHINE\SOFTWARE\Classes\AgentConfigManager.MgmtSvcCfg
             }
             catch {
                 Write-Output "$(Time-Stamp)Experienced an issue when removing the Control Panel Options for: `"*Microsoft Monitoring Agent*`""
-                Write-Verbose $error[0]
+                Write-Verbose "$(Time-Stamp)$($error[0])"
             }
         }
 
@@ -833,7 +833,7 @@ HKEY_LOCAL_MACHINE\SOFTWARE\Classes\AgentConfigManager.MgmtSvcCfg
             }
             catch {
                 Write-Output "$(Time-Stamp)Experienced an issue removing key: `'$uninstallKey`'"
-                Write-Verbose $error[0]
+                Write-Verbose "$(Time-Stamp)$($error[0])"
             }
         }
         else { Write-Output "$(Time-Stamp)Uninstaller Key Invalid, GUID Missing" }
@@ -846,7 +846,7 @@ HKEY_LOCAL_MACHINE\SOFTWARE\Classes\AgentConfigManager.MgmtSvcCfg
         }
         catch {
             Write-Output "$(Time-Stamp)Unable to execute task: Remove-CertificateNotificationTask -Name ReplaceOMCert"
-            Write-Verbose $error[0]
+            Write-Verbose "$(Time-Stamp)$($error[0])"
         }
 
 
@@ -874,7 +874,7 @@ Clean up Program Files
         }
         catch {
             Write-Output "$(Time-Stamp)Unable to locate any Policy Definitions (C:\Windows\PolicyDefinitions\) to remove related to `"*HealthService*`"."
-            Write-Verbose $error[0]
+            Write-Verbose "$(Time-Stamp)$($error[0])"
         }
 
         # Remove residual installation directories if they exist
@@ -896,22 +896,22 @@ Clean up Program Files
                         }
                         catch {
                             Write-Output "$(Time-Stamp)Experienced an issue when removing folder: `'$folder`'"
-                            Write-Verbose $error[0]
+                            Write-Verbose "$(Time-Stamp)$($error[0])"
                         }
                     }
                 }
                 catch {
                     Write-Output "Unable to locate folder: `'$progamFolder`'"
-                    Write-Verbose $error[0]
+                    Write-Verbose "$(Time-Stamp)$($error[0])"
                 }
             }
         }
     }
-    # This is what the script will run by default when executed. Edit Line 936 to make modifications to the default, ie. Add Verbose logging -Verbose.
+    # This is what the script will run by default when executed. Edit Line 911 to make modifications to the default, ie. Add Verbose logging -Verbose.
     Invoke-SCOMAgentRemoval
 }
 END {
-<#############################
+    <#############################
 
     ~fin
 
