@@ -132,7 +132,7 @@ PROCESS {
         Write-Output "$(Time-Stamp) $($object | Sort-Object -Property Name -Descending | Out-String)"
 
 
-        <#############################
+<#############################
 
 Stop Services, attempt MSI Uninstall
 
@@ -191,12 +191,18 @@ those keys before allowing this to continue.
             }
         }
         $performanceCounters = @('HealthService', 'AdtService', 'MOMConnector')
-        Write-Output "$(Time-Stamp)Attempting to unregister Performance Counters"
+        Write-Output "$(Time-Stamp)Unregistering Performance Counters"
         foreach ($perfCounter in $performanceCounters) {
             # Unregister Performance Counters
+            Write-Output "$(Time-Stamp)Attempting to unregister Performance Counter: $perfCounter"
             $perfCounterOutput = Unlodctr $perfCounter
             if ($perfCounterOutput -match "Unable to open driver") {
                 Write-Warning "$(Time-Stamp)Unable to locate performance counter: `'$perfCounter`'"
+                Write-Verbose "$(Time-Stamp)$perfCounterOutput"
+            }
+            else {
+                Write-Output "$(Time-Stamp)Successfully unregistered Performance Counter: $perfCounter"
+                Write-Verbose "$(Time-Stamp)$perfCounterOutput"
             }
         }
 
@@ -789,7 +795,7 @@ HKEY_LOCAL_MACHINE\SOFTWARE\Classes\AgentConfigManager.MgmtSvcCfg
             try {
                 if (Get-ItemProperty -Path Registry::$key -ErrorAction SilentlyContinue) {
                     Write-Output "$(Time-Stamp)Attempting to remove key: `'$key`'"
-                    Remove-Item -Path Registry::$key -Force -Verbose -Recurse -ErrorAction Stop
+                    Remove-Item -Path Registry::$key -Force -Recurse -ErrorAction Stop
                     Write-Output "$(Time-Stamp)Successfully removed key: `'$key`'"
                 }
                 else {
@@ -868,7 +874,7 @@ HKEY_LOCAL_MACHINE\SOFTWARE\Classes\AgentConfigManager.MgmtSvcCfg
 
 
 
-<#############################
+        <#############################
 
 Clean up Program Files
 
@@ -925,7 +931,7 @@ Clean up Program Files
         }
     }
     # This is what the script will run by default when executed.
-    # Edit Line 933 to make modifications to the default.
+    # Edit Line 939 to make modifications to the default.
     # 
     # Example:
     # Add Verbose logging:
