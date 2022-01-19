@@ -1,4 +1,4 @@
-﻿-- Modified by Alex Kremenetskiy
+-- Modified by Alex Kremenetskiy
 SET NOCOUNT ON
 DECLARE 
        @Statement nvarchar(max)
@@ -19,7 +19,7 @@ WHERE S.TABLE_NAME COLLATE DATABASE_DEFAULT IN (SELECT ManagedTypeViewName AS [T
 PRINT @BaseManagedEntityDisplayName 
 SELECT @IsDynamicColumnName = ColumnName
 FROM ManagedTypeProperty
-WHERE ManagedTypePropertyName = 'IsDynamic'
+WHERE ManagedTypePropertyName = 'IsDynamic' And DefaultValue = 'true'
 PRINT @IsDynamicColumnName
 IF (OBJECT_ID('tempdb..#IsDynamic') IS NOT NULL)
 DROP TABLE #IsDynamic
@@ -59,7 +59,7 @@ set  @Statement = '
         JOIN #IsDynamic D ON D.BaseManagedEntityId = BME.BaseManagedEntityId
     WHERE (RelationshipTypeId = dbo.fn_ManagedTypeId_MicrosoftSystemCenterManagementServicePoolContainsManagementService())
     AND (R.IsDeleted = 0) AND (BME.IsDeleted = 0)
-	ORDER BY ResourcePool, Member'
+    ORDER BY ResourcePool, Member'
   Print @Statement
   Exec (@Statement)
   DROP TABLE #IsDynamic
