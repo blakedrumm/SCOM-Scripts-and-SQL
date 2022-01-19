@@ -139,7 +139,7 @@ PROCESS {
             "Installed On"            = $installDateTime
         }
 
-        Write-Output "$(Time-Stamp) $($object | Sort-Object -Property Name -Descending | Out-String)"
+        Write-Output "$(Time-Stamp) $($object | Out-String)"
 
 
         <#############################
