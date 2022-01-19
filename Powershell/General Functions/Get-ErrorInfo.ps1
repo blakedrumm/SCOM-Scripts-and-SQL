@@ -4,8 +4,21 @@ param
     [Parameter(ValueFrompipeline)]
     [Management.Automation.ErrorRecord]$errorRecord
 )
-
-
+<#
+Example 1:
+    try
+    {
+        Stop-Service -Name someservice -ErrorAction Stop
+    }  
+    catch 
+    {
+        $_ | Get-ErrorInfo
+    }
+    
+Example 2:
+    $result = Get-ChildItem -Path C:\Windows -Filter *.ps1 -Recurse -ErrorAction SilentlyContinue -ErrorVariable myErrors
+    $myErrors | Get-ErrorInfo
+#>
 process {
 
     # From http://community.idera.com/powershell/powertips/b/tips/posts/demystifying-error-handling
