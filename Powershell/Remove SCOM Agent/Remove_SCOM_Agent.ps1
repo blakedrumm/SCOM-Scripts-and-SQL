@@ -12,7 +12,7 @@
         This script will attempt to remove all registered services, performance counters, DLLs, and program files. This script makes direct deletions
         from the registry and file system.
 
-        One external file is optional: RegistryKeys.txt
+        One external file is REQUIRED: RegistryKeys.txt
 
     .NOTES
         This script assumes:
@@ -60,7 +60,7 @@ BEGIN {
 PROCESS {
 
     function Invoke-SCOMAgentRemoval {
-    <#
+        <#
     [CmdletBinding()]
     [OutputType([string])]
     param
@@ -73,9 +73,9 @@ PROCESS {
     )
     #>
         Function Time-Stamp {
-        $TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
-        return "$TimeStamp - "
-    }
+            $TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
+            return "$TimeStamp - "
+        }
         Write-Output "$(Time-Stamp)Beginning removal of the Microsoft Monitoring Agent"
         # Get Agent Installation Path
         try {
@@ -115,7 +115,7 @@ PROCESS {
         Write-Output "$(Time-Stamp) $($object | Sort-Object -Property Name -Descending | Out-String)"
 
 
-<#############################
+        <#############################
 
 Stop Services, attempt MSI Uninstall
 
@@ -124,22 +124,18 @@ Stop Services, attempt MSI Uninstall
         # Stop MMA Services
         $allServices = (Get-Service)
         $services = @('HealthService', 'AdtAgent', 'System Center Management APM')
-        foreach ($service in $services)
-        {
-        if($service -notin $allServices.Name)
-        {
-            Write-Output "$(Time-Stamp)Could not locate service: $service"
-        }
-        Write-Output "$(Time-Stamp)Attempting to stop service: $service"
-        try
-        {
-            Stop-Service $service -ErrorAction Stop -Verbose
-        }
-        catch
-        {
-            Write-Output "$(Time-Stamp)Experienced error while stopping service: $service"
-            Write-Verbose $error[0]
-        }
+        foreach ($service in $services) {
+            if ($service -notin $allServices.Name) {
+                Write-Output "$(Time-Stamp)Could not locate service: $service"
+            }
+            Write-Output "$(Time-Stamp)Attempting to stop service: $service"
+            try {
+                Stop-Service $service -ErrorAction Stop -Verbose
+            }
+            catch {
+                Write-Output "$(Time-Stamp)Experienced error while stopping service: $service"
+                Write-Verbose $error[0]
+            }
         }
         # First, try to use the MSIExec to do the uninstall
         If ($installedGUID -notlike "none") { 
@@ -159,7 +155,7 @@ Stop Services, attempt MSI Uninstall
         }
 
 
-<#############################
+        <#############################
 
 Clean up Services and Registry
 
@@ -772,51 +768,41 @@ HKEY_LOCAL_MACHINE\SOFTWARE\Classes\AgentConfigManager.MgmtSvcCfg
 "@
             $builtInRegistryKeys.Split("`n").ForEach{ Write-Verbose "$(Time-Stamp)Adding `'$_`' to Powershell Variable `$additionalRegistryKeys"; $additionalRegistryKeys += $_ }
         }
-        ForEach ($key in $additionalRegistryKeys)
-        {
-            try
-            {
-            if(Get-ItemProperty -Path Registry::$key -ErrorAction SilentlyContinue)
-            {
-            Write-Output "$(Time-Stamp)Attempting to remove key: `'$key`'"
-            Remove-Item -Path Registry::$key -Force -Verbose -Recurse -ErrorAction Stop
-            Write-Output "$(Time-Stamp)Successfully removed key: `'$key`'"
+        ForEach ($key in $additionalRegistryKeys) {
+            try {
+                if (Get-ItemProperty -Path Registry::$key -ErrorAction SilentlyContinue) {
+                    Write-Output "$(Time-Stamp)Attempting to remove key: `'$key`'"
+                    Remove-Item -Path Registry::$key -Force -Verbose -Recurse -ErrorAction Stop
+                    Write-Output "$(Time-Stamp)Successfully removed key: `'$key`'"
+                }
+                else {
+                    Write-Verbose "$(Time-Stamp)Unable to locate key: `'$key`'"
+                }
             }
-            else
-            {
-             Write-Verbose "$(Time-Stamp)Unable to locate key: `'$key`'"
-            }
-            }
-            catch
-            {
-            Write-Verbose $error[0]
+            catch {
+                Write-Verbose $error[0]
             }
         }
 
 
         # Removes Control Panel Options
         $MuiKey = ((Get-Item "Registry::HKEY_CLASSES_ROOT\Local Settings\MuiCache\*\" -ErrorAction SilentlyContinue).Name) + "\52C64B7E"
-        if ($MuiKey)
-        {
-            try
-            {
-            Write-Output "$(Time-Stamp)Attempting to remove the Control Panel Options for: `"*System Center*`""
-            Remove-ItemProperty "Registry::$MUIKey" -Name "*System Center*" -Force -ErrorAction Stop
-            Write-Output "$(Time-Stamp)Successfully removed the Control Panel Options for: `"*System Center*`""
+        if ($MuiKey) {
+            try {
+                Write-Output "$(Time-Stamp)Attempting to remove the Control Panel Options for: `"*System Center*`""
+                Remove-ItemProperty "Registry::$MUIKey" -Name "*System Center*" -Force -ErrorAction Stop
+                Write-Output "$(Time-Stamp)Successfully removed the Control Panel Options for: `"*System Center*`""
             }
-            catch
-            {
+            catch {
                 Write-Output "$(Time-Stamp)Experienced an issue when removing the Control Panel Options for: `"*System Center*`""
                 Write-Verbose $error[0]
             }
-            try
-            {
-            Write-Output "$(Time-Stamp)Attempting to remove the Control Panel Options for: `"*Microsoft Monitoring Agent*`""
-            Remove-ItemProperty "Registry::$MUIKey" -Name "*Microsoft Monitoring Agent*" -Force -ErrorAction Stop
-            Write-Output "$(Time-Stamp)Successfully removed the Control Panel Options for: `"*Microsoft Monitoring Agent*`""
+            try {
+                Write-Output "$(Time-Stamp)Attempting to remove the Control Panel Options for: `"*Microsoft Monitoring Agent*`""
+                Remove-ItemProperty "Registry::$MUIKey" -Name "*Microsoft Monitoring Agent*" -Force -ErrorAction Stop
+                Write-Output "$(Time-Stamp)Successfully removed the Control Panel Options for: `"*Microsoft Monitoring Agent*`""
             }
-            catch
-            {
+            catch {
                 Write-Output "$(Time-Stamp)Experienced an issue when removing the Control Panel Options for: `"*Microsoft Monitoring Agent*`""
                 Write-Verbose $error[0]
             }
@@ -827,32 +813,27 @@ HKEY_LOCAL_MACHINE\SOFTWARE\Classes\AgentConfigManager.MgmtSvcCfg
         $installerRegistration = $null
         $installerRegistration = @()
         $installerRegistration = Get-ChildItem Registry::"HKEY_CLASSES_ROOT\Installer\Products\"  -Recurse -ErrorAction SilentlyContinue | Where-Object { if (( Get-ItemProperty -Path $_.PsPath) -match "Microsoft Monitoring Agent") { $_.PsPath } }
-        if ($installerRegistration)
-        {
-            ForEach ($registration in $installerRegistration)
-            {
+        if ($installerRegistration) {
+            ForEach ($registration in $installerRegistration) {
                 Write-Output "$(Time-Stamp)Attempting to remove the registration key in: `'$registration`'"
                 Remove-Item -Path $registration -Recurse -Force -ErrorAction Stop | Out-Null
                 Write-Output "$(Time-Stamp)Successfully removed to remove the registration key in: `'$registration`'"   
             }
         }
-        else
-        {
+        else {
 
         }
         # Removes Uninstaller Registration
         $uninstallKey = "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$($installedGUID)"
         If (Test-Path "Registry::$($uninstallKey)") {
-            try
-            {
-            Write-Output "$(Time-Stamp)Attempting to remove Uninstaller Registration key: `'$uninstallKey`'"
-            Remove-Item "Registry::$($uninstallKey)" -Force -Recurse -ErrorAction Stop | Out-Null
-            Write-Output "$(Time-Stamp)Successfully removed Uninstaller Registration key: `'$uninstallKey`'"
+            try {
+                Write-Output "$(Time-Stamp)Attempting to remove Uninstaller Registration key: `'$uninstallKey`'"
+                Remove-Item "Registry::$($uninstallKey)" -Force -Recurse -ErrorAction Stop | Out-Null
+                Write-Output "$(Time-Stamp)Successfully removed Uninstaller Registration key: `'$uninstallKey`'"
             }
-            catch
-            {
-            Write-Output "$(Time-Stamp)Experienced an issue removing key: `'$uninstallKey`'"
-            Write-Verbose $error[0]
+            catch {
+                Write-Output "$(Time-Stamp)Experienced an issue removing key: `'$uninstallKey`'"
+                Write-Verbose $error[0]
             }
         }
         else { Write-Output "$(Time-Stamp)Uninstaller Key Invalid, GUID Missing" }
@@ -870,7 +851,7 @@ HKEY_LOCAL_MACHINE\SOFTWARE\Classes\AgentConfigManager.MgmtSvcCfg
 
 
 
-<#############################
+        <#############################
 
 Clean up Program Files
 
@@ -880,19 +861,16 @@ Clean up Program Files
 
         # Removes Policy Definitions
         try {
-        $policyDefinitions = Get-ChildItem 'C:\Windows\PolicyDefinitions\' -Recurse -Filter *HealthService* -ErrorAction Stop
-            if($policyDefinitions)
-            {
-             ForEach ($policy in $policyDefinitions)
-             {
-                Write-Output "$(Time-Stamp)Removing Policy Definition: `'$policy`'"
-                Remove-Item -Path $policy -Force -Verbose -ErrorAction SilentlyContinue
-             } 
-             }
-             else
-             {
+            $policyDefinitions = Get-ChildItem 'C:\Windows\PolicyDefinitions\' -Recurse -Filter *HealthService* -ErrorAction Stop
+            if ($policyDefinitions) {
+                ForEach ($policy in $policyDefinitions) {
+                    Write-Output "$(Time-Stamp)Removing Policy Definition: `'$policy`'"
+                    Remove-Item -Path $policy -Force -Verbose -ErrorAction SilentlyContinue
+                } 
+            }
+            else {
                 Write-Output "$(Time-Stamp)Unable to locate any files matching the filter `"*HealthService*`" in `'C:\Windows\PolicyDefinitions\`'"
-             }
+            }
         }
         catch {
             Write-Output "$(Time-Stamp)Unable to locate any Policy Definitions (C:\Windows\PolicyDefinitions\) to remove related to `"*HealthService*`"."
@@ -912,17 +890,14 @@ Clean up Program Files
             if (Test-Path $programFolder) {
                 try {
                     $folders = Get-Item $programFolder -ErrorAction Stop
-                    ForEach ($folder in $folders)
-                    {
-                    try
-                    {
-                    Remove-Item -Path $folder -Force -Recurse -ErrorAction Stop
-                    }
-                    catch
-                    {
-                        Write-Output "$(Time-Stamp)Experienced an issue when removing folder: `'$folder`'"
-                        Write-Verbose $error[0]
-                    }
+                    ForEach ($folder in $folders) {
+                        try {
+                            Remove-Item -Path $folder -Force -Recurse -ErrorAction Stop
+                        }
+                        catch {
+                            Write-Output "$(Time-Stamp)Experienced an issue when removing folder: `'$folder`'"
+                            Write-Verbose $error[0]
+                        }
                     }
                 }
                 catch {
