@@ -19,5 +19,5 @@ ignore$
 \.pdf$
 \.tdf$
 ^\.github/
-^\ManagementPacks/
+^ManagementPacks$
 ^\.vs/
