@@ -242,6 +242,6 @@ if ($unitmonitorconfigurations)
 $content = Get-ChildItem $ExportLocation
 if (!$content)
 {
-	Write-Host "No scripts are dumped for the Management Pack" -ForegroundColor Cyan
+	Write-Host "No scripts were dumped for the Management Pack supplied: $SourceXML" -ForegroundColor Cyan
 }
 #endregion NoDump
