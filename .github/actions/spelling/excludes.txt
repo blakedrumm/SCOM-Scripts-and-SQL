@@ -3,6 +3,9 @@
 (?:^|/)(?i)LICEN[CS]E
 (?:^|/)package(?:-lock|)\.json$
 (?:^|/)vendor/
+(?:^|/).github/
+(?:^|/)ManagementPacks/
+(?:^|/).vs/
 ignore$
 \.avi$
 \.ico$
@@ -18,6 +21,3 @@ ignore$
 \.zip$
 \.pdf$
 \.tdf$
-^\.github/
-^ManagementPacks$
-^\.vs/
