@@ -1,0 +1,4 @@
+bdrum
+sql
+SCOM
+OLEDB
