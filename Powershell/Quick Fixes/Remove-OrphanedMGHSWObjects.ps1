@@ -1,4 +1,4 @@
-#Author: Rogério Barros
+#Original Author: Rogério Barros
 $MSWatcherClass = get-scomclass -name "Microsoft.SystemCenter.ManagementServerWatcher"
 $MSClass =  get-scomclass -name "Microsoft.SystemCenter.ManagementServer"
 
