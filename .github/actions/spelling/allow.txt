@@ -2,3 +2,8 @@ bdrum
 sql
 SCOM
 OLEDB
+XML
+mpv
+dbo
+Microsoft
+TME
