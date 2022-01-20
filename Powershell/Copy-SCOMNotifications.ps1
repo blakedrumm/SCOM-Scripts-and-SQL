@@ -68,7 +68,7 @@ function Copy-SCOMSubscription
 			foreach ($notification in $subscript.Actions)
 			{
 				# check if the first defined channel used in the source subscription already exists in the target MG (based on displayname).
-				# If it does, it is reused, else a new one is created using the same parameters as the source one. Only supports mail or command channels currently.
+				# If it does, it is reused, else a new one is created using the same parameters as the source one.
 				if (($ch = Get-SCOMNotificationChannel -DisplayName $notification.DisplayName -ErrorAction SilentlyContinue -computername $target) -ne $null)
 				{
 					
