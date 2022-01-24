@@ -4,7 +4,7 @@
 	
 	.DESCRIPTION
 		This Script Collects Event Log data from Remote Servers and the Local Machine if defined. It will collect all of these and finally zip the files up into a easy to transport zip file.
-		If you need to collect more logs than just Application, System, and Operations Manager. Please change line 81 [String[]]$Logs.
+		If you need to collect more logs than just Application, System, and Operations Manager. Please change line 79 [String[]]$Logs.
 	
 	.PARAMETER Servers
 		Add DNS Hostnames you would like to retrieve the Event Logs from like this: Agent1.contoso.com, Agent2.contoso.com
