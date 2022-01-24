@@ -240,7 +240,7 @@ PROCESS
 									secedit /export /cfg $export | Out-Null
 									#Change the below to any right you would like
 									$sids = (Select-String $export -Pattern "$right").Line
-									foreach ($line in @("[Unicode]", "Unicode=yes", "[System Access]", "[Event Audit]", "[Registry Values]", "[Version]", "signature=`"`$CHICAGO$`"", "Revision=1", "[Profile Description]", "Description=GrantLogOnAsAService security template", "[Privilege Rights]", "$sids,*$sid"))
+									foreach ($line in @("[Unicode]", "Unicode=yes", "[System Access]", "[Event Audit]", "[Registry Values]", "[Version]", "signature=`"`$CHICAGO$`"", "Revision=1", "[Profile Description]", "Description=Grant $UserLogonRight to $Username", "[Privilege Rights]", "$sids,*$sid"))
 									{
 										Add-Content $import $line
 									}
