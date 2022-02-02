@@ -984,7 +984,14 @@ public class OpsMgrSetupRegKey{
 						$CertLoaded = $False
 					}
 					
-					$ManagementServers = (Get-SCOMManagementServer).DisplayName
+					try
+					{
+						$ManagementServers = (Get-SCOMManagementServer).DisplayName
+					}
+					catch
+					{
+						$ManagementServers = $env:COMPUTERNAME
+					}
 					$ServerVersionSwitch = (Get-ProductVersion -Product SCOM -BuildVersion $setuplocation.ServerVersion)
 					$LocalServerVersionSwitchOut = $ServerVersionSwitch + " (" + $setuplocation.ServerVersion + ")"
 					
