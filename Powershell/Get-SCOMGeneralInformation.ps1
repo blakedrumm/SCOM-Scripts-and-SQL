@@ -9,8 +9,8 @@
 		Each server you want to run the General Info gather against.
 	
 	.EXAMPLE
-				PS C:\> .\Get-SCOMGeneralInformation.ps1
-				PS C:\> .\Get-SCOMGeneralInformation.ps1 -Servers MS01-2019.contoso.com
+		PS C:\> .\Get-SCOMGeneralInformation.ps1
+		PS C:\> .\Get-SCOMGeneralInformation.ps1 -Servers MS01-2019.contoso.com
 	
 	.NOTES
 		Author: Blake Drumm (blakedrumm@microsoft.com)
