@@ -1049,139 +1049,6 @@ public class OpsMgrSetupRegKey{
 					$CurrentVersionFinal = $CurrentVersionSwitch + " (" + $setuplocation.CurrentVersion + ")"
 					
 					$ReportingRegistryKey = get-itemproperty -path "HKLM:\SOFTWARE\Microsoft\System Center Operations Manager\12\Setup\Reporting" -ErrorAction SilentlyContinue | Select-Object * -exclude PSPath, PSParentPath, PSChildName, PSProvider, PSDrive
-					if ($LocalManagementServer)
-					{
-						try
-						{
-							$OMSQLPropertiesImport = Import-Csv "$OutputPath`\SQL_Properties_OpsDB.csv"
-							##########################################
-							#########################################
-							#####################################
-							################################
-							$OMSQLVersionSwitch = (Get-ProductVersion -Product SQL -BuildVersion $OMSQLPropertiesImport.ProductVersion)
-							$OMSQLProperties = $OMSQLVersionSwitch + "`n(" + ($OMSQLPropertiesImport).ProductVersion + ") -" + " (" + ($OMSQLPropertiesImport).ProductLevel + ")" + " - " + ($OMSQLPropertiesImport).Edition + " - " + ($OMSQLPropertiesImport).Version
-							if ($OMSQLPropertiesImport.IsClustered -eq 1)
-							{
-								$OMSQLProperties = $OMSQLProperties + "`n" + "[Clustered]"
-							}
-							else
-							{
-								$OMSQLProperties = $OMSQLProperties + "`n" + "[Not Clustered]"
-							}
-							try
-							{
-								if ('TRUE' -match $OMSQLPropertiesImport.Is_Broker_Enabled)
-								{
-									$OMSQLProperties = $OMSQLProperties + "`n" + "[Broker Enabled]"
-								}
-								else
-								{
-									$OMSQLProperties = $OMSQLProperties + "`n" + "[Broker Not Enabled]"
-								}
-							}
-							catch
-							{
-								$OMSQLProperties = $OMSQLProperties + "`n" + "[Broker Not Found or Disabled]"
-							}
-							try
-							{
-								if ('TRUE' -match $OMSQLPropertiesImport.Is_CLR_Enabled)
-								{
-									$OMSQLProperties = $OMSQLProperties + "`n" + "[CLR Enabled]"
-								}
-								else
-								{
-									$OMSQLProperties = $OMSQLProperties + "`n" + "[CLR Not Enabled]"
-								}
-							}
-							catch
-							{
-								$OMSQLProperties = $OMSQLProperties + "`n" + "[CLR Not Found or Disabled]"
-							}
-							if (1 -eq $OMSQLPropertiesImport.IsFullTextInstalled)
-							{
-								$OMSQLProperties = $OMSQLProperties + "`n" + "[FullText Installed]"
-							}
-							else
-							{
-								$OMSQLProperties = $OMSQLProperties + "`n" + "[FullText Not Installed]"
-							}
-							if ($OMSQLPropertiesImport.Collation -notmatch "SQL_Latin1_General_CP1_CI_AS|Latin1_General_CI_AS|Latin1_General_100_CI_AS|French_CI_AS|French_100_CI_AS|Cyrillic_General_CI_AS|Chinese_PRC_CI_AS|Chinese_Simplified_Pinyin_100_CI_AS|Chinese_Traditional_Stroke_Count_100_CI_AS|Japanese_CI_ASJapanese_XJIS_100_CI_AS|Traditional_Spanish_CI_AS|Modern_Spanish_100_CI_AS|Latin1_General_CI_AS|Cyrillic_General_100_CI_AS|Korean_100_CI_AS|Czech_100_CI_AS|Hungarian_100_CI_AS|Polish_100_CI_AS|Finnish_Swedish_100_CI_AS")
-							{
-								$OMSQLProperties = $OMSQLProperties + "`n" + "(ISSUE: " + $OMSQLPropertiesImport.Collation + ") <------------"
-							}
-							$OMSQLProperties = $OMSQLProperties + "`n"
-						}
-						catch
-						{
-							
-							#potential error code
-							#use continue or break keywords
-							#$e = $_.Exception
-							$line = $_.InvocationInfo.ScriptLineNumber
-							$msg = $e.Message
-							
-							Write-Verbose "Caught Exception: $($error[0]) at line: $line"
-							"$(Time-Stamp)Caught Exception: $($error[0]) at line: $line" | Out-File $OutputPath\Error.log -Append
-						}
-						
-						try
-						{
-							$DWSQLPropertiesImport = Import-Csv "$OutputPath`\SQL_Properties_DW.csv"
-							##########################################
-							#########################################
-							#####################################
-							################################
-							$DWSQLVersionSwitch = (Get-ProductVersion -Product SQL -BuildVersion $DWSQLPropertiesImport.ProductVersion)
-							$DWSQLProperties = $DWSQLVersionSwitch + "`n(" + ($DWSQLPropertiesImport).ProductVersion + ") - (" + ($DWSQLPropertiesImport).ProductLevel + ") - " + ($DWSQLPropertiesImport).Edition + " - " + ($DWSQLPropertiesImport).Version
-							if ($DWSQLPropertiesImport.IsClustered -eq 1)
-							{
-								$DWSQLProperties = $DWSQLProperties + "`n" + "[Clustered]"
-							}
-							else
-							{
-								$DWSQLProperties = $DWSQLProperties + "`n" + "[Not Clustered]"
-							}
-							try
-							{
-								if ('TRUE' -match $DWSQLPropertiesImport.Is_Broker_Enabled)
-								{
-									$DWSQLProperties = $DWSQLProperties + "`n" + "[Broker Enabled]"
-								}
-								else
-								{
-									$DWSQLProperties = $DWSQLProperties + "`n" + "[Broker Not Enabled]"
-								}
-							}
-							catch
-							{
-								$DWSQLProperties = $DWSQLProperties + "`n" + "[Broker Not Found or Disabled]"
-							}
-							if ($DWSQLPropertiesImport.IsFullTextInstalled -eq 1)
-							{
-								$DWSQLProperties = $DWSQLProperties + "`n" + "[FullText Installed]"
-							}
-							else
-							{
-								$DWSQLProperties = $DWSQLProperties + "`n" + "[FullText Not Installed]"
-							}
-							if ($DWSQLPropertiesImport.Collation -notmatch "SQL_Latin1_General_CP1_CI_AS|Latin1_General_CI_AS|Latin1_General_100_CI_AS|French_CI_AS|French_100_CI_AS|Cyrillic_General_CI_AS|Chinese_PRC_CI_AS|Chinese_Simplified_Pinyin_100_CI_AS|Chinese_Traditional_Stroke_Count_100_CI_AS|Japanese_CI_ASJapanese_XJIS_100_CI_AS|Traditional_Spanish_CI_AS|Modern_Spanish_100_CI_AS|Latin1_General_CI_AS|Cyrillic_General_100_CI_AS|Korean_100_CI_AS|Czech_100_CI_AS|Hungarian_100_CI_AS|Polish_100_CI_AS|Finnish_Swedish_100_CI_AS")
-							{
-								$DWSQLProperties = $DWSQLProperties + "`n" + "(ISSUE: " + $DWSQLPropertiesImport.Collation + ") <------------"
-							}
-						}
-						catch
-						{
-							#potential error code
-							#use continue or break keywords
-							#$e = $_.Exception
-							$line = $_.InvocationInfo.ScriptLineNumber
-							$msg = $e.Message
-							
-							Write-Verbose "Caught Exception: $($error[0]) at line: $line"
-							"$(Time-Stamp)Caught Exception: $($error[0]) at line: $line" | Out-File $OutputPath\Error.log -Append
-						}
-					}
 					
 					try
 					{
@@ -1233,38 +1100,6 @@ public class OpsMgrSetupRegKey{
 							$dbOutput | Add-Member -MemberType NoteProperty -Name 'Data Warehouse DB Server Name' -Value $setuplocation.DataWarehouseDBServerName -ErrorAction SilentlyContinue
 							$dbOutput | Add-Member -MemberType NoteProperty -Name 'Data Warehouse DB Name' -Value $setuplocation.DataWarehouseDBName -ErrorAction SilentlyContinue
 							$dbOutput | Add-Member -MemberType NoteProperty -Name 'Data Warehouse SQL Properties' -Value $DWSQLProperties -ErrorAction SilentlyContinue
-						}
-						
-						if ($LocalManagementServer)
-						{
-							$foundsomething = $false
-							try
-							{
-								$UserRolesImport = Import-Csv "$OutputPath`\UserRoles.csv"
-								$UserRoles = "User Role Name" + " - " + "Is System?" + "`n----------------------------`n"
-								$UserRolesImport | % {
-									if ($_.IsSystem -eq $false)
-									{
-										$foundsomething = $true
-										$UserRoles += $_.UserRoleName + " - " + $_.IsSystem + "`n"
-									}
-								}
-								if ($foundsomething)
-								{
-									$dbOutput | Add-Member -MemberType NoteProperty -Name 'User Roles (Non-Default)' -Value $UserRoles
-								}
-							}
-							catch
-							{
-								#potential error code
-								#use continue or break keywords
-								#$e = $_.Exception
-								$line = $_.InvocationInfo.ScriptLineNumber
-								$msg = $e.Message
-								
-								Write-Verbose "Caught Exception: $($error[0]) at line: $line"
-								"$(Time-Stamp)Caught Exception: $($error[0]) at line: $line" | Out-File $OutputPath\Error.log -Append
-							}
 						}
 					}
 					catch
@@ -1614,7 +1449,7 @@ $setupOutputRemote += @"
 				$line = $_.InvocationInfo.ScriptLineNumber
 				$msg = $e.Message
 				Write-Host "Caught Exception: $e at line: $line" -ForegroundColor Red
-				"$(Time-Stamp)Caught Exception: $e at line: $line" | Out-File $OutputPath\Error.log -Append
+				"$(Time-Stamp)Caught Exception: $e at line: $line"
 			}
 			if ($server -eq $Comp) # If server equals Local Computer
 			{
@@ -1648,6 +1483,19 @@ $setupOutputRemote += @"
 		Write-Progress -Activity "Collection Running" -Status "Progress-> 50%" -PercentComplete 10
 		
 		Write-Progress -Activity "Collection Running" -Status "Progress-> 76%" -PercentComplete 76
+		@"
+================================
+=---- Database Information ----=
+================================
+"@ | Out-File -FilePath "$OutputPath\General Information.txt" -Append -Width 4096
+		if ($dbOutput)
+		{
+			$dbOutput | Out-File -FilePath "$OutputPath\General Information.txt" -Append -Width 4096
+		}
+		else
+		{
+			"Unable to locate any Data in one of the following files / registry paths:`n..\CSV\SQL_Properties_OpsDB.csv`n..\CSV\SQL_Properties_DW.csv`nHKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Setup" | Out-File -FilePath "$OutputPath\General Information.txt" -Append -Width 4096
+		}
 		
 		Write-Progress -Activity "Collection Running" -Status "Progress-> 80%" -PercentComplete 80
 		$UpdatesOutput = foreach ($Server in $Servers)
@@ -1715,7 +1563,7 @@ $setupOutputRemote += @"
 					}
 					catch
 					{
-						"$(Time-Stamp)$server (Remote) - Unreachable" | Out-File $OutputPath\Error.log -Append
+						"$(Time-Stamp)$server (Remote) - Unreachable"
 						Write-Output "$server (Remote) - Unreachable" | Write-Output
 					}
 				}
