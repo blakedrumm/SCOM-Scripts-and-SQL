@@ -947,6 +947,7 @@ public class OpsMgrSetupRegKey{
 				#Start SCOM Management Server, Agent, and Gateway Related Gathering.
 				if ($ManagementServer)
 				{
+					
 					#=======================================================================
 					# Get Certificate Section
 					#=======================================================================
@@ -1095,23 +1096,6 @@ public class OpsMgrSetupRegKey{
 						#This is NOT an ACS Collector server
 						$ACS = $false
 						
-					}
-					try
-					{
-						if ($LocalManagementServer)
-						{
-							$dbOutput = [pscustomobject]@{ }
-							$dbOutput | Add-Member -MemberType NoteProperty -Name 'Operations Manager DB Server Name' -Value $setuplocation.DatabaseServerName -ErrorAction SilentlyContinue
-							$dbOutput | Add-Member -MemberType NoteProperty -Name 'Operations Manager DB Name' -Value $setuplocation.DatabaseName -ErrorAction SilentlyContinue
-							$dbOutput | Add-Member -MemberType NoteProperty -Name 'Operations Manager SQL Properties' -Value $OMSQLProperties -ErrorAction SilentlyContinue
-							$dbOutput | Add-Member -MemberType NoteProperty -Name 'Data Warehouse DB Server Name' -Value $setuplocation.DataWarehouseDBServerName -ErrorAction SilentlyContinue
-							$dbOutput | Add-Member -MemberType NoteProperty -Name 'Data Warehouse DB Name' -Value $setuplocation.DataWarehouseDBName -ErrorAction SilentlyContinue
-							$dbOutput | Add-Member -MemberType NoteProperty -Name 'Data Warehouse SQL Properties' -Value $DWSQLProperties -ErrorAction SilentlyContinue
-						}
-					}
-					catch
-					{
-						Write-Warning $error[0]
 					}
 					
 				}
@@ -1490,24 +1474,77 @@ $setupOutputRemote += @"
 		Write-Progress -Activity "Collection Running" -Status "Progress-> 50%" -PercentComplete 10
 		
 		Write-Progress -Activity "Collection Running" -Status "Progress-> 76%" -PercentComplete 76
-		@"
+		
+		Add-Type -TypeDefinition @"
+public class OpsMgrSetupRegKey{
+    public string CurrentVersion;
+    public string DatabaseName;
+    public string DatabaseServerName;
+    public string DatabaseVersion;
+    public string DataWarehouseDBName;
+    public string DataWarehouseDBServerName;
+    public string InstallDirectory;
+    public string InstalledOn;
+    public string ManagementServerPort;
+    public string Product;
+    public string ServerVersion;
+    public string UIVersion;
+}
+"@
+		
+		# this is the path we want to retrieve the values from
+		$opsMgrSetupRegKeyPath = 'HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Setup'
+		
+		# get the values
+		try
+		{
+			$opsMgrSetupRegKey = Get-ItemProperty -Path $opsMgrSetupRegKeyPath -ErrorAction Stop
+			
+			# construct a new object
+			$setuplocation = New-Object OpsMgrSetupRegKey
+			
+			#set the object values from the registry key
+			$setuplocation.CurrentVersion = $opsMgrSetupRegKey.CurrentVersion
+			$setuplocation.DatabaseName = $opsMgrSetupRegKey.DatabaseName
+			$setuplocation.DatabaseServerName = $opsMgrSetupRegKey.DatabaseServerName
+			$setuplocation.DatabaseVersion = $opsMgrSetupRegKey.DatabaseVersion
+			$setuplocation.DataWarehouseDBName = $opsMgrSetupRegKey.DataWarehouseDBName
+			$setuplocation.DataWarehouseDBServerName = $opsMgrSetupRegKey.DataWarehouseDBServerName
+			$setuplocation.InstallDirectory = $opsMgrSetupRegKey.InstallDirectory
+			$setuplocation.InstalledOn = $opsMgrSetupRegKey.InstalledOn
+			$setuplocation.ManagementServerPort = $opsMgrSetupRegKey.ManagementServerPort
+			$setuplocation.Product = $opsMgrSetupRegKey.Product
+			$setuplocation.ServerVersion = $opsMgrSetupRegKey.ServerVersion
+			$setuplocation.UIVersion = $opsMgrSetupRegKey.UIVersion
+			$dbOutput = [pscustomobject]@{ }
+			$dbOutput | Add-Member -MemberType NoteProperty -Name 'Operations Manager DB Server Name' -Value $setuplocation.DatabaseServerName -ErrorAction SilentlyContinue
+			$dbOutput | Add-Member -MemberType NoteProperty -Name 'Operations Manager DB Name' -Value $setuplocation.DatabaseName -ErrorAction SilentlyContinue
+			
+			$dbOutput | Add-Member -MemberType NoteProperty -Name 'Data Warehouse DB Server Name' -Value $setuplocation.DataWarehouseDBServerName -ErrorAction SilentlyContinue
+			$dbOutput | Add-Member -MemberType NoteProperty -Name 'Data Warehouse DB Name' -Value $setuplocation.DataWarehouseDBName -ErrorAction SilentlyContinue
+		}
+		catch
+		{
+			Write-Verbose "Could not retrieve registry key: $opsMgrSetupRegKeyPath"
+		}
+		if ($dbOutput)
+		{
+			@"
 ================================
 =---- Database Information ----=
 ================================
-"@ | Out-File -FilePath "$OutputPath\General Information.txt" -Append -Width 4096
-		if ($dbOutput)
-		{
-			$dbOutput | Out-File -FilePath "$OutputPath\General Information.txt" -Append -Width 4096
+"@ | Write-Output
+			$dbOutput | Write-Output
 		}
 		else
 		{
-			"Unable to locate any Data in one of the following files / registry paths:`n..\CSV\SQL_Properties_OpsDB.csv`n..\CSV\SQL_Properties_DW.csv`nHKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Setup" | Out-File -FilePath "$OutputPath\General Information.txt" -Append -Width 4096
+			"Unable to locate any Data in one of the following files / registry paths:`nHKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Setup" | Write-Output
 		}
 		
 		Write-Progress -Activity "Collection Running" -Status "Progress-> 80%" -PercentComplete 80
 		$UpdatesOutput = foreach ($Server in $Servers)
 		{
-			; Invoke-Command -ComputerName $Server -ScriptBlock { Get-HotFix } -ErrorAction SilentlyContinue
+			Invoke-Command -ComputerName $Server -ScriptBlock { Get-HotFix } -ErrorAction SilentlyContinue
 		}
 		if ($UpdatesOutput.HotfixId)
 		{
