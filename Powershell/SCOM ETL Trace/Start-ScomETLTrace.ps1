@@ -65,7 +65,7 @@
 		How often to wait between checks for Event Ids. Or how long to wait until Automatic stop.
 	
 	.EXAMPLE
-		Gather Verbose ETL Trace while detecting for Event ID 1210, sleep 60 seconds between each check for the Event ID.
+		Gather Verbose ETL Trace while detecting for Event ID 1210, Start-Sleep 60 seconds between each check for the Event ID.
 		PS C:\> .\Start-ScomETLTrace.ps1 -VerboseTrace -DetectOpsMgrEventID 1210 -SleepSeconds 60
 		
 		Gather ETL Trace with all the traces gathered by default, wait 300 seconds (5 minutes) and then automatically stop the ETL Trace and zip up the output folder:
@@ -143,7 +143,7 @@ param
     [int64]$DetectOpsMgrEventID,
     [Parameter(Mandatory = $false,
         Position = 19)]
-    [Alias('Sleep')]
+    [Alias('Start-Sleep')]
     [int64]$SleepSeconds
 )
 trap {
@@ -214,7 +214,7 @@ Function Start-ETLTrace {
         [int64]$DetectOpsMgrEventID,
         [Parameter(Mandatory = $false,
             Position = 19)]
-        [Alias('Sleep')]
+        [Alias('Start-Sleep')]
         [int64]$SleepSeconds
     )
     $Loc = $env:COMPUTERNAME
@@ -398,7 +398,7 @@ foreach(`$ETL in `$ETLs)
 {
     while(`$processcount -ge 3)
     {        
-        Sleep -Seconds 10
+        Start-Sleep -Seconds 10
         `$processes = Get-WmiObject Win32_Process -Filter `"name = 'tracefmtsm.exe'`"      
         `$processcount = `$processes.Count
     }   
@@ -415,7 +415,7 @@ while(`$processcount -gt 0)
 {
 #Wait for all processes to complete
     `$count = 0
-    Sleep -Seconds 10
+    Start-Sleep -Seconds 10
     `$processes = Get-WmiObject Win32_Process -Filter `"name = 'tracefmtsm.exe'`"    
     `$processcount = `$processes.count
 }
@@ -446,7 +446,7 @@ exit 0
             Start-Process "$env:SystemRoot\SYSWOW64\cmd.exe" "/c `"$installdir`\StopTracing.cmd`"" -WorkingDirectory $installdir -Wait | out-null
             if ($NetworkTrace) {
                 write-host "$(Out-TimeStamp)  Stopping any existing Network Trace" -ForegroundColor Gray -NoNewline
-                do { Write-Host "." -NoNewline -ForegroundColor DarkCyan; sleep 1 }
+                do { Write-Host "." -NoNewline -ForegroundColor DarkCyan; Start-Sleep 1 }
                 until (Netsh trace stop)
                 Write-Host " "
             }
@@ -612,7 +612,7 @@ exit 0
                 $foundEventID = $true
             }
             else {
-                sleep $SleepSeconds
+                Start-Sleep $SleepSeconds
             }
         }
         until ($foundEventID)
@@ -625,7 +625,7 @@ exit 0
         }
         else {
             Write-Host "$(Out-TimeStamp)Sleeping for $SleepSeconds seconds and then continuing automatically." -ForegroundColor DarkCyan
-            sleep $SleepSeconds
+            Start-Sleep $SleepSeconds
         }
 		
     }
@@ -672,7 +672,7 @@ exit 0
     }
     if ($NetworkTrace) {
         Write-Host "$(Out-TimeStamp)Stopping Network Trace" -ForegroundColor Cyan -NoNewLine
-        do { Write-Host "." -NoNewLine -ForegroundColor Cyan; Sleep 1 }
+        do { Write-Host "." -NoNewLine -ForegroundColor Cyan; Start-Sleep 1 }
         until (Netsh trace stop)
         Write-Host " "
     }
