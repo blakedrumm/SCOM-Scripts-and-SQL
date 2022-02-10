@@ -263,73 +263,73 @@ Function Start-ETLTrace {
     # Start GetAdvisor Switch
     if ($GetAdvisor) {
         $TracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where-Object { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*Advisor*" }
-        $TracingFiles | ForEach-Object { mv "$installdir`\$_" $TempDirectory }
+        $TracingFiles | ForEach-Object { Move-Item "$installdir`\$_" $TempDirectory }
     }
 	
     # Start GetAPM Switch
     if ($GetAPM) {
         $APMTracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where-Object { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*APM*" }
-        $APMTracingFiles | ForEach-Object { mv "$installdir`\$_" $TempDirectory }
+        $APMTracingFiles | ForEach-Object { Move-Item "$installdir`\$_" $TempDirectory }
     }
 	
     # Start GetApmConnector Switch
     if ($GetApmConnector) {
         $APMTracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where-Object { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*ApmConnector*" }
-        $APMTracingFiles | ForEach-Object { mv "$installdir`\$_" $TempDirectory }
+        $APMTracingFiles | ForEach-Object { Move-Item "$installdir`\$_" $TempDirectory }
     }
 	
     # Start GetBID Switch
     if ($GetBID) {
         $APMTracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where-Object { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*BID*" }
-        $APMTracingFiles | ForEach-Object { mv "$installdir`\$_" $TempDirectory }
+        $APMTracingFiles | ForEach-Object { Move-Item "$installdir`\$_" $TempDirectory }
     }
 	
     # Start GetConfigService Switch
     if ($GetConfigService) {
         $APMTracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where-Object { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*ConfigService*" }
-        $APMTracingFiles | ForEach-Object { mv "$installdir`\$_" $TempDirectory }
+        $APMTracingFiles | ForEach-Object { Move-Item "$installdir`\$_" $TempDirectory }
     }
 	
     # Start GetDAS Switch
     if ($GetDAS) {
         $APMTracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where-Object { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*DAS*" }
-        $APMTracingFiles | ForEach-Object { mv "$installdir`\$_" $TempDirectory }
+        $APMTracingFiles | ForEach-Object { Move-Item "$installdir`\$_" $TempDirectory }
     }
 	
     # Start GetFailover Switch
     if ($GetFailover) {
         $APMTracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where-Object { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*Failover*" }
-        $APMTracingFiles | ForEach-Object { mv "$installdir`\$_" $TempDirectory }
+        $APMTracingFiles | ForEach-Object { Move-Item "$installdir`\$_" $TempDirectory }
     }
 	
     # Start GetManaged Switch
     if ($GetManaged) {
         $APMTracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where-Object { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*Managed*" }
-        $APMTracingFiles | ForEach-Object { mv "$installdir`\$_" $TempDirectory }
+        $APMTracingFiles | ForEach-Object { Move-Item "$installdir`\$_" $TempDirectory }
     }
 	
     # Start GetNASM Switch
     if ($GetNASM) {
         $APMTracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where-Object { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*NASM*" }
-        $APMTracingFiles | ForEach-Object { mv "$installdir`\$_" $TempDirectory }
+        $APMTracingFiles | ForEach-Object { Move-Item "$installdir`\$_" $TempDirectory }
     }
 	
     # Start GetNative Switch
     if ($GetNative) {
         $APMTracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where-Object { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*Native*" }
-        $APMTracingFiles | ForEach-Object { mv "$installdir`\$_" $TempDirectory }
+        $APMTracingFiles | ForEach-Object { Move-Item "$installdir`\$_" $TempDirectory }
     }
 	
     # Start GetScript Switch
     if ($GetScript) {
         $APMTracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where-Object { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*Script*" }
-        $APMTracingFiles | ForEach-Object { mv "$installdir`\$_" $TempDirectory }
+        $APMTracingFiles | ForEach-Object { Move-Item "$installdir`\$_" $TempDirectory }
     }
 	
     # Start GetUI Switch
     if ($GetUI) {
         $APMTracingFiles = Get-ChildItem -Path "$installdir" -File Tracing* | Where-Object { $_.Name -ne "TracingReadMe.txt" -and $_.Name -notlike "*UI*" }
-        $APMTracingFiles | ForEach-Object { mv "$installdir`\$_" $TempDirectory }
+        $APMTracingFiles | ForEach-Object { Move-Item "$installdir`\$_" $TempDirectory }
     }
 	
     #The Following makes a copy of the formattracing.cmd file but working when run as a service with no interactive desktop
