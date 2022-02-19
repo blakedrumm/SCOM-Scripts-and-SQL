@@ -6,7 +6,7 @@
 		This script removes any BME ID's in the OperationsManager DB related to the Display Name provided with the -Servers switch.
 	
 	.PARAMETER ManagementServer
-		A description of the ManagementServer parameter.
+		The Management Server to remotely connect to. If you are running script is running on a Management Server it is not necessary to provide this paramter.
 	
 	.PARAMETER SqlServer
 		SQL Server/Instance,Port that hosts OperationsManager Database for SCOM.
@@ -24,24 +24,31 @@
 		Remove SCOM BME Related Data from the OperationsManager DB, on every Agent in the in Management Group.
 		PS C:\> Get-SCOMAgent | %{.\Erase-BaseManagedEntity.ps1 -Agents $_}
 		
+		Remove SCOM BME Related Data for 2 Agents machines:
 		PS C:\> .\Erase-BaseManagedEntity.ps1 -Servers IIS-Server.contoso.com, WindowsServer.contoso.com
 	
 	.NOTES
 		.AUTHOR
 		Blake Drumm (blakedrumm@microsoft.com)
 
+		Github Page:
+		https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Erase-BaseManagedEntity.ps1
+
+		Website:
+		https://blakedrumm.com/
+
 		.CREATED
 		April 10th, 2021
 
 		.MODIFIED
-		December 2nd, 2021
+		February 19th, 2022
 #>
 [OutputType([string])]
 param
 (
 	[Parameter(Mandatory = $false,
 			   Position = 1,
-			   HelpMessage = "SCOM Management Server that we will remotely or locally connect to.")]
+			   HelpMessage = "SCOM Management Server that we will remotely connect to. If running on a Management Server, there is no need to provide this parameter.")]
 	[String]$ManagementServer,
 	[Parameter(Mandatory = $false,
 			   Position = 2,
@@ -140,8 +147,6 @@ function Invoke-SqlCommand
 
         .EXAMPLE
             PS C:\> Invoke-SqlCommand -Server "DATASERVER" -Database "Web" -Query "SELECT COUNT(*) FROM Test.Sample" -As Scalar
-
-            9544            
     #>
 	[CmdletBinding(DefaultParameterSetName = "Default")]
 	param (
@@ -345,6 +350,7 @@ Function Erase-BaseManagedEntity
 	{
 		if (!$sqlInput)
 		{
+			Write-Verbose "Found property "
 			$sqlInput = Get-ItemProperty -Path 'HKLM:\Software\Microsoft\System Center\2010\Common\Database\' | Select DatabaseName, DatabaseServerName
 		}
 		$Database = $sqlInput.DatabaseName
@@ -375,11 +381,13 @@ Function Erase-BaseManagedEntity
 <#
 DO NOT EDIT PAST THIS POINT
 #>
-	
 	$Timeout = '900'
+	Write-Verbose "Timeout is set to 900 seconds."
 	try
 	{
-		Invoke-Command -ComputerName $ManagementServer -ScriptBlock {
+		if ($ManagementServer -match "^$env:COMPUTERNAME")
+		{
+			Write-Verbose "Locally running commands to remove Agent Managed Server from SCOM on: $ManagementServer"
 			Import-Module OperationsManager
 			$administration = (Get-SCOMManagementGroup).GetAdministration();
 			$agentManagedComputerType = [Microsoft.EnterpriseManagement.Administration.AgentManagedComputer];
@@ -400,7 +408,33 @@ DO NOT EDIT PAST THIS POINT
 				$administration.DeleteAgentManagedComputers($agentReadOnlyCollection);
 			}
 			catch { Write-Host 'Unable to delete from Agent Managed Computers' -ForegroundColor Cyan }
-		} -ErrorAction Stop
+		}
+		else
+		{
+			Write-Verbose "Locally running commands to remove Agent Managed Server from SCOM on: $ManagementServer"
+			Invoke-Command -ComputerName $ManagementServer -ScriptBlock {
+				Import-Module OperationsManager
+				$administration = (Get-SCOMManagementGroup).GetAdministration();
+				$agentManagedComputerType = [Microsoft.EnterpriseManagement.Administration.AgentManagedComputer];
+				$genericListType = [System.Collections.Generic.List``1]
+				$genericList = $genericListType.MakeGenericType($agentManagedComputerType)
+				$agentList = new-object $genericList.FullName
+				foreach ($serv in $using:Servers)
+				{
+					Write-Host "Deleting SCOM Agent: `'$serv`' from Agent Managed Computers"
+					$agent = Get-SCOMAgent *$serv*
+					$agentList.Add($agent);
+				}
+				$genericReadOnlyCollectionType = [System.Collections.ObjectModel.ReadOnlyCollection``1]
+				$genericReadOnlyCollection = $genericReadOnlyCollectionType.MakeGenericType($agentManagedComputerType)
+				$agentReadOnlyCollection = new-object $genericReadOnlyCollection.FullName @( ,$agentList);
+				try
+				{
+					$administration.DeleteAgentManagedComputers($agentReadOnlyCollection);
+				}
+				catch { Write-Host 'Unable to delete from Agent Managed Computers' -ForegroundColor Cyan }
+			} -ErrorAction Stop
+		}
 	}
 	catch
 	{
@@ -422,7 +456,7 @@ SELECT BaseManagedEntityId, FullName, DisplayName, IsDeleted, Path, Name
 FROM BaseManagedEntity WHERE IsDeleted = '0' AND FullName like @name OR DisplayName like @name
 ORDER BY FullName
 "@
-		
+		Write-Verbose $bme_query
 		$BME_IDs = (Invoke-SqlCommand -Timeout $Timeout -Server $SqlServer -Database $Database -Query $bme_query)
 		
 		if (!$BME_IDs)
@@ -457,6 +491,7 @@ ORDER BY FullName
 			Write-Host ''
 			
 			$current_bme = $BaseManagedEntityID.BaseManagedEntityId.Guid
+			Write-Verbose "Current BME: $current_bme"
 			
 			$delete_query = @"
 --Query 2
@@ -472,9 +507,10 @@ BEGIN TRANSACTION
 EXEC dbo.p_TypedManagedEntityDelete @EntityId, @TimeGenerated;
 COMMIT TRANSACTION
 "@
+			Write-Verbose $delete_query
 			Invoke-SqlCommand -Timeout $Timeout -Server $SqlServer -Database $Database -Query $delete_query
 		}
-		
+		Write-Verbose $remove_pending_management
 		$remove_pending_management = @"
 exec p_AgentPendingActionDeleteByAgentName "$machine"
 "@
@@ -488,7 +524,7 @@ exec p_AgentPendingActionDeleteByAgentName "$machine"
 --Get an idea of how many BMEs are in scope to purge
 SELECT count(*) FROM BaseManagedEntity WHERE IsDeleted = 1
 "@
-	
+	Write-Verbose $remove_count_query
 	$remove_count = (Invoke-SqlCommand -Timeout $Timeout -Server $SqlServer -Database $Database -Query $remove_count_query -As DataTable).Column1
 	
 	"OperationsManager DB has " | Write-Host -NoNewline
@@ -522,7 +558,7 @@ EXEC p_DiscoveryDataPurgingByRelationship @TimeGenerated, @BatchSize, @RowCount
 EXEC p_DiscoveryDataPurgingByTypedManagedEntity @TimeGenerated, @BatchSize, @RowCount
 EXEC p_DiscoveryDataPurgingByBaseManagedEntity @TimeGenerated, @BatchSize, @RowCount
 "@
-	
+	Write-Verbose $purge_deleted_query
 	try
 	{
 		Invoke-SqlCommand -Timeout $Timeout -Server $SqlServer -Database $Database -Query $purge_deleted_query
@@ -542,10 +578,12 @@ if ($ManagementServer -or $SqlServer -or $Database -or $Servers -or $AssumeYes -
 }
 else
 {
-<# Edit line 551 to modify the default command run when this script is executed.
-   Example: 
+<# Edit line 589 to modify the default command run when this script is executed.
+   Example:
    Erase-BaseManagedEntity -ManagementServer MS1-2019.contoso.com -SqlServer SQL-2019\SCOM2019 -Database OperationsManager -Servers Agent1.contoso.com, Agent2.contoso.com
-   or
+   
+   OR
+   If you are already running on a Management Server, just run like this:
    Erase-BaseManagedEntity -Servers Agent1.contoso.com
    #>
 	Erase-BaseManagedEntity
