@@ -342,19 +342,23 @@ Function Erase-BaseManagedEntity
 	}
 	if (!$SqlServer)
 	{
-		$sqlInput = Get-ItemProperty -Path 'HKLM:\Software\Microsoft\System Center\2010\Common\Database\' | Select DatabaseName, DatabaseServerName
-		$SqlServer = $sqlInput.DatabaseServerName
+		try
+		{
+			$sqlInput = Get-ItemProperty -Path 'HKLM:\Software\Microsoft\System Center\2010\Common\Database\' -ErrorAction Stop | Select DatabaseName, DatabaseServerName
+			$SqlServer = $sqlInput.DatabaseServerName
+			if (!$Database)
+			{
+				$Database = $sqlInput.DatabaseName
+			}
+		}
+		catch
+		{
+			Write-Warning 'Please Provide the -Database Parameter. The script is unable to detect Database settings in this registry path: HKLM:\Software\Microsoft\System Center\2010\Common\Database\'
+			Write-Warning "Exiting script due to no SQL database connection detected."
+			Break
+		}
 	}
 	
-	if (!$Database)
-	{
-		if (!$sqlInput)
-		{
-			Write-Verbose "Found property "
-			$sqlInput = Get-ItemProperty -Path 'HKLM:\Software\Microsoft\System Center\2010\Common\Database\' | Select DatabaseName, DatabaseServerName
-		}
-		$Database = $sqlInput.DatabaseName
-	}
 	if (!$Servers)
 	{
 		<#
@@ -394,7 +398,7 @@ DO NOT EDIT PAST THIS POINT
 			$genericListType = [System.Collections.Generic.List``1]
 			$genericList = $genericListType.MakeGenericType($agentManagedComputerType)
 			$agentList = new-object $genericList.FullName
-			foreach ($serv in $using:Servers)
+			foreach ($serv in $Servers)
 			{
 				Write-Host "Deleting SCOM Agent: `'$serv`' from Agent Managed Computers"
 				$agent = Get-SCOMAgent *$serv*
@@ -547,10 +551,10 @@ SELECT count(*) FROM BaseManagedEntity WHERE IsDeleted = 1
 	{ Write-Host "No action was taken to purge from OperationsManager DB. (Purging will happen on its own eventually)`nScript has Completed." -ForegroundColor Cyan; break }
 	$purge_deleted_query = @"
 --Query 5
---This query statement for SCOM 2012 will purge all IsDeleted=1 objects immediately
+--This query statement for SCOM 20xx will purge all IsDeleted=1 objects immediately
 --Normally this is a 2-3day wait before this would happen naturally
 --This only purges 10000 records. If you have more it will require multiple runs
---Purge IsDeleted=1 data from the SCOM 2012 DB:
+--Purge IsDeleted=1 data from the SCOM 20xx DB:
 DECLARE @TimeGenerated DATETIME, @BatchSize INT, @RowCount INT
 SET @TimeGenerated = GETUTCDATE()
 SET @BatchSize = 10000
@@ -578,7 +582,7 @@ if ($ManagementServer -or $SqlServer -or $Database -or $Servers -or $AssumeYes -
 }
 else
 {
-<# Edit line 589 to modify the default command run when this script is executed.
+<# Edit line 593 to modify the default command run when this script is executed.
    Example:
    Erase-BaseManagedEntity -ManagementServer MS1-2019.contoso.com -SqlServer SQL-2019\SCOM2019 -Database OperationsManager -Servers Agent1.contoso.com, Agent2.contoso.com
    
