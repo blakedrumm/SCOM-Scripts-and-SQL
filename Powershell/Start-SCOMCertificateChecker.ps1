@@ -14,17 +14,17 @@
 		This script was originally designed for stand-alone PowerShell 1.0 - it does not require the OpsMgr PowerShell snapins.
 		Technet Article: https://gallery.technet.microsoft.com/scriptcenter/Troubleshooting-OpsMgr-27be19d3
 	
-	.PARAMETER Servers
-		Each Server you want to Check SCOM Certificates on.
+	.PARAMETER All
+		Check All Certificates in Local Machine Store.
 	
 	.PARAMETER Output
 		Where to Output the Text Log for Script.
 	
-	.PARAMETER All
-		Check All Certificates in Local Machine Store.
-
 	.PARAMETER SerialNumber
 		Check a specific Certificate serial number in the Local Machine Personal Store.
+	
+	.PARAMETER Servers
+		Each Server you want to Check SCOM Certificates on.
 	
 	.EXAMPLE
 		Check All Certificates on 4 Servers and outputting the results to C:\Temp:
@@ -39,9 +39,12 @@
 		PS C:\> .\Check-SCOMCertificates.ps1 -All
 	
 	.NOTES
+		Update 02/2022 (Blake Drumm, https://github.com/blakedrumm/ )
+		Fix some minor bugs and do some restructuring
+
 		Update 01/2022 (Blake Drumm, https://github.com/blakedrumm/ )
 		The script will now allow an -SerialNumber parameter so you can only gather the certificate you are expecting.
-
+		
 		Update 06/2021 (Blake Drumm, https://github.com/v-bldrum/ )
 		The Script will now by default only check every Certificate only if you have the -All Switch. Otherwise it will just check the certificate Serial Number (Reversed) that is present in the Registry.
 		
@@ -56,10 +59,10 @@
 		
 		Update 2017.11.17 (Tyson Paul, https://blogs.msdn.microsoft.com/tysonpaul/ )
 		Fixed certificate SerialNumber parsing error.
-			
+		
 		Update 7/2009
 		Fix for workgroup machine subjectname validation
-
+		
 		Update 2/2009
 		Fixes for subjectname validation
 		Typos
@@ -81,10 +84,11 @@ param
 	[String]$Output,
 	[Parameter(Mandatory = $false,
 			   Position = 3)]
-	[Array]$Servers,
+	[ArgumentCompleter({ (Get-ChildItem cert:\LocalMachine\my\).SerialNumber })]
+	[string]$SerialNumber,
 	[Parameter(Mandatory = $false,
 			   Position = 4)]
-	[string]$SerialNumber
+	[Array]$Servers
 )
 #region CheckPermission
 $checkingpermission = "Checking for elevated permissions..."
@@ -121,10 +125,11 @@ function SCOM-CertCheck
 		[String]$Output,
 		[Parameter(Mandatory = $false,
 				   Position = 3)]
-		[Array]$Servers,
+		[ArgumentCompleter({ (Get-ChildItem cert:\LocalMachine\my\).SerialNumber })]
+		[string]$SerialNumber,
 		[Parameter(Mandatory = $false,
 				   Position = 4)]
-		[string]$SerialNumber
+		[Array]$Servers
 	)
 	if ($null -eq $Servers) { $Servers = $env:COMPUTERNAME }
 	else
@@ -714,9 +719,11 @@ $time : Starting Script
 					}
 				}
 				$text4 = @"
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 Examining Certificate - Subject: $($cert.Subject -replace "CN=", $null) - Serial Number $($cert.SerialNumber)
-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 "@
 				Write-Host $text4
 				$out += $text4
@@ -1095,15 +1102,15 @@ $time : Script Completed
 }
 #endregion Function
 #region DefaultActions
-if ($null -eq $Servers)
+if ($Servers -or $Output -or $All -or $SerialNumber)
 {
-	#Modify line 1103 if you want to change the default behavior when running this script through Powershell ISE
-	# Example: SCOM-CertCheck -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
-	# Example: SCOM-CertCheck -All
-	SCOM-CertCheck
+	SCOM-CertCheck -Servers $Servers -Output $Output -All:$All -SerialNumber:$SerialNumber
 }
 else
 {
-	SCOM-CertCheck -Servers $Servers -Output $Output -All:$All -SerialNumber:$SerialNumber
+	#Modify line 1114 if you want to change the default behavior when running this script through Powershell ISE
+	# Example: SCOM-CertCheck -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
+	# Example: SCOM-CertCheck -All
+	SCOM-CertCheck
 }
 #endregion DefaultActions
