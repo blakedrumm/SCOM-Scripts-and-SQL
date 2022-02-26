@@ -21,7 +21,7 @@
 		Where to Output the Text Log for Script.
 	
 	.PARAMETER SerialNumber
-		Check a specific Certificate serial number in the Local Machine Personal Store.
+		Check a specific Certificate serial number in the Local Machine Personal Store. Not reversed.
 	
 	.PARAMETER Servers
 		Each Server you want to Check SCOM Certificates on.
@@ -41,7 +41,7 @@
 	.NOTES
 		Update 02/2022 (Blake Drumm, https://github.com/blakedrumm/ )
 		Fix some minor bugs and do some restructuring
-
+		
 		Update 01/2022 (Blake Drumm, https://github.com/blakedrumm/ )
 		The script will now allow an -SerialNumber parameter so you can only gather the certificate you are expecting.
 		
@@ -77,17 +77,21 @@
 param
 (
 	[Parameter(Mandatory = $false,
-			   Position = 1)]
+			   Position = 1,
+			   HelpMessage = 'Check All Certificates in Local Machine Store.')]
 	[Switch]$All,
 	[Parameter(Mandatory = $false,
-			   Position = 2)]
+			   Position = 2,
+			   HelpMessage = 'Where to Output the Text Log for Script.')]
 	[String]$Output,
 	[Parameter(Mandatory = $false,
-			   Position = 3)]
+			   Position = 3,
+			   HelpMessage = 'Check a specific Certificate serial number in the Local Machine Personal Store. Not reversed.')]
 	[ArgumentCompleter({ (Get-ChildItem cert:\LocalMachine\my\).SerialNumber })]
 	[string]$SerialNumber,
 	[Parameter(Mandatory = $false,
-			   Position = 4)]
+			   Position = 4,
+			   HelpMessage = 'Each Server you want to Check SCOM Certificates on.')]
 	[Array]$Servers
 )
 #region CheckPermission
@@ -1108,7 +1112,7 @@ if ($Servers -or $Output -or $All -or $SerialNumber)
 }
 else
 {
-	#Modify line 1114 if you want to change the default behavior when running this script through Powershell ISE
+	#Modify line 1118 if you want to change the default behavior when running this script through Powershell ISE
 	# Example: SCOM-CertCheck -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
 	# Example: SCOM-CertCheck -All
 	SCOM-CertCheck
