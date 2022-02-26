@@ -1,6 +1,6 @@
 <#
 	.SYNOPSIS
-		Remove-BaseManagedEntity
+		Remove-SCOMBaseManagedEntity
 	
 	.DESCRIPTION
 		This script removes any BME ID's in the OperationsManager DB related to the Display Name provided with the -Servers switch.
@@ -31,20 +31,20 @@
 	
 	.EXAMPLE
 		Remove SCOM BME Related Data from the OperationsManager DB, on every Agent in the in Management Group.
-		PS C:\> Get-SCOMAgent | %{.\Remove-BaseManagedEntity.ps1 -Agents $_}
+		PS C:\> Get-SCOMAgent | %{.\Remove-SCOMBaseManagedEntity.ps1 -Agents $_}
 		
 		Remove SCOM BME Related Data for 2 Agents machines:
-		PS C:\> .\Remove-BaseManagedEntity.ps1 -Servers IIS-Server.contoso.com, WindowsServer.contoso.com
+		PS C:\> .\Remove-SCOMBaseManagedEntity.ps1 -Servers IIS-Server.contoso.com, WindowsServer.contoso.com
 		
 		Remove SCOM BME IDs from the Operations Manager Database:
-		PS C:\> .\Remove-BaseManagedEntity -Id C1E9B41B-0A35-C069-16EB-00AC43BB9C47, CB29ECDE-BCE8-2213-D5DD-0353116EDA6B
+		PS C:\> .\Remove-SCOMBaseManagedEntity -Id C1E9B41B-0A35-C069-16EB-00AC43BB9C47, CB29ECDE-BCE8-2213-D5DD-0353116EDA6B
 	
 	.NOTES
 		.AUTHOR
 		Blake Drumm (blakedrumm@microsoft.com)
 		
 		Github Page:
-		https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Remove-BaseManagedEntity.ps1
+		https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Remove-SCOMBaseManagedEntity.ps1
 		
 		Website:
 		https://blakedrumm.com/
@@ -328,7 +328,7 @@ BEGIN
 }
 PROCESS
 {
-	Function Remove-BaseManagedEntity
+	Function Remove-SCOMBaseManagedEntity
 	{
 		[OutputType([string])]
 		param
@@ -707,23 +707,23 @@ EXEC p_DiscoveryDataPurgingByBaseManagedEntity @TimeGenerated, @BatchSize, @RowC
 	
 	if ($ManagementServer -or $Id -or $SqlServer -or $Database -or $Servers -or $AssumeYes -or $DontStop)
 	{
-		Remove-BaseManagedEntity -ManagementServer $ManagementServer -Id $Id -SqlServer $SqlServer -Database $Database -Servers $Servers -AssumeYes:$AssumeYes -DontStop:$DontStop
+		Remove-SCOMBaseManagedEntity -ManagementServer $ManagementServer -Id $Id -SqlServer $SqlServer -Database $Database -Servers $Servers -AssumeYes:$AssumeYes -DontStop:$DontStop
 	}
 	else
 	{
 <# Edit line 723 to modify the default command run when this script is executed.
    Example:
-   Remove-BaseManagedEntity -ManagementServer MS1-2019.contoso.com -SqlServer SQL-2019\SCOM2019 -Database OperationsManager -Servers Agent1.contoso.com, Agent2.contoso.com
+   Remove-SCOMBaseManagedEntity -ManagementServer MS1-2019.contoso.com -SqlServer SQL-2019\SCOM2019 -Database OperationsManager -Servers Agent1.contoso.com, Agent2.contoso.com
    
    OR
    If you are already running on a Management Server, just run like this:
-   Remove-BaseManagedEntity -Servers Agent1.contoso.com
+   Remove-SCOMBaseManagedEntity -Servers Agent1.contoso.com
 
    OR
    If you need to remove specific Base Managed Entity ID's from the Database:
-   Remove-BaseManagedEntity -Id C1E9B41B-0A35-C069-16EB-00AC43BB9C47, CB29ECDE-BCE8-2213-D5DD-0353116EDA6B
+   Remove-SCOMBaseManagedEntity -Id C1E9B41B-0A35-C069-16EB-00AC43BB9C47, CB29ECDE-BCE8-2213-D5DD-0353116EDA6B
    #>
-		Remove-BaseManagedEntity
+		Remove-SCOMBaseManagedEntity
 	}
 }
 END
