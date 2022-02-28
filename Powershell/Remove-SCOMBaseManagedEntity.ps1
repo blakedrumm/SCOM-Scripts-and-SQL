@@ -638,11 +638,11 @@ COMMIT TRANSACTION
 					Write-Verbose $delete_query
 					Invoke-SqlCommand -Timeout $Timeout -Server $SqlServer -Database $Database -Query $delete_query
 				}
-				Write-Verbose $remove_pending_management
+				
 				$remove_pending_management = @"
 exec p_AgentPendingActionDeleteByAgentName "$machine"
 "@
-				
+				Write-Verbose $remove_pending_management
 				Invoke-SqlCommand -Timeout $Timeout -Server $SqlServer -Database $Database -Query $remove_pending_management
 				
 				Write-Host "$(Time-Stamp)Cleared $machine from Pending Management List in SCOM Console." -ForegroundColor DarkGreen
