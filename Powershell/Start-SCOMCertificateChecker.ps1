@@ -101,13 +101,14 @@ begin
 {
 	#region CheckPermission
 	$checkingpermission = "Checking for elevated permissions..."
-	$scriptout += $checkingpermission
+	$out = @()
 	Write-Host $checkingpermission -ForegroundColor Gray
+	$out += $checkingpermission
 	if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(`
 [Security.Principal.WindowsBuiltInRole] "Administrator"))
 	{
 		$nopermission = "Insufficient permissions to run this script. Open the PowerShell console as an administrator and run this script again."
-		$scriptout += $nopermission
+		$out += $nopermission
 		Write-Warning $nopermission
 		sleep 5
 		break
@@ -119,6 +120,12 @@ begin
 		Write-Host $permissiongranted -ForegroundColor Green
 	}
 	#endregion CheckPermission
+	Function Time-Stamp
+	{
+		
+		$TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
+		return $TimeStamp
+	}
 	function Inner-SCOMCertCheck
 	{
 		(
@@ -149,10 +156,9 @@ begin
 		# Consider all certificates in the Local Machine "Personal" store
 		$certs = [Array] (dir cert:\LocalMachine\my\)
 		$out = [Array] @()
-		$text1 += "Running against server: $env:COMPUTERNAME"
-		$time = Time-Stamp
+		$text1 = "Running against server: $env:COMPUTERNAME"
 		$out += @"
-$time : Starting Script
+$(Time-Stamp) : Starting Script
  
 "@
 		$out += $text1
@@ -261,7 +267,7 @@ $time : Starting Script
 =====================================================================================================================
 
 =====================================================================================================================
-Examining Certificate $(if (!$SerialNumber -and $All) { "($x`/$($certs.Count))" })
+$(if (!$SerialNumber -and $All) { "($x`/$($certs.Count)) Examining Certificate" })
 
 Subject: "$($cert.Subject)"
 
@@ -638,11 +644,6 @@ Expiration
 		
 	}
 	$InnerCheckSCOMCertificateFunctionScript = "function Inner-SCOMCertCheck { ${function:Inner-SCOMCertCheck} }"
-	foreach ($psbp in $PSBoundParameters.GetEnumerator())
-	{
-		$ScriptPassedArgs += "-{0} {1} " -f $psbp.Key, [system.String]::Join(", ", $(($psbp.Value -replace "True", "") -replace "False", ""))
-		Write-Verbose $("-{0} {1} " -f $psbp.Key, [system.String]::Join(", ", $(($psbp.Value -replace "True", "") -replace "False", "")))
-	}
 }
 PROCESS
 {
@@ -688,28 +689,26 @@ Certificate Checker
 			Write-Output $startofline
 			if ($server -ne $env:COMPUTERNAME)
 			{
-				$Out += Invoke-Command -ComputerName $server -ArgumentList $InnerCheckSCOMCertificateFunctionScript, $All -ScriptBlock {
+				$out += Invoke-Command -ComputerName $server -ArgumentList $InnerCheckSCOMCertificateFunctionScript, $All -ScriptBlock {
 					Param ($script,
 						$All)
 					. ([ScriptBlock]::Create($script))
 					return Inner-SCOMCertCheck -All:$All
-				}
+				} | Select-Object * -ExcludeProperty PSPath, PSParentPath, PSChildName, PSProvider, PSDrive
 			}
 			else
 			{
-				$Out += Inner-SCOMCertCheck -Servers $Servers -Output $Output -All:$All -SerialNumber:$SerialNumber
+				$out += Inner-SCOMCertCheck -Servers $Servers -All:$All -SerialNumber:$SerialNumber
 			}
 		}
-		if ($Output)
+		if ($OutputFile)
 		{
-			$Out | Out-File $Output -Width 4096
-			$time = Time-Stamp
 			$out += @"
 
-$time : Script Completed
+$(Time-Stamp) : Script Completed
 "@
-			$out | Out-File $Output
-			start C:\Windows\explorer.exe -ArgumentList "/select, $Output"
+			$out | Out-File $OutputFile -Width 4096
+			start C:\Windows\explorer.exe -ArgumentList "/select, $OutputFile"
 		}
 		#return $out
 		continue
@@ -722,7 +721,7 @@ $time : Script Completed
 	}
 	else
 	{
-		#Modify line 729 if you want to change the default behavior when running this script through Powershell ISE
+		#Modify line 728 if you want to change the default behavior when running this script through Powershell ISE
 		# Example: Check-SCOMCertificate -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
 		# Example: Check-SCOMCertificate -All
 		# Example: Check-SCOMCertificate -All -OutputFile C:\Temp\Certs-Output.txt
