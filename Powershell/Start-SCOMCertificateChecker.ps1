@@ -171,7 +171,9 @@ $time : Starting Script
 		}
 		if ($All)
 		{
-			"Found: $($certs.Count) certificates" | Write-Host
+			$FoundCount = "Found: $($certs.Count) certificates"
+			$out += $FoundCount
+			Write-Host $FoundCount
 			$text3 = "Verifying each certificate."
 			$out += $text3
 			Write-Host $text3
@@ -231,6 +233,17 @@ $time : Starting Script
 						if ($regSerial -eq "" -or $null) { $regSerial = "`{Empty`}" }
 						if ($regSerial -ne $certSerialReversed)
 						{
+							$i = $i
+							$i++
+							$NotPresentCount = $i
+							$text36 = "Serial Number written to the registry does not match"
+							#$out += $text36
+							Write-Verbose $text36
+							$text37 = @"
+    The certificate serial number is does not match what is written to registry.
+    Need to run MomCertImport.exe
+"@
+							Write-Verbose $text37
 							continue
                                 <# Do Nothing.#>
 						}
@@ -238,11 +251,13 @@ $time : Starting Script
 				}
 			}
 			$text4 = @"
-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+=====================================================================================================================
 
-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-Examining Certificate - Subject: $($cert.Subject -replace "CN=", $null) - Serial Number $($cert.SerialNumber)
-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+=====================================================================================================================
+Examining Certificate - Subject: $($cert.Subject -replace "CN=", $null)
+Serial Number: $($cert.SerialNumber)
+Serial Number Reversed: $(-1 .. -19 | % { $cert.SerialNumber[2 * $_] + $cert.SerialNumber[2 * $_ + 1] })
+=====================================================================================================================
 "@
 			Write-Host $text4
 			$out += $text4
@@ -267,9 +282,9 @@ Examining Certificate - Subject: $($cert.Subject -replace "CN=", $null) - Serial
 					Write-Host $text5 -BackgroundColor Red -ForegroundColor Black
 					
 					$text6 = @"
-    The Subjectname of this certificate does not match the FQDN of this machine.
-    Actual: $($cert.SubjectName.Name)
-    Expected (case insensitive): CN=$fqdn
+			The Subjectname of this certificate does not match the FQDN of this machine.
+			Actual: $($cert.SubjectName.Name)
+			Expected (case insensitive): CN=$fqdn
 "@
 					$out += $text6
 					Write-Host $text6
@@ -286,8 +301,8 @@ Examining Certificate - Subject: $($cert.Subject -replace "CN=", $null) - Serial
 				$out += $text8
 				Write-Host $text8 -BackgroundColor Red -ForegroundColor Black
 				$text9 = @"
-    This certificate does not have a private key.
-    Verify that proper steps were taken when installing this cert.
+			This certificate does not have a private key.
+			Verify that proper steps were taken when installing this cert.
 "@
 				$out += $text9
 				Write-Host $text9
@@ -299,7 +314,7 @@ Examining Certificate - Subject: $($cert.Subject -replace "CN=", $null) - Serial
 				$out += $text10
 				Write-Host $text10 -BackgroundColor Red -ForegroundColor Black
 				$text11 = @"
-	This certificate's private key is not issued to a machine account.
+			This certificate's private key is not issued to a machine account.
 	One possible cause of this is that the certificate
 	was issued to a user account rather than the machine,
 	then copy/pasted from the Current User store to the Local
@@ -346,7 +361,7 @@ Expiration
 				$text16 = "Enhanced Key Usage Extension Missing"
 				$out += $text16
 				Write-Host $text16 -BackgroundColor Red -ForegroundColor Black
-				$text17 = "No enhanced key usage extension found."
+				$text17 = "    No enhanced key usage extension found."
 				$out += $text17
 				Write-Host $text17
 				$pass = $false
@@ -389,7 +404,7 @@ Expiration
 					else
 					{
 						$text23 = @"
-Enhanced Key Usage Extension is Good
+    Enhanced Key Usage Extension is Good
 "@;
 						$out += $text23; Write-Host $text23 -BackgroundColor Green -ForegroundColor Black
 					}
@@ -542,9 +557,9 @@ Enhanced Key Usage Extension is Good
 			
 <#
 	Check that the cert's issuing CA is trusted (This is not technically required
-	as it is the remote machine cert's CA that must be trusted.  Most users leverage
+				as it is the remote machine cert's CA that must be trusted.  Most users leverage
 	the same CA for all machines, though, so it's worth checking
-#>
+				#>
 			$chain = new-object Security.Cryptography.X509Certificates.X509Chain
 			$chain.ChainPolicy.RevocationMode = 0
 			if ($chain.Build($cert) -eq $false)
@@ -604,7 +619,12 @@ Enhanced Key Usage Extension is Good
 			if ($pass) { $text49 = "***This certificate is properly configured and imported for System Center Operations Manager.***"; $out += $text49; Write-Host $text49 -ForegroundColor Green }
 			$out += " " # This is so there is white space between each Cert. Makes it less of a jumbled mess.
 		}
+		if ($certs.Count -eq $NotPresentCount)
+		{
+			$text49 = "Unable to locate any certificates on this server that match the certificate serial number (reversed) present in the registry."; $out += $text49; Write-Host $text49 -ForegroundColor Red
+		}
 		return $out
+		
 	}
 	$InnerCheckSCOMCertificateFunctionScript = "function Inner-SCOMCertCheck { ${function:Inner-SCOMCertCheck} }"
 	foreach ($psbp in $PSBoundParameters.GetEnumerator())
@@ -653,30 +673,31 @@ Certificate Checker
 			Write-Output $startofline
 			if ($server -ne $env:COMPUTERNAME)
 			{
-				$Out += Invoke-Command -ComputerName $server -ArgumentList $InnerCheckSCOMCertificateFunctionScript, $ScriptPassedArgs -ScriptBlock {
-					Param ($script)
+				$Out += Invoke-Command -ComputerName $server -ArgumentList $InnerCheckSCOMCertificateFunctionScript, $All -ScriptBlock {
+					Param ($script,
+						$All)
 					. ([ScriptBlock]::Create($script))
-					return Inner-SCOMCertCheck $($ScriptPassedArgs)
+					return Inner-SCOMCertCheck -All:$All
 				}
 			}
 			else
 			{
 				$Out += Inner-SCOMCertCheck -Servers $Servers -Output $Output -All:$All -SerialNumber:$SerialNumber
 			}
-			if ($Output)
-			{
-				$Out | Out-File $Output -Width 4096
-				$time = Time-Stamp
-				$out += @"
+		}
+		if ($Output)
+		{
+			$Out | Out-File $Output -Width 4096
+			$time = Time-Stamp
+			$out += @"
 
 $time : Script Completed
 "@
-				$out | Out-File $Output
-				start C:\Windows\explorer.exe -ArgumentList "/select, $Output"
-			}
+			$out | Out-File $Output
+			start C:\Windows\explorer.exe -ArgumentList "/select, $Output"
 		}
 		#return $out
-		break
+		continue
 	}
 	#endregion Function
 	#region DefaultActions
@@ -686,7 +707,7 @@ $time : Script Completed
 	}
 	else
 	{
-		#Modify line 1118 if you want to change the default behavior when running this script through Powershell ISE
+		#Modify line 710 if you want to change the default behavior when running this script through Powershell ISE
 		# Example: Check-SCOMCertificate -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
 		# Example: Check-SCOMCertificate -All
 		Check-SCOMCertificate
