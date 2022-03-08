@@ -267,11 +267,9 @@ $(Time-Stamp) : Starting Script
 =====================================================================================================================
 
 =====================================================================================================================
-$(if (!$SerialNumber -and $All) { "($x`/$($certs.Count)) Examining Certificate" })
+$(if (!$SerialNumber -and $All) { "($x`/$($certs.Count)) " })Examining Certificate`n`nSubject: "$($cert.Subject)"
 
-Subject: "$($cert.Subject)"
-
-Serial Number: "$($cert.SerialNumber)"
+$(if ($cert.FriendlyName) { "Friendly name: $($cert.FriendlyName)`n`n" })Serial Number: "$($cert.SerialNumber)"
 
 Serial Number Reversed: "$(-1 .. -19 | % { $cert.SerialNumber[2 * $_] + $cert.SerialNumber[2 * $_ + 1] })"
 =====================================================================================================================
@@ -721,7 +719,7 @@ $(Time-Stamp) : Script Completed
 	}
 	else
 	{
-		#Modify line 728 if you want to change the default behavior when running this script through Powershell ISE
+		#Modify line 726 if you want to change the default behavior when running this script through Powershell ISE
 		# Example: Check-SCOMCertificate -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
 		# Example: Check-SCOMCertificate -All
 		# Example: Check-SCOMCertificate -All -OutputFile C:\Temp\Certs-Output.txt
