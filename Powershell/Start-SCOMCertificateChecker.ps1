@@ -17,8 +17,8 @@
 	.PARAMETER All
 		Check All Certificates in Local Machine Store.
 	
-	.PARAMETER Output
-		Where to Output the Text Log for Script.
+	.PARAMETER OutputFile
+		Where to OutputFile the Text Log for Script.
 	
 	.PARAMETER SerialNumber
 		Check a specific Certificate serial number in the Local Machine Personal Store. Not reversed.
@@ -28,7 +28,7 @@
 	
 	.EXAMPLE
 		Check All Certificates on 4 Servers and outputting the results to C:\Temp:
-		PS C:\> .\Check-SCOMCertificates.ps1 -Servers ManagementServer1, ManagementServer2.contoso.com, Gateway.contoso.com, Agent1.contoso.com -All -Output C:\Temp
+		PS C:\> .\Check-SCOMCertificates.ps1 -Servers ManagementServer1, ManagementServer2.contoso.com, Gateway.contoso.com, Agent1.contoso.com -All -OutputFile C:\Temp
 	
 	.EXAMPLE
 		Check for a specific Certificate serialnumber in the Local Machine Personal Certificate store:
@@ -41,7 +41,7 @@
 	.NOTES
 		Update 03/2022 (Blake Drumm, https://github.com/blakedrumm/ )
 		Major Update / alot of changes to how this script acts remotely and locally and added remoting abilites that are much superior to previous versions
-	
+		
 		Update 02/2022 (Blake Drumm, https://github.com/blakedrumm/ )
 		Fix some minor bugs and do some restructuring
 		
@@ -58,7 +58,7 @@
 		Fixed formatting in output.
 		
 		Update 06/2020 (Blake Drumm, https://github.com/v-bldrum/ )
-		Added ability to output script to file.
+		Added ability to OutputFile script to file.
 		
 		Update 2017.11.17 (Tyson Paul, https://blogs.msdn.microsoft.com/tysonpaul/ )
 		Fixed certificate SerialNumber parsing error.
@@ -86,7 +86,7 @@ param
 	[Parameter(Mandatory = $false,
 			   Position = 2,
 			   HelpMessage = 'Where to Output the Text Log for Script.')]
-	[String]$Output,
+	[String]$OutputFile,
 	[Parameter(Mandatory = $false,
 			   Position = 3,
 			   HelpMessage = 'Check a specific Certificate serial number in the Local Machine Personal Store. Not reversed.')]
@@ -129,7 +129,7 @@ begin
 			[Parameter(Mandatory = $false,
 					   Position = 2,
 					   HelpMessage = 'Where to Output the Text Log for Script.')]
-			[String]$Output,
+			[String]$OutputFile,
 			[Parameter(Mandatory = $false,
 					   Position = 3,
 					   HelpMessage = 'Check a specific Certificate serial number in the Local Machine Personal Store. Not reversed.')]
@@ -169,6 +169,8 @@ $time : Starting Script
 			$out += $text2
 			break
 		}
+		$x = 0
+		$a = 0
 		if ($All)
 		{
 			$FoundCount = "Found: $($certs.Count) certificates"
@@ -180,11 +182,16 @@ $time : Starting Script
 		}
 		foreach ($cert in $certs)
 		{
+			$x++
+			$x = $x
 			#If the serialnumber argument is present
 			if ($SerialNumber)
 			{
 				if ($SerialNumber -ne $cert.SerialNumber)
 				{
+					$a++
+					$a = $a
+					$NotPresentCount = $a
 					continue
 				}
 				$All = $true
@@ -254,9 +261,13 @@ $time : Starting Script
 =====================================================================================================================
 
 =====================================================================================================================
-Examining Certificate - Subject: $($cert.Subject -replace "CN=", $null)
-Serial Number: $($cert.SerialNumber)
-Serial Number Reversed: $(-1 .. -19 | % { $cert.SerialNumber[2 * $_] + $cert.SerialNumber[2 * $_ + 1] })
+Examining Certificate $(if (!$SerialNumber -and $All) { "($x`/$($certs.Count))" })
+
+Subject: "$($cert.Subject)"
+
+Serial Number: "$($cert.SerialNumber)"
+
+Serial Number Reversed: "$(-1 .. -19 | % { $cert.SerialNumber[2 * $_] + $cert.SerialNumber[2 * $_ + 1] })"
 =====================================================================================================================
 "@
 			Write-Host $text4
@@ -346,7 +357,7 @@ Serial Number Reversed: $(-1 .. -19 | % { $cert.SerialNumber[2 * $_] + $cert.Ser
 			{
 				$text15 = @"
 Expiration
-    Not Expired :: (valid from $($cert.NotBefore) thru $($cert.NotAfter))
+    Not Expired: (valid from $($cert.NotBefore) thru $($cert.NotAfter))
 "@
 				$out += $text15
 				Write-Host $text15 -BackgroundColor Green -ForegroundColor Black
@@ -551,7 +562,7 @@ Expiration
 						Write-Host $text41
 						$pass = $false
 					}
-					else { $text42 = "Serial Number written to registry"; $out += $text42; Write-Host $text42 -BackgroundColor Green -ForegroundColor Black }
+					else { $text42 = "The serial number is written the to registry"; $out += $text42; Write-Host $text42 -BackgroundColor Green -ForegroundColor Black }
 				}
 			}
 			
@@ -621,7 +632,7 @@ Expiration
 		}
 		if ($certs.Count -eq $NotPresentCount)
 		{
-			$text49 = "Unable to locate any certificates on this server that match the certificate serial number (reversed) present in the registry."; $out += $text49; Write-Host $text49 -ForegroundColor Red
+			$text49 = "Unable to locate any certificates on this server that match the criteria specified OR the serial number in the registry does not match any certificates present."; $out += $text49; Write-Host $text49 -ForegroundColor Red
 		}
 		return $out
 		
@@ -643,17 +654,21 @@ PROCESS
 		param
 		(
 			[Parameter(Mandatory = $false,
-					   Position = 1)]
+					   Position = 1,
+					   HelpMessage = 'Check All Certificates in Local Machine Store.')]
 			[Switch]$All,
 			[Parameter(Mandatory = $false,
-					   Position = 2)]
-			[String]$Output,
+					   Position = 2,
+					   HelpMessage = 'Where to Output the Text Log for Script.')]
+			[String]$OutputFile,
 			[Parameter(Mandatory = $false,
-					   Position = 3)]
+					   Position = 3,
+					   HelpMessage = 'Check a specific Certificate serial number in the Local Machine Personal Store. Not reversed.')]
 			[ArgumentCompleter({ (Get-ChildItem cert:\LocalMachine\my\).SerialNumber })]
 			[string]$SerialNumber,
 			[Parameter(Mandatory = $false,
-					   Position = 4)]
+					   Position = 4,
+					   HelpMessage = 'Each Server you want to Check SCOM Certificates on.')]
 			[Array]$Servers
 		)
 		if ($null -eq $Servers) { $Servers = $env:COMPUTERNAME }
@@ -701,15 +716,16 @@ $time : Script Completed
 	}
 	#endregion Function
 	#region DefaultActions
-	if ($Servers -or $Output -or $All -or $SerialNumber)
+	if ($Servers -or $OutputFile -or $All -or $SerialNumber)
 	{
-		Check-SCOMCertificate -Servers $Servers -Output $Output -All:$All -SerialNumber:$SerialNumber
+		Check-SCOMCertificate -Servers $Servers -OutputFile $OutputFile -All:$All -SerialNumber:$SerialNumber
 	}
 	else
 	{
-		#Modify line 710 if you want to change the default behavior when running this script through Powershell ISE
+		#Modify line 729 if you want to change the default behavior when running this script through Powershell ISE
 		# Example: Check-SCOMCertificate -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
 		# Example: Check-SCOMCertificate -All
+		# Example: Check-SCOMCertificate -All -OutputFile C:\Temp\Certs-Output.txt
 		Check-SCOMCertificate
 	}
 	#endregion DefaultActions
