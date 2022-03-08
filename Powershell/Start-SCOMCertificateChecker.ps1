@@ -279,7 +279,7 @@ Serial Number Reversed: $($certificateReversed)
 =====================================================================================================================
 "@
 			Write-Host $text4
-			$out += $text4 + "`n"
+			$out += "`n" + $text4 + "`n"
 			
 			$pass = $true
 			
@@ -301,9 +301,9 @@ Serial Number Reversed: $($certificateReversed)
 					Write-Host $text5 -BackgroundColor Red -ForegroundColor Black
 					
 					$text6 = @"
-			The Subjectname of this certificate does not match the FQDN of this machine.
-			Actual: $($cert.SubjectName.Name)
-			Expected (case insensitive): CN=$fqdn
+	The Subjectname of this certificate does not match the FQDN of this machine.
+		Actual: $($cert.SubjectName.Name)
+		Expected (case insensitive): CN=$fqdn
 "@
 					$out += $text6 + "`n"
 					Write-Host $text6
@@ -320,8 +320,8 @@ Serial Number Reversed: $($certificateReversed)
 				$out += $text8 + "`n"
 				Write-Host $text8 -BackgroundColor Red -ForegroundColor Black
 				$text9 = @"
-			This certificate does not have a private key.
-			Verify that proper steps were taken when installing this cert.
+	This certificate does not have a private key.
+	Verify that proper steps were taken when installing this cert.
 "@
 				$out += $text9 + "`n"
 				Write-Host $text9
@@ -333,12 +333,12 @@ Serial Number Reversed: $($certificateReversed)
 				$out += $text10 + "`n"
 				Write-Host $text10 -BackgroundColor Red -ForegroundColor Black
 				$text11 = @"
-			This certificate's private key is not issued to a machine account.
-	One possible cause of this is that the certificate
-	was issued to a user account rather than the machine,
-	then copy/pasted from the Current User store to the Local
-	Machine store.  A full export/import is required to switch
-	between these stores.
+	This certificate's private key is not issued to a machine account.
+		One possible cause of this is that the certificate
+		was issued to a user account rather than the machine,
+		then copy/pasted from the Current User store to the Local
+		Machine store.  A full export/import is required to switch
+		between these stores.
 "@
 				$out += $text11 + "`n"
 				Write-Host $text11
@@ -416,8 +416,9 @@ Expiration
     Required EKUs are 1.3.6.1.5.5.7.3.1 and 1.3.6.1.5.5.7.3.2
     EKUs found on this cert are:
 "@
-						
-						$usages | %{ $text22 = "$($_.Value)"; $out += $text22 + "`n"; Write-Host $text22 }
+						$out += $text21 + "`n"
+						Write-Host $text21
+						$usages | %{ $text22 = "      $($_.Value)"; $out += $text22 + "`n"; Write-Host $text22 }
 						$pass = $false
 					}
 					else
@@ -699,11 +700,11 @@ Certificate Checker
 						$All)
 					. ([ScriptBlock]::Create($script))
 					return Inner-SCOMCertCheck -All:$All
-				}
+				} -ErrorAction SilentlyContinue
 			}
 			else
 			{
-				$MainScriptOutput += Inner-SCOMCertCheck -Servers $Servers -All:$All -SerialNumber:$SerialNumber
+				$MainScriptOutput += Inner-SCOMCertCheck -Servers $Servers -All:$All -SerialNumber:$SerialNumber -ErrorAction SilentlyContinue
 			}
 		}
 		if ($OutputFile)
@@ -722,7 +723,7 @@ Certificate Checker
 	}
 	else
 	{
-		#Modify line 729 if you want to change the default behavior when running this script through Powershell ISE
+		#Modify line 730 if you want to change the default behavior when running this script through Powershell ISE
 		# Example: Check-SCOMCertificate -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
 		# Example: Check-SCOMCertificate -All
 		# Example: Check-SCOMCertificate -All -OutputFile C:\Temp\Certs-Output.txt
