@@ -722,7 +722,7 @@ Certificate Checker
 	}
 	else
 	{
-		#Modify line 730 if you want to change the default behavior when running this script through Powershell ISE
+		#Modify line 729 if you want to change the default behavior when running this script through Powershell ISE
 		# Example: Check-SCOMCertificate -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
 		# Example: Check-SCOMCertificate -All
 		# Example: Check-SCOMCertificate -All -OutputFile C:\Temp\Certs-Output.txt
