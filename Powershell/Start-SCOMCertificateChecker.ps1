@@ -101,14 +101,14 @@ begin
 {
 	#region CheckPermission
 	$checkingpermission = "Checking for elevated permissions..."
-	$out = @()
+	$MainScriptOutput = @()
 	Write-Host $checkingpermission -ForegroundColor Gray
-	$out += $checkingpermission
+	$MainScriptOutput += $checkingpermission
 	if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(`
 [Security.Principal.WindowsBuiltInRole] "Administrator"))
 	{
 		$nopermission = "Insufficient permissions to run this script. Open the PowerShell console as an administrator and run this script again."
-		$out += $nopermission
+		$MainScriptOutput += $nopermission
 		Write-Warning $nopermission
 		sleep 5
 		break
@@ -116,7 +116,7 @@ begin
 	else
 	{
 		$permissiongranted = " Currently running as administrator - proceeding with script execution..."
-		$out += $permissiongranted
+		$MainScriptOutput += $permissiongranted
 		Write-Host $permissiongranted -ForegroundColor Green
 	}
 	#endregion CheckPermission
@@ -140,7 +140,6 @@ begin
 			[Parameter(Mandatory = $false,
 					   Position = 3,
 					   HelpMessage = 'Check a specific Certificate serial number in the Local Machine Personal Store. Not reversed.')]
-			[ArgumentCompleter({ (Get-ChildItem cert:\LocalMachine\my\).SerialNumber })]
 			[string]$SerialNumber,
 			[Parameter(Mandatory = $false,
 					   Position = 4,
@@ -153,9 +152,9 @@ begin
 			$TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
 			return $TimeStamp
 		}
+		$out = @()
 		# Consider all certificates in the Local Machine "Personal" store
 		$certs = [Array] (dir cert:\LocalMachine\my\)
-		$out = [Array] @()
 		$text1 = "Running against server: $env:COMPUTERNAME"
 		$out += @"
 $(Time-Stamp) : Starting Script
@@ -663,7 +662,6 @@ PROCESS
 			[Parameter(Mandatory = $false,
 					   Position = 3,
 					   HelpMessage = 'Check a specific Certificate serial number in the Local Machine Personal Store. Not reversed.')]
-			[ArgumentCompleter({ (Get-ChildItem cert:\LocalMachine\my\).SerialNumber })]
 			[string]$SerialNumber,
 			[Parameter(Mandatory = $false,
 					   Position = 4,
@@ -676,36 +674,38 @@ PROCESS
 			$Servers = ($Servers.Split(",").Split(" ") -replace (" ", ""))
 			$Servers = $Servers | select -Unique
 		}
-		[string[]]$out = @()
 		foreach ($server in $Servers)
 		{
 			$startofline = @" 
 
 ========================================================
 Certificate Checker
+
 "@
-			Write-Output $startofline
+			Write-Host $startofline
+			$MainScriptOutput += $startofline
 			if ($server -ne $env:COMPUTERNAME)
 			{
-				$out += Invoke-Command -ComputerName $server -ArgumentList $InnerCheckSCOMCertificateFunctionScript, $All -ScriptBlock {
+				$MainScriptOutput += Invoke-Command -ComputerName $server -ArgumentList $InnerCheckSCOMCertificateFunctionScript, $All -ScriptBlock {
 					Param ($script,
 						$All)
 					. ([ScriptBlock]::Create($script))
 					return Inner-SCOMCertCheck -All:$All
-				} | Select-Object * -ExcludeProperty PSPath, PSParentPath, PSChildName, PSProvider, PSDrive
+				}
 			}
 			else
 			{
-				$out += Inner-SCOMCertCheck -Servers $Servers -All:$All -SerialNumber:$SerialNumber
+				$MainScriptOutput += Inner-SCOMCertCheck -Servers $Servers -All:$All -SerialNumber:$SerialNumber
+				Write-Host $MainScriptOutput
 			}
 		}
 		if ($OutputFile)
 		{
-			$out += @"
+			$MainScriptOutput += @"
 
 $(Time-Stamp) : Script Completed
 "@
-			$out | Out-File $OutputFile -Width 4096
+			$MainScriptOutput | Out-File $OutputFile -Width 4096
 			start C:\Windows\explorer.exe -ArgumentList "/select, $OutputFile"
 		}
 		#return $out
@@ -723,7 +723,7 @@ $(Time-Stamp) : Script Completed
 		# Example: Check-SCOMCertificate -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
 		# Example: Check-SCOMCertificate -All
 		# Example: Check-SCOMCertificate -All -OutputFile C:\Temp\Certs-Output.txt
-		Check-SCOMCertificate
+		Check-SCOMCertificate -OutputFile C:\Test-File.txt
 	}
 	#endregion DefaultActions
 }
