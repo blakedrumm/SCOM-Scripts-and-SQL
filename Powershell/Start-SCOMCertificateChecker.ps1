@@ -90,7 +90,7 @@ param
 	[Parameter(Mandatory = $false,
 			   Position = 3,
 			   HelpMessage = 'Check a specific Certificate serial number in the Local Machine Personal Store. Not reversed.')]
-	[ArgumentCompleter({ (Get-ChildItem cert:\LocalMachine\my\).SerialNumber })]
+	[ValidateScript({ (Get-ChildItem cert:\LocalMachine\my\).SerialNumber })]
 	[string]$SerialNumber,
 	[Parameter(Mandatory = $false,
 			   Position = 4,
@@ -128,6 +128,8 @@ begin
 	}
 	function Inner-SCOMCertCheck
 	{
+		[OutputType([string])]
+		param
 		(
 			[Parameter(Mandatory = $false,
 					   Position = 1,
@@ -146,6 +148,7 @@ begin
 					   HelpMessage = 'Each Server you want to Check SCOM Certificates on.')]
 			[Array]$Servers
 		)
+		
 		Function Time-Stamp
 		{
 			
@@ -153,14 +156,14 @@ begin
 			return $TimeStamp
 		}
 		$out = @()
+		$out += @"
+$(Time-Stamp) : Starting Script
+
+"@
 		# Consider all certificates in the Local Machine "Personal" store
 		$certs = [Array] (dir cert:\LocalMachine\my\)
 		$text1 = "Running against server: $env:COMPUTERNAME"
-		$out += @"
-$(Time-Stamp) : Starting Script
- 
-"@
-		$out += $text1
+		$out += $text1 + "`n"
 		Write-Host $text1
 		if ($certs -eq $null)
 		{
@@ -171,7 +174,7 @@ $(Time-Stamp) : Starting Script
     `"Personal`" store or the `"Operations Manager`" store.
 "@
 			Write-Host $text2 -ForegroundColor Red
-			$out += $text2
+			$out += $text2 + "`n"
 			break
 		}
 		$x = 0
@@ -179,10 +182,10 @@ $(Time-Stamp) : Starting Script
 		if ($All)
 		{
 			$FoundCount = "Found: $($certs.Count) certificates"
-			$out += $FoundCount
+			$out += $FoundCount + "`n"
 			Write-Host $FoundCount
 			$text3 = "Verifying each certificate."
-			$out += $text3
+			$out += $text3 + "`n"
 			Write-Host $text3
 		}
 		foreach ($cert in $certs)
@@ -210,13 +213,13 @@ $(Time-Stamp) : Starting Script
 				if (! (Test-Path "HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Machine Settings"))
 				{
 					$text36 = "Serial Number is not written to registry"
-					$out += $text36
+					$out += $text36 + "`n"
 					Write-Host $text36 -BackgroundColor Red -ForegroundColor Black
 					$text37 = @"
     The certificate serial number is not written to registry.
     Need to run MomCertImport.exe
 "@
-					$out += $text37
+					$out += $text37 + "`n"
 					Write-Host $text37
 					$pass = $false
 					break
@@ -227,13 +230,13 @@ $(Time-Stamp) : Starting Script
 					if ($regKeys.ChannelCertificateSerialNumber -eq $null)
 					{
 						$text36 = "Serial Number is not written to registry"
-						$out += $text36
+						$out += $text36 + "`n"
 						Write-Host $text36 -BackgroundColor Red -ForegroundColor Black
 						$text37 = @"
     The certificate serial number is not written to registry.
     Need to run MomCertImport.exe
 "@
-						$out += $text37
+						$out += $text37 + "`n"
 						Write-Host $text37
 						$pass = $false
 						break
@@ -249,19 +252,21 @@ $(Time-Stamp) : Starting Script
 							$i++
 							$NotPresentCount = $i
 							$text36 = "Serial Number written to the registry does not match"
-							#$out += $text36
+							$out += $text36 + "`n"
 							Write-Verbose $text36
 							$text37 = @"
     The certificate serial number is does not match what is written to registry.
     Need to run MomCertImport.exe
 "@
 							Write-Verbose $text37
+							$out += $text37 + "`n"
 							continue
                                 <# Do Nothing.#>
 						}
 					}
 				}
 			}
+			$certificateReversed = -1 .. - $($cert.SerialNumber.Length) | % { $cert.SerialNumber[2 * $_] + $cert.SerialNumber[2 * $_ + 1] }
 			$text4 = @"
 =====================================================================================================================
 
@@ -270,11 +275,11 @@ $(if (!$SerialNumber -and $All) { "($x`/$($certs.Count)) " })Examining Certifica
 
 $(if ($cert.FriendlyName) { "Friendly name: $($cert.FriendlyName)`n`n" })Serial Number: "$($cert.SerialNumber)"
 
-Serial Number Reversed: "$(-1 .. -19 | % { $cert.SerialNumber[2 * $_] + $cert.SerialNumber[2 * $_ + 1] })"
+Serial Number Reversed: $($certificateReversed)
 =====================================================================================================================
 "@
 			Write-Host $text4
-			$out += $text4
+			$out += $text4 + "`n"
 			
 			$pass = $true
 			
@@ -292,7 +297,7 @@ Serial Number Reversed: "$(-1 .. -19 | % { $cert.SerialNumber[2 * $_] + $cert.Se
 				if (!($cert.SubjectName.Name -match $fqdnRegexPattern))
 				{
 					$text5 = "Certificate Subjectname Mismatch"
-					$out += $text5
+					$out += $text5 + "`n"
 					Write-Host $text5 -BackgroundColor Red -ForegroundColor Black
 					
 					$text6 = @"
@@ -300,11 +305,11 @@ Serial Number Reversed: "$(-1 .. -19 | % { $cert.SerialNumber[2 * $_] + $cert.Se
 			Actual: $($cert.SubjectName.Name)
 			Expected (case insensitive): CN=$fqdn
 "@
-					$out += $text6
+					$out += $text6 + "`n"
 					Write-Host $text6
 					$false
 				}
-				else { $true; $text7 = "Certificate Subjectname is Good"; $out += $text7; Write-Host $text7 -BackgroundColor Green -ForegroundColor Black }
+				else { $true; $text7 = "Certificate Subjectname is Good"; $out += $text7 + "`n"; Write-Host $text7 -BackgroundColor Green -ForegroundColor Black }
 			}
 			
 			# Verify private key
@@ -312,20 +317,20 @@ Serial Number Reversed: "$(-1 .. -19 | % { $cert.SerialNumber[2 * $_] + $cert.Se
 			if (!($cert.HasPrivateKey))
 			{
 				$text8 = "Private Key Missing"
-				$out += $text8
+				$out += $text8 + "`n"
 				Write-Host $text8 -BackgroundColor Red -ForegroundColor Black
 				$text9 = @"
 			This certificate does not have a private key.
 			Verify that proper steps were taken when installing this cert.
 "@
-				$out += $text9
+				$out += $text9 + "`n"
 				Write-Host $text9
 				$pass = $false
 			}
 			elseif (!($cert.PrivateKey.CspKeyContainerInfo.MachineKeyStore))
 			{
 				$text10 = "Private Key not issued to Machine Account"
-				$out += $text10
+				$out += $text10 + "`n"
 				Write-Host $text10 -BackgroundColor Red -ForegroundColor Black
 				$text11 = @"
 			This certificate's private key is not issued to a machine account.
@@ -335,24 +340,24 @@ Serial Number Reversed: "$(-1 .. -19 | % { $cert.SerialNumber[2 * $_] + $cert.Se
 	Machine store.  A full export/import is required to switch
 	between these stores.
 "@
-				$out += $text11
+				$out += $text11 + "`n"
 				Write-Host $text11
 				$pass = $false
 			}
-			else { $text12 = "Private Key is Good"; $out += $text12; Write-Host $text12 -BackgroundColor Green -ForegroundColor Black }
+			else { $text12 = "Private Key is Good"; $out += $text12 + "`n"; Write-Host $text12 -BackgroundColor Green -ForegroundColor Black }
 			
 			# Check expiration dates
 			
 			if (($cert.NotBefore -gt [DateTime]::Now) -or ($cert.NotAfter -lt [DateTime]::Now))
 			{
 				$text13 = "Expiration Out-of-Date"
-				$out += $text13
+				$out += $text13 + "`n"
 				Write-Host $text13 -BackgroundColor Red -ForegroundColor Black
 				$text14 = @"
     This certificate is not currently valid.
     It will be valid between $($cert.NotBefore) and $($cert.NotAfter)
 "@
-				$out += $text14
+				$out += $text14 + "`n"
 				Write-Host $text14
 				$pass = $false
 			}
@@ -362,7 +367,7 @@ Serial Number Reversed: "$(-1 .. -19 | % { $cert.SerialNumber[2 * $_] + $cert.Se
 Expiration
     Not Expired: (valid from $($cert.NotBefore) thru $($cert.NotAfter))
 "@
-				$out += $text15
+				$out += $text15 + "`n"
 				Write-Host $text15 -BackgroundColor Green -ForegroundColor Black
 			}
 			
@@ -373,10 +378,10 @@ Expiration
 			if ($enhancedKeyUsageExtension -eq $null)
 			{
 				$text16 = "Enhanced Key Usage Extension Missing"
-				$out += $text16
+				$out += $text16 + "`n"
 				Write-Host $text16 -BackgroundColor Red -ForegroundColor Black
 				$text17 = "    No enhanced key usage extension found."
-				$out += $text17
+				$out += $text17 + "`n"
 				Write-Host $text17
 				$pass = $false
 			}
@@ -386,10 +391,10 @@ Expiration
 				if ($usages -eq $null)
 				{
 					$text18 = "Enhanced Key Usage Extension Missing"
-					$out += $text18
+					$out += $text18 + "`n"
 					Write-Host $text18 -BackgroundColor Red -ForegroundColor Black
 					$text19 = "    No enhanced key usages found."
-					$out += $text19
+					$out += $text19 + "`n"
 					Write-Host $text19
 					$pass = $false
 				}
@@ -404,7 +409,7 @@ Expiration
 					if ((!$srvAuth) -or (!$cliAuth))
 					{
 						$text20 = "Enhanced Key Usage Extension Issue"
-						$out += $text20
+						$out += $text20 + "`n"
 						Write-Host $text20 -BackgroundColor Red -ForegroundColor Black
 						$text21 = @"
     Enhanced key usage extension does not meet requirements.
@@ -412,15 +417,15 @@ Expiration
     EKUs found on this cert are:
 "@
 						
-						$usages | %{ $text22 = "$($_.Value)"; $out += $text22; Write-Host $text22 }
+						$usages | %{ $text22 = "$($_.Value)"; $out += $text22 + "`n"; Write-Host $text22 }
 						$pass = $false
 					}
 					else
 					{
 						$text23 = @"
-    Enhanced Key Usage Extension is Good
+Enhanced Key Usage Extension is Good
 "@;
-						$out += $text23; Write-Host $text23 -BackgroundColor Green -ForegroundColor Black
+						$out += $text23 + "`n"; Write-Host $text23 -BackgroundColor Green -ForegroundColor Black
 					}
 				}
 			}
@@ -431,14 +436,14 @@ Expiration
 			if ($keyUsageExtension -eq $null)
 			{
 				$text24 = "Key Usage Extensions Missing"
-				$out += $text24
+				$out += $text24 + "`n"
 				Write-Host $text24 -BackgroundColor Red -ForegroundColor Black
 				$text25 = @"
     No key usage extension found.
     A KeyUsage extension matching 0xA0 (Digital Signature, Key Encipherment)
     or better is required.
 "@
-				$out += $text25
+				$out += $text25 + "`n"
 				Write-Host $text25
 				$pass = $false
 			}
@@ -448,14 +453,14 @@ Expiration
 				if ($usages -eq $null)
 				{
 					$text26 = "Key Usage Extensions Missing"
-					$out += $text26
+					$out += $text26 + "`n"
 					Write-Host $text26 -BackgroundColor Red -ForegroundColor Black
 					$text27 = @"
     No key usages found.
     A KeyUsage extension matching 0xA0 (DigitalSignature, KeyEncipherment)
     or better is required.
 "@
-					$out += $text27
+					$out += $text27 + "`n"
 					Write-Host $text27
 					$pass = $false
 				}
@@ -473,11 +478,11 @@ Expiration
     KeyUsage found on this cert matches:
     $usages"
 "@
-						$out += $text29
+						$out += $text29 + "`n"
 						Write-Host $text29
 						$pass = $false
 					}
-					else { $text30 = "Key Usage Extensions are Good"; $out += $text30; Write-Host $text30 -BackgroundColor Green -ForegroundColor Black }
+					else { $text30 = "Key Usage Extensions are Good"; $out += $text30 + "`n"; Write-Host $text30 -BackgroundColor Green -ForegroundColor Black }
 				}
 			}
 			
@@ -487,28 +492,28 @@ Expiration
 			if ($keySpec -eq $null)
 			{
 				$text31 = "KeySpec Missing / Not Found"
-				$out += $text31
+				$out += $text31 + "`n"
 				Write-Host $text31 -BackgroundColor Red -ForegroundColor Black
 				$text32 = "    Keyspec not found.  A KeySpec of 1 is required"
-				$out += $text32
+				$out += $text32 + "`n"
 				Write-Host $text32
 				$pass = $false
 			}
 			elseif ($keySpec.value__ -ne 1)
 			{
 				$text33 = "KeySpec Incorrect"
-				$out += $text33
+				$out += $text33 + "`n"
 				Write-Host $text33 -BackgroundColor Red -ForegroundColor Black
 				$text34 = @"
     Keyspec exists but does not meet requirements.
     A KeySpec of 1 is required.
     KeySpec for this cert: $($keySpec.value__)
 "@
-				$out += $text34
+				$out += $text34 + "`n"
 				Write-Host $text34
 				$pass = $false
 			}
-			else { $text35 = "KeySpec is Good"; $out += $text35; Write-Host $text35 -BackgroundColor Green -ForegroundColor Black }
+			else { $text35 = "KeySpec is Good"; $out += $text35 + "`n"; Write-Host $text35 -BackgroundColor Green -ForegroundColor Black }
 			
 			
 			# Check that serial is written to proper reg
@@ -520,13 +525,13 @@ Expiration
 			if (! (Test-Path "HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Machine Settings"))
 			{
 				$text36 = "Serial Number is not written to registry"
-				$out += $text36
+				$out += $text36 + "`n"
 				Write-Host $text36 -BackgroundColor Red -ForegroundColor Black
 				$text37 = @"
     The certificate serial number is not written to registry.
     Need to run MomCertImport.exe
 "@
-				$out += $text37
+				$out += $text37 + "`n"
 				Write-Host $text37
 				$pass = $false
 			}
@@ -536,13 +541,13 @@ Expiration
 				if ($regKeys.ChannelCertificateSerialNumber -eq $null)
 				{
 					$text38 = "Serial Number is not written to registry"
-					$out += $text38
+					$out += $text38 + "`n"
 					Write-Host $text38 -BackgroundColor Red -ForegroundColor Black
 					$text39 = @"
     The certificate serial number is not written to registry.
     Need to run MomCertImport.exe
 "@
-					$out += $text39
+					$out += $text39 + "`n"
 					Write-Host $text39
 					$pass = $false
 				}
@@ -554,18 +559,18 @@ Expiration
 					if ($regSerial -ne $certSerialReversed)
 					{
 						$text40 = "Serial Number (mismatch) written to registry"
-						$out += $text40
+						$out += $text40 + "`n"
 						Write-Host $text40 -BackgroundColor Red -ForegroundColor Black
 						$text41 = @"
     The serial number written to the registry does not match this certificate
     Expected registry entry: $certSerialReversed
     Actual registry entry:   $regSerial
 "@
-						$out += $text41
+						$out += $text41 + "`n"
 						Write-Host $text41
 						$pass = $false
 					}
-					else { $text42 = "The serial number is written the to registry"; $out += $text42; Write-Host $text42 -BackgroundColor Green -ForegroundColor Black }
+					else { $text42 = "The serial number is written the to registry"; $out += $text42 + "`n"; Write-Host $text42 -BackgroundColor Green -ForegroundColor Black }
 				}
 			}
 			
@@ -579,7 +584,7 @@ Expiration
 			if ($chain.Build($cert) -eq $false)
 			{
 				$text43 = "Certification Chain Issue"
-				$out += $text43
+				$out += $text43 + "`n"
 				Write-Host $text43 -BackgroundColor Yellow -ForegroundColor Black
 				$text44 = @"
     The following error occurred building a certification chain with this certificate:
@@ -590,7 +595,7 @@ Expiration
     on the remote machines is installed to the Local Machine Trusted Root Authorities
     store on this machine.
 "@
-				$out += $text44
+				$out += $text44 + "`n"
 				Write-Host $text44
 			}
 			else
@@ -600,7 +605,7 @@ Expiration
 				if ($localMachineRootCert -eq $null)
 				{
 					$text45 = "Certification Chain Root CA Missing"
-					$out += $text45
+					$out += $text45 + "`n"
 					Write-Host $text45 -BackgroundColor Yellow -ForegroundColor Black
 					$text46 = @"
     This certificate has a valid certification chain installed, but
@@ -609,13 +614,13 @@ Expiration
     Make sure the proper root CA certificate is installed there, and not in
     the Current User Trusted Root Authorities store.
 "@
-					$out += $text46
+					$out += $text46 + "`n"
 					Write-Host $text46
 				}
 				else
 				{
 					$text47 = "Certification Chain looks Good"
-					$out += $text47
+					$out += $text47 + "`n"
 					Write-Host $text47 -BackgroundColor Green -ForegroundColor Black
 					$text48 = @"
     There is a valid certification chain installed for this cert,
@@ -623,22 +628,25 @@ Expiration
     different CAs.  Make sure the proper CA certificates are installed
     for these CAs.
 "@
-					$out += $text48
+					$out += $text48 + "`n"
 					Write-Host $text48
 				}
 				
 			}
 			
 			
-			if ($pass) { $text49 = "***This certificate is properly configured and imported for System Center Operations Manager.***"; $out += $text49; Write-Host $text49 -ForegroundColor Green }
+			if ($pass) { $text49 = "***This certificate is properly configured and imported for System Center Operations Manager.***"; $out += $text49 + "`n"; Write-Host $text49 -ForegroundColor Green }
 			$out += " " # This is so there is white space between each Cert. Makes it less of a jumbled mess.
 		}
 		if ($certs.Count -eq $NotPresentCount)
 		{
-			$text49 = "Unable to locate any certificates on this server that match the criteria specified OR the serial number in the registry does not match any certificates present."; $out += $text49; Write-Host $text49 -ForegroundColor Red
+			$text49 = "Unable to locate any certificates on this server that match the criteria specified OR the serial number in the registry does not match any certificates present."; $out += $text49 + "`n"; Write-Host $text49 -ForegroundColor Red
 		}
+		$out += @"
+
+$(Time-Stamp) : Script Completed
+"@
 		return $out
-		
 	}
 	$InnerCheckSCOMCertificateFunctionScript = "function Inner-SCOMCertCheck { ${function:Inner-SCOMCertCheck} }"
 }
@@ -696,15 +704,10 @@ Certificate Checker
 			else
 			{
 				$MainScriptOutput += Inner-SCOMCertCheck -Servers $Servers -All:$All -SerialNumber:$SerialNumber
-				Write-Host $MainScriptOutput
 			}
 		}
 		if ($OutputFile)
 		{
-			$MainScriptOutput += @"
-
-$(Time-Stamp) : Script Completed
-"@
 			$MainScriptOutput | Out-File $OutputFile -Width 4096
 			start C:\Windows\explorer.exe -ArgumentList "/select, $OutputFile"
 		}
@@ -719,11 +722,11 @@ $(Time-Stamp) : Script Completed
 	}
 	else
 	{
-		#Modify line 726 if you want to change the default behavior when running this script through Powershell ISE
+		#Modify line 730 if you want to change the default behavior when running this script through Powershell ISE
 		# Example: Check-SCOMCertificate -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
 		# Example: Check-SCOMCertificate -All
 		# Example: Check-SCOMCertificate -All -OutputFile C:\Temp\Certs-Output.txt
-		Check-SCOMCertificate -OutputFile C:\Test-File.txt
+		Check-SCOMCertificate
 	}
 	#endregion DefaultActions
 }
