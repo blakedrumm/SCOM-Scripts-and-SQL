@@ -18,7 +18,7 @@
 		Check All Certificates in Local Machine Store.
 	
 	.PARAMETER OutputFile
-		Where to OutputFile the Text Log for Script.
+		Where to Output the File (txt, log, etc) for Script Execution.
 	
 	.PARAMETER SerialNumber
 		Check a specific Certificate serial number in the Local Machine Personal Store. Not reversed.
