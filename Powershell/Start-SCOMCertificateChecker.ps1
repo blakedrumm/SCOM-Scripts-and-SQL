@@ -27,8 +27,8 @@
 		Each Server you want to Check SCOM Certificates on.
 	
 	.EXAMPLE
-		Check All Certificates on 4 Servers and outputting the results to C:\Temp:
-		PS C:\> .\Check-SCOMCertificates.ps1 -Servers ManagementServer1, ManagementServer2.contoso.com, Gateway.contoso.com, Agent1.contoso.com -All -OutputFile C:\Temp
+		Check All Certificates on 4 Servers and outputting the results to C:\Temp\Output.txt:
+		PS C:\> .\Check-SCOMCertificates.ps1 -Servers ManagementServer1, ManagementServer2.contoso.com, Gateway.contoso.com, Agent1.contoso.com -All -OutputFile C:\Temp\Output.txt
 	
 	.EXAMPLE
 		Check for a specific Certificate serialnumber in the Local Machine Personal Certificate store:
