@@ -30,7 +30,7 @@ param
 (
 	[Parameter(Mandatory = $false,
 			   Position = 0,
-			   HelpMessage = "Output the results to a text file. Just provide the location: 'C:\Temp\Output.txt'")]
+			   HelpMessage = "Output the results to a text file. Just provide the location: 'C:\Subscriptions.txt'")]
 	[string]$OutputFile
 )
 BEGIN
@@ -321,7 +321,7 @@ PROCESS
 		Write-Verbose "$(Time-Stamp)Running without parameters being passed to script. We may be running from Powershell ISE or you are running the script normally."
 <# Edit line 330 to modify the default command run when this script is executed without any arguments. This is helpful when running from Powershell ISE.
    Example: 
-   Get-SCOMNotificationSubscriptionDetails -OutputFile C:\Temp
+   Get-SCOMNotificationSubscriptionDetails -OutputFile C:\Subscriptions.txt
    or
    Get-SCOMNotificationSubscriptionDetails -Verbose
    or
