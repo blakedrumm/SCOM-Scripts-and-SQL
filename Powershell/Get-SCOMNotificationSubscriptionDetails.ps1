@@ -22,7 +22,7 @@
 		 Current version (this script) is located here: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Get-SCOMNotificationSubscriptionDetails.ps1
 		 Modified by: Blake Drumm (blakedrumm@microsoft.com)
 		 Date Created: 07/16/2021
-		 Date Modified: 01/13/2022
+		 Date Modified: 03/09/2022
 #>
 [CmdletBinding()]
 [OutputType([string])]
@@ -101,6 +101,11 @@ PROCESS
 			{
 				foreach ($property in $properties)
 				{
+					if ($val -eq $null)
+					{
+						Write-Verbose "$(Time-Stamp)Value is empty, skipping."
+						continue
+					}
 					Write-Verbose "$(Time-Stamp)Working on Property: $property"
 					if ($property -eq "ProblemId")
 					{
@@ -314,7 +319,7 @@ PROCESS
 	else
 	{
 		Write-Verbose "$(Time-Stamp)Running without parameters being passed to script. We may be running from Powershell ISE or you are running the script normally."
-<# Edit line 325 to modify the default command run when this script is executed without any arguments. This is helpful when running from Powershell ISE.
+<# Edit line 330 to modify the default command run when this script is executed without any arguments. This is helpful when running from Powershell ISE.
    Example: 
    Get-SCOMNotificationSubscriptionDetails -OutputFile C:\Temp
    or
