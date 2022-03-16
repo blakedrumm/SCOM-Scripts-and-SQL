@@ -18,18 +18,18 @@
 		Defines the User Right you want to set. This can be multiple values, comma seperated.
 		Name of the right you want to add to: SeServiceLogonRight
 		There is no default for this argument
-
+		
 		Some (but not all) of the Options you can use:
-			"Log on as a batch job (SeBatchLogonRight)"
-			"Allow log on locally (SeInteractiveLogonRight)"
-			"Access this computer from the network (SeNetworkLogonRight)"
-			"Allow log on through Remote Desktop Services (SeRemoteInteractiveLogonRight)"
-			"Log on as a service (SeServiceLogonRight)"
-			"Deny log on as a batch job (SeDenyBatchLogonRight)"
-			"Deny log on locally (SeDenyInteractiveLogonRight)"
-			"Deny access to this computer from the network (SeDenyNetworkLogonRight)"
-			"Deny log on through Remote Desktop Services (SeDenyRemoteInteractiveLogonRight)"
-			"Deny log on as a service (SeDenyServiceLogonRight)"
+		"Log on as a batch job (SeBatchLogonRight)"
+		"Allow log on locally (SeInteractiveLogonRight)"
+		"Access this computer from the network (SeNetworkLogonRight)"
+		"Allow log on through Remote Desktop Services (SeRemoteInteractiveLogonRight)"
+		"Log on as a service (SeServiceLogonRight)"
+		"Deny log on as a batch job (SeDenyBatchLogonRight)"
+		"Deny log on locally (SeDenyInteractiveLogonRight)"
+		"Deny access to this computer from the network (SeDenyNetworkLogonRight)"
+		"Deny log on through Remote Desktop Services (SeDenyRemoteInteractiveLogonRight)"
+		"Deny log on as a service (SeDenyServiceLogonRight)"
 	
 	.Example
 		Usage:
@@ -56,7 +56,7 @@
 		
 		Author: Blake Drumm (blakedrumm@microsoft.com)
 		First Created on: January 5th, 2022
-		Last Modified on: January 11th, 2022
+		Last Modified on: March 16th, 2022
 #>
 param
 (
@@ -68,7 +68,7 @@ param
 	[array]$Username,
 	[Parameter(Mandatory = $false,
 			   Position = 2)]
-	[ValidateSet('SeAssignPrimaryTokenPrivilege', 'SeAuditPrivilege', 'SeBackupPrivilege', 'SeBatchLogonRight', 'SeChangeNotifyPrivilege', 'SeCreateGlobalPrivilege', 'SeCreatePagefilePrivilege', 'SeCreateSymbolicLinkPrivilege', 'SeDebugPrivilege', 'SeDelegateSessionUserImpersonatePrivilege', 'SeImpersonatePrivilege', 'SeIncreaseBasePriorityPrivilege', 'SeIncreaseQuotaPrivilege', 'SeIncreaseWorkingSetPrivilege', 'SeInteractiveLogonRight', 'SeLoadDriverPrivilege', 'SeManageVolumePrivilege', 'SeNetworkLogonRight', 'SeProfileSingleProcessPrivilege', 'SeRemoteInteractiveLogonRight', 'SeRemoteShutdownPrivilege', 'SeRestorePrivilege', 'SeSecurityPrivilege', 'SeServiceLogonRight', 'SeShutdownPrivilege', 'SeSystemEnvironmentPrivilege', 'SeSystemProfilePrivilege', 'SeSystemtimePrivilege', 'SeTakeOwnershipPrivilege', 'SeTimeZonePrivilege', 'SeUndockPrivilege', IgnoreCase = $true)]
+	[ValidateSet('SeAssignPrimaryTokenPrivilege', 'SeAuditPrivilege', 'SeBackupPrivilege', 'SeBatchLogonRight', 'SeChangeNotifyPrivilege', 'SeCreateGlobalPrivilege', 'SeCreatePagefilePrivilege', 'SeCreateSymbolicLinkPrivilege', 'SeDebugPrivilege', 'SeDelegateSessionUserImpersonatePrivilege', 'SeDenyNetworkLogonRight', 'SeDenyRemoteInteractiveLogonRight', 'SeDenyServiceLogonRight', 'SeImpersonatePrivilege', 'SeIncreaseBasePriorityPrivilege', 'SeIncreaseQuotaPrivilege', 'SeIncreaseWorkingSetPrivilege', 'SeInteractiveLogonRight', 'SeLoadDriverPrivilege', 'SeManageVolumePrivilege', 'SeNetworkLogonRight', 'SeProfileSingleProcessPrivilege', 'SeRemoteInteractiveLogonRight', 'SeRemoteShutdownPrivilege', 'SeRestorePrivilege', 'SeSecurityPrivilege', 'SeServiceLogonRight', 'SeShutdownPrivilege', 'SeSystemEnvironmentPrivilege', 'SeSystemProfilePrivilege', 'SeSystemtimePrivilege', 'SeTakeOwnershipPrivilege', 'SeTimeZonePrivilege', 'SeUndockPrivilege', IgnoreCase = $true)]
 	[Alias('right')]
 	[array]$UserRight
 )
@@ -119,7 +119,7 @@ PROCESS
 			[array]$Username = ("{0}\{1}" -f $env:USERDOMAIN, $env:Username),
 			[Parameter(Mandatory = $true,
 					   Position = 2)]
-			[ValidateSet('SeAssignPrimaryTokenPrivilege', 'SeAuditPrivilege', 'SeBackupPrivilege', 'SeBatchLogonRight', 'SeChangeNotifyPrivilege', 'SeCreateGlobalPrivilege', 'SeCreatePagefilePrivilege', 'SeCreateSymbolicLinkPrivilege', 'SeDebugPrivilege', 'SeDelegateSessionUserImpersonatePrivilege', 'SeImpersonatePrivilege', 'SeIncreaseBasePriorityPrivilege', 'SeIncreaseQuotaPrivilege', 'SeIncreaseWorkingSetPrivilege', 'SeInteractiveLogonRight', 'SeLoadDriverPrivilege', 'SeManageVolumePrivilege', 'SeNetworkLogonRight', 'SeProfileSingleProcessPrivilege', 'SeRemoteInteractiveLogonRight', 'SeRemoteShutdownPrivilege', 'SeRestorePrivilege', 'SeSecurityPrivilege', 'SeServiceLogonRight', 'SeShutdownPrivilege', 'SeSystemEnvironmentPrivilege', 'SeSystemProfilePrivilege', 'SeSystemtimePrivilege', 'SeTakeOwnershipPrivilege', 'SeTimeZonePrivilege', 'SeUndockPrivilege', IgnoreCase = $true)]
+			[ValidateSet('SeAssignPrimaryTokenPrivilege', 'SeAuditPrivilege', 'SeBackupPrivilege', 'SeBatchLogonRight', 'SeChangeNotifyPrivilege', 'SeCreateGlobalPrivilege', 'SeCreatePagefilePrivilege', 'SeCreateSymbolicLinkPrivilege', 'SeDebugPrivilege', 'SeDelegateSessionUserImpersonatePrivilege', 'SeDenyNetworkLogonRight', 'SeDenyRemoteInteractiveLogonRight', 'SeDenyServiceLogonRight', 'SeImpersonatePrivilege', 'SeIncreaseBasePriorityPrivilege', 'SeIncreaseQuotaPrivilege', 'SeIncreaseWorkingSetPrivilege', 'SeInteractiveLogonRight', 'SeLoadDriverPrivilege', 'SeManageVolumePrivilege', 'SeNetworkLogonRight', 'SeProfileSingleProcessPrivilege', 'SeRemoteInteractiveLogonRight', 'SeRemoteShutdownPrivilege', 'SeRestorePrivilege', 'SeSecurityPrivilege', 'SeServiceLogonRight', 'SeShutdownPrivilege', 'SeSystemEnvironmentPrivilege', 'SeSystemProfilePrivilege', 'SeSystemtimePrivilege', 'SeTakeOwnershipPrivilege', 'SeTimeZonePrivilege', 'SeUndockPrivilege', IgnoreCase = $true)]
 			[Alias('right')]
 			[array]$UserRight
 		)
