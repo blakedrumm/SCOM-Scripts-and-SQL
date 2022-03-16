@@ -287,7 +287,7 @@ PROCESS
 	   Example: 
 	   Add-UserRights -UserRight SeServiceLogonRight, SeBatchLogonRight -ComputerName $env:COMPUTERNAME, SQL.contoso.com -UserName CONTOSO\User1, CONTOSO\User2
 	   #>
-		Add-UserRights -Username AUTHENTICATED_USERS -UserRight
+		Add-UserRights
 	}
 }
 END
