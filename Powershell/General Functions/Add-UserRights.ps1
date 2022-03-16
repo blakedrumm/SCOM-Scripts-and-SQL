@@ -166,7 +166,14 @@ PROCESS
 									Default 							{ "($right)" }
 								}
 								Write-Output ("$(Time-Stamp)Granting `"$UserLogonRight`" to user account: $Username on host: $computer.")
-								$sid = ((New-Object System.Security.Principal.NTAccount($Username)).Translate([System.Security.Principal.SecurityIdentifier])).Value
+								if ($Username -match "S-.*-.*-.*")
+								{
+									$sid = $Username
+								}
+								else
+								{
+									$sid = ((New-Object System.Security.Principal.NTAccount($Username)).Translate([System.Security.Principal.SecurityIdentifier])).Value
+								}
 								secedit /export /cfg $export | Out-Null
 								#Change the below to any right you would like
 								$sids = (Select-String $export -Pattern "$right").Line
@@ -236,7 +243,14 @@ PROCESS
 										Default 							{ "($right)" }
 									}
 									Write-Output ("$(Time-Stamp)Granting `"$UserLogonRight`" to user account: $Username on host: $ComputerName.")
-									$sid = ((New-Object System.Security.Principal.NTAccount($Username)).Translate([System.Security.Principal.SecurityIdentifier])).Value
+									if ($Username -match "S-.*-.*-.*")
+									{
+										$sid = $Username
+									}
+									else
+									{
+										$sid = ((New-Object System.Security.Principal.NTAccount($Username)).Translate([System.Security.Principal.SecurityIdentifier])).Value
+									}
 									secedit /export /cfg $export | Out-Null
 									#Change the below to any right you would like
 									$sids = (Select-String $export -Pattern "$right").Line
@@ -283,9 +297,11 @@ PROCESS
 	else
 	{
 		
-	 <# Edit line 290 to modify the default command run when this script is executed.
+	 <# Edit line 306 to modify the default command run when this script is executed.
 	   Example: 
 	   Add-UserRights -UserRight SeServiceLogonRight, SeBatchLogonRight -ComputerName $env:COMPUTERNAME, SQL.contoso.com -UserName CONTOSO\User1, CONTOSO\User2
+       or
+       Add-UserRights -UserRight SeBatchLogonRight -Username S-1-5-11
 	   #>
 		Add-UserRights
 	}
