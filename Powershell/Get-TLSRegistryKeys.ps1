@@ -1,3 +1,26 @@
+<#
+	.SYNOPSIS
+		Check TLS Settings for SCOM
+	
+	.DESCRIPTION
+		Gathers TLS settings from the registry.
+	
+	.PARAMETER Servers
+		The servers you would like to run this script to check TLS settings for Operations Manager.
+	
+	.EXAMPLE
+		PS C:\> .\Get-TLSRegistryKeys.ps1
+	
+	.NOTES
+		Author: Blake Drumm (blakedrumm@microsoft.com)
+
+		Hosted here: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Get-TLSRegistryKeys.ps1
+#>
+param
+(
+	[Parameter(HelpMessage = 'The servers you would like to run this script to check TLS settings for Operations Manager.')]
+	[string[]]$Servers
+)
 Function Get-TLSRegistryKeys
 {
 	[CmdletBinding()]
@@ -5,10 +28,10 @@ Function Get-TLSRegistryKeys
 	(
 		[string[]]$Servers
 	)
-    if(!$Servers)
-    {
-        $Servers = $env:COMPUTERNAME
-    }
+	if (!$Servers)
+	{
+		$Servers = $env:COMPUTERNAME
+	}
 	# Blake Drumm - modified on 09/02/2021
 	Write-Host "  Accessing Registry on:`n" -NoNewline -ForegroundColor Gray
 	$scriptOut = $null
@@ -90,7 +113,7 @@ Function Get-TLSRegistryKeys
 		{
 			$Crypt2 = $False
 		}
-    
+		
 		$DefaultTLSVersions = (Get-ItemProperty -Path $CrypKey1 -Name $Strong -ea 0).SystemDefaultTlsVersions
 		If ($DefaultTLSVersions -eq 1)
 		{
@@ -109,14 +132,37 @@ Function Get-TLSRegistryKeys
 		{
 			$DefaultTLSVersions64 = $False
 		}
-
+		
 		##  ODBC : https://www.microsoft.com/en-us/download/details.aspx?id=50420
 		##  OLEDB : https://docs.microsoft.com/en-us/sql/connect/oledb/download-oledb-driver-for-sql-server?view=sql-server-ver15
 		[string[]]$data = (Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*sql*" }).name
 		$odbc = $data | where { $_ -like "Microsoft ODBC Driver *" } # Need to validate version
-		if ($odbc -match "11|13") { Write-Verbose "FOUND $odbc"; $odbc = "$odbc (Good)" }
-		elseif ($odbc) { $odbc = $odbc }
-		else { $odbc = "Not Found." }
+		if ($odbc -match "11|13")
+		{
+			$odbc = $null
+			$odbc = @()
+			foreach ($driver in $odbc)
+			{
+				Write-Verbose "FOUND $driver"
+				$odbc += "$driver (Good)"
+			}
+			
+		}
+		elseif ($odbc)
+		{
+			$odbc = $null
+			$odbc = @()
+			foreach ($driver in $odbc)
+			{
+				Write-Verbose "FOUND $driver"
+				$odbc += "$driver"
+			}
+			
+		}
+		else
+		{
+			$odbc = "Not Found."
+		}
 		$oledb = $data | where { $_ -eq 'Microsoft OLE DB Driver for SQL Server' }
 		if ($oledb)
 		{
@@ -263,8 +309,8 @@ Function Get-TLSRegistryKeys
 		
 		$additional = ('PipeLineKickStart' | Select @{ n = 'SchUseStrongCrypto'; e = { $Crypt1 } },
 													@{ n = 'SchUseStrongCrypto_WOW6432Node'; e = { $Crypt2 } },
-                                                    @{ n = 'DefaultTLSVersions'; e = { $DefaultTLSVersions } },
-                                                    @{ n = 'DefaultTLSVersions_WOW6432Node'; e = { $DefaultTLSVersions64 } },
+													@{ n = 'DefaultTLSVersions'; e = { $DefaultTLSVersions } },
+													@{ n = 'DefaultTLSVersions_WOW6432Node'; e = { $DefaultTLSVersions64 } },
 													@{ n = 'OLEDB'; e = { $OLEDB } },
 													@{ n = 'ODBC'; e = { $odbc } },
 													@{ n = 'ODBC (ODBC Data Sources\OpsMgrAC)'; e = { $odbcODBCDataSources } },
@@ -285,20 +331,29 @@ Function Get-TLSRegistryKeys
 		{
 			$InnerTLSRegKeysFunctionScript = "function Inner-TLSRegKeysFunction { ${function:Inner-TLSRegKeysFunction} }"
 			$scriptOut += (Invoke-Command -ComputerName $server -ArgumentList $InnerTLSRegKeysFunctionScript -ScriptBlock {
-				Param ($script)
-				. ([ScriptBlock]::Create($script))
-				Write-Host "-" -NoNewLine -ForegroundColor Green
-                return Inner-TLSRegKeysFunction
-			} -HideComputerName | Out-String) -replace "RunspaceId.*",""
+					Param ($script)
+					. ([ScriptBlock]::Create($script))
+					Write-Host "-" -NoNewLine -ForegroundColor Green
+					return Inner-TLSRegKeysFunction
+				} -HideComputerName | Out-String) -replace "RunspaceId.*", ""
 			Write-Host "> Completed!`n" -NoNewline -ForegroundColor Green
 			
 		}
 		else
 		{
-               Write-Host "-" -NoNewLine -ForegroundColor Green
-               $scriptOut += Inner-TLSRegKeysFunction
-               Write-Host "> Completed!`n" -NoNewline -ForegroundColor Green
+			Write-Host "-" -NoNewLine -ForegroundColor Green
+			$scriptOut += Inner-TLSRegKeysFunction
+			Write-Host "> Completed!`n" -NoNewline -ForegroundColor Green
 		}
 	}
 	$scriptOut | Out-String -Width 4096
+}
+if ($Servers)
+{
+	Get-TLSRegistryKeys -Servers $Servers
+}
+else
+{
+	# Change the default action of this script when run without any parameters
+	Get-TLSRegistryKeys
 }
