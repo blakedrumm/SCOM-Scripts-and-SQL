@@ -1,20 +1,22 @@
 <#
 	.SYNOPSIS
 		Check TLS Settings for SCOM
-	
+
 	.DESCRIPTION
 		Gathers TLS settings from the registry.
-	
+
 	.PARAMETER Servers
 		The servers you would like to run this script to check TLS settings for Operations Manager.
-	
+
 	.EXAMPLE
 		PS C:\> .\Get-TLSRegistryKeys.ps1
-	
+
 	.NOTES
-		
+
 		Original Author: Mike Kallhoff
 		Author: Blake Drumm (blakedrumm@microsoft.com)
+
+		Modified: March 17th, 2022
 
 		Hosted here: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Get-TLSRegistryKeys.ps1
 #>
