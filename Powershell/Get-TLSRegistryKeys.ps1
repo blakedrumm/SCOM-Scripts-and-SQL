@@ -12,6 +12,8 @@
 		PS C:\> .\Get-TLSRegistryKeys.ps1
 	
 	.NOTES
+		
+		Original Author: Mike Kallhoff
 		Author: Blake Drumm (blakedrumm@microsoft.com)
 
 		Hosted here: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Get-TLSRegistryKeys.ps1
@@ -38,6 +40,9 @@ Function Get-TLSRegistryKeys
 	
 	function Inner-TLSRegKeysFunction
 	{
+		[CmdletBinding()]
+		param ()
+		
 		$finalData = @()
 		$LHost = $env:computername
 		$ProtocolList = "TLS 1.0", "TLS 1.1", "TLS 1.2"
@@ -51,6 +56,7 @@ Function Get-TLSRegistryKeys
 			
 			foreach ($key in $ProtocolSubKeyList)
 			{
+				Write-Host "-" -NoNewline -ForegroundColor Green
 				#Write-Host "Checking for $protocol\$key"
 				$currentRegPath = $registryPath + $Protocol + "\" + $key
 				$IsDisabledByDefault = @()
@@ -136,33 +142,27 @@ Function Get-TLSRegistryKeys
 		##  ODBC : https://www.microsoft.com/en-us/download/details.aspx?id=50420
 		##  OLEDB : https://docs.microsoft.com/en-us/sql/connect/oledb/download-oledb-driver-for-sql-server?view=sql-server-ver15
 		[string[]]$data = (Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*sql*" }).name
-		$odbc = $data | where { $_ -like "Microsoft ODBC Driver *" } # Need to validate version
-		if ($odbc -match "11|13")
+		$odbcOutput = $data | where { $_ -like "Microsoft ODBC Driver *" } # Need to validate version
+		$odbc = @()
+		foreach ($driver in $odbcOutput)
 		{
-			$odbc = $null
-			$odbc = @()
-			foreach ($driver in $odbc)
+			Write-Host '-' -NoNewline -ForegroundColor Green
+			if ($driver -match "11|13")
 			{
 				Write-Verbose "FOUND $driver"
 				$odbc += "$driver (Good)"
 			}
-			
-		}
-		elseif ($odbc)
-		{
-			$odbc = $null
-			$odbc = @()
-			foreach ($driver in $odbc)
+			elseif ($driver)
 			{
 				Write-Verbose "FOUND $driver"
 				$odbc += "$driver"
 			}
-			
+			else
+			{
+				$odbc = "Not Found."
+			}
 		}
-		else
-		{
-			$odbc = "Not Found."
-		}
+		$odbc = $odbc.Split("`n") | Out-String -Width 2048
 		$oledb = $data | where { $_ -eq 'Microsoft OLE DB Driver for SQL Server' }
 		if ($oledb)
 		{
@@ -175,7 +175,7 @@ Function Get-TLSRegistryKeys
 		}
 		foreach ($Protocol in $ProtocolList)
 		{
-			
+			Write-Host '-' -NoNewline -ForegroundColor Green
 			foreach ($key in $ProtocolSubKeyList)
 			{
 				#Write-Host "Checking for $protocol\$key"
@@ -225,7 +225,7 @@ Function Get-TLSRegistryKeys
 			[version]$SQLClient11Version = [version]$SQLClient11VersionString
 		}
 		[version]$MinSQLClient11Version = [version]"11.4.7001.0"
-		
+		Write-Host '-' -NoNewline -ForegroundColor Green
 		IF ($SQLClient11Version -ge $MinSQLClient11Version)
 		{
 			Write-Verbose "SQL Client - is installed and version: ($SQLClient11VersionString) and greater or equal to the minimum version required: (11.4.7001.0)"
@@ -270,6 +270,7 @@ Function Get-TLSRegistryKeys
 			"528049" { ".NET Framework 4.8" }
 			default { "Unknown .NET version: $ReleaseRegValue" }
 		}
+		Write-Host '-' -NoNewline -ForegroundColor Green
 		# Check if version is 4.6 or higher
 		IF ($ReleaseRegValue -ge 393295)
 		{
@@ -298,6 +299,7 @@ Function Get-TLSRegistryKeys
 		}
 		try
 		{
+			Write-Host '-' -NoNewline -ForegroundColor Green
 			$odbcODBCDataSources = Get-ItemProperty 'Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SOFTWARE\ODBC\ODBC.INI\ODBC Data Sources' -ErrorAction Stop | Select-Object OpsMgrAC -ExpandProperty OpsMgrAC
 		}
 		catch { $odbcODBCDataSources = 'Not Found.' }
@@ -330,11 +332,19 @@ Function Get-TLSRegistryKeys
 		if ($server -notcontains $env:COMPUTERNAME)
 		{
 			$InnerTLSRegKeysFunctionScript = "function Inner-TLSRegKeysFunction { ${function:Inner-TLSRegKeysFunction} }"
-			$scriptOut += (Invoke-Command -ComputerName $server -ArgumentList $InnerTLSRegKeysFunctionScript -ScriptBlock {
-					Param ($script)
+			$scriptOut += (Invoke-Command -ComputerName $server -ArgumentList $InnerTLSRegKeysFunctionScript, $VerbosePreference -ScriptBlock {
+					Param ($script,
+						$VerbosePreference)
 					. ([ScriptBlock]::Create($script))
 					Write-Host "-" -NoNewLine -ForegroundColor Green
-					return Inner-TLSRegKeysFunction
+					if ($VerbosePreference -eq 'Continue')
+					{
+						return Inner-TLSRegKeysFunction -Verbose
+					}
+					else
+					{
+						return Inner-TLSRegKeysFunction
+					}
 				} -HideComputerName | Out-String) -replace "RunspaceId.*", ""
 			Write-Host "> Completed!`n" -NoNewline -ForegroundColor Green
 			
@@ -342,7 +352,14 @@ Function Get-TLSRegistryKeys
 		else
 		{
 			Write-Host "-" -NoNewLine -ForegroundColor Green
-			$scriptOut += Inner-TLSRegKeysFunction
+			if ($VerbosePreference -eq 'Continue')
+			{
+				$scriptOut += Inner-TLSRegKeysFunction -Verbose
+			}
+			else
+			{
+				$scriptOut += Inner-TLSRegKeysFunction
+			}
 			Write-Host "> Completed!`n" -NoNewline -ForegroundColor Green
 		}
 	}
@@ -350,7 +367,7 @@ Function Get-TLSRegistryKeys
 }
 if ($Servers)
 {
-	Get-TLSRegistryKeys -Servers $Servers
+	Get-TLSRegistryKeys -Servers $Servers -Verbose:$VerbosePreference -Debug:$DebugPreference
 }
 else
 {
