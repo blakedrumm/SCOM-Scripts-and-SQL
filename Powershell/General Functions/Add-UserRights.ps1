@@ -166,7 +166,7 @@ PROCESS
 									Default 							{ "($right)" }
 								}
 								Write-Output ("$(Time-Stamp)Granting `"$UserLogonRight`" to user account: $Username on host: $computer.")
-								if ($Username -match "^S-.*-.*-.*$|^S-.*-.*-.*-.*-.*-.*$|^S-.*-.*-.*-.*-.*$")
+								if ($Username -match "^S-.*-.*-.*$|^S-.*-.*-.*-.*-.*-.*$|^S-.*-.*-.*-.*-.*$|^S-.*-.*-.*-.*$")
 								{
 									$sid = $Username
 								}
