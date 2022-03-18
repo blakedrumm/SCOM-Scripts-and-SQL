@@ -153,7 +153,7 @@ Function Get-TLSRegistryKeys
 		foreach ($driver in $odbcOutput)
 		{
 			Write-Host '-' -NoNewline -ForegroundColor Green
-			if ($driver -match "11|13|17")
+			if ($driver -match "11|13|17|18")
 			{
 				Write-Verbose "FOUND $driver"
 				$odbc += "$driver (Good)"
