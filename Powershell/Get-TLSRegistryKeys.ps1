@@ -15,7 +15,7 @@
 
 		ODBC 17.3 : https://docs.microsoft.com/sql/connect/odbc/windows/release-notes-odbc-sql-server-windows?view=sql-server-ver15#173&preserve-view=true
 		OLEDB 18.2 : https://docs.microsoft.com/sql/connect/oledb/release-notes-for-oledb-driver-for-sql-server?view=sql-server-ver15#1821&preserve-view=true
-        .NET 4.6 - https://support.microsoft.com/help/3151800/the-net-framework-4-6-2-offline-installer-for-windows
+        	.NET 4.6 - https://support.microsoft.com/help/3151800/the-net-framework-4-6-2-offline-installer-for-windows
 
 
 		Original Author: Mike Kallhoff
