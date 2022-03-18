@@ -13,10 +13,15 @@
 
 	.NOTES
 
+		ODBC 17.3 : https://docs.microsoft.com/sql/connect/odbc/windows/release-notes-odbc-sql-server-windows?view=sql-server-ver15#173&preserve-view=true
+		OLEDB 18.2 : https://docs.microsoft.com/sql/connect/oledb/release-notes-for-oledb-driver-for-sql-server?view=sql-server-ver15#1821&preserve-view=true
+        .NET 4.6 - https://support.microsoft.com/help/3151800/the-net-framework-4-6-2-offline-installer-for-windows
+
+
 		Original Author: Mike Kallhoff
 		Author: Blake Drumm (blakedrumm@microsoft.com)
 
-		Modified: March 17th, 2022
+		Modified: March 18th, 2022
 
 		Hosted here: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Get-TLSRegistryKeys.ps1
 #>
@@ -52,6 +57,8 @@ Function Get-TLSRegistryKeys
 		$DisabledByDefault = "DisabledByDefault"
 		$Enabled = "Enabled"
 		$registryPath = "HKLM:\\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\"
+		
+		[string[]]$data = (Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*sql*" }).name
 		
 		foreach ($Protocol in $ProtocolList)
 		{
@@ -141,15 +148,12 @@ Function Get-TLSRegistryKeys
 			$DefaultTLSVersions64 = $False
 		}
 		
-		##  ODBC : https://www.microsoft.com/en-us/download/details.aspx?id=50420
-		##  OLEDB : https://docs.microsoft.com/en-us/sql/connect/oledb/download-oledb-driver-for-sql-server?view=sql-server-ver15
-		[string[]]$data = (Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*sql*" }).name
 		$odbcOutput = $data | where { $_ -like "Microsoft ODBC Driver *" } # Need to validate version
 		$odbc = @()
 		foreach ($driver in $odbcOutput)
 		{
 			Write-Host '-' -NoNewline -ForegroundColor Green
-			if ($driver -match "11|13")
+			if ($driver -match "11|13|17")
 			{
 				Write-Verbose "FOUND $driver"
 				$odbc += "$driver (Good)"
@@ -169,7 +173,7 @@ Function Get-TLSRegistryKeys
 		if ($oledb)
 		{
 			Write-Verbose "Found: $oledb"
-			$OLEDB = "$OLEDB (Good)"
+			$OLEDB = "$OLEDB - $((Get-ItemProperty HKLM:\SOFTWARE\Microsoft\MSOLEDBSQL).InstalledVersion) (Good)"
 		}
 		else
 		{
@@ -228,15 +232,16 @@ Function Get-TLSRegistryKeys
 		}
 		[version]$MinSQLClient11Version = [version]"11.4.7001.0"
 		Write-Host '-' -NoNewline -ForegroundColor Green
+		$SQLClientProgramVersion = $data | where { $_ -eq "Microsoft SQL Server 2012 Native Client" } # Need to validate version
 		IF ($SQLClient11Version -ge $MinSQLClient11Version)
 		{
 			Write-Verbose "SQL Client - is installed and version: ($SQLClient11VersionString) and greater or equal to the minimum version required: (11.4.7001.0)"
-			$SQLClient = "$SQLClient11Version (Good)"
+			$SQLClient = "$SQLClientProgramVersion $SQLClient11Version (Good)"
 		}
 		ELSEIF ($SQLClient11VersionString)
 		{
 			Write-Verbose "SQL Client - is installed and version: ($SQLClient11VersionString) but below the minimum version of (11.4.7001.0)."
-			$SQLClient = "$SQLClient11VersionString (Below minimum)"
+			$SQLClient = "$SQLClientProgramVersion $SQLClient11VersionString (Below minimum)"
 		}
 		ELSE
 		{
