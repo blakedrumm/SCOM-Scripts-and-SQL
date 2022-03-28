@@ -1,4 +1,5 @@
 SELECT
+MM.BaseManagedEntityId,
 FullName as [Object in Maintenance],
 case MM.IsInMaintenanceMode
 When 0 then 'False'
@@ -26,6 +27,6 @@ When 14 then 'Loss of network connectivity (Unplanned)'
 End as [Reason for Maintenance],
 Comments
 FROM BaseManagedEntity AS BME WITH (NOLOCK) INNER JOIN
-MaintenanceMode AS MM WITH (NOLOCK) ON BME.BaseManagedEntityId = MM.BaseManagedEntityId 
+MaintenanceMode AS MM WITH (NOLOCK) ON BME.BaseManagedEntityId = MM.BaseManagedEntityId
 INNER JOIN MT_Microsoft$SystemCenter$ManagementServer as MS WITH (NOLOCK) on BME.BaseManagedEntityId = MS.BaseManagedEntityId
 ORDER BY [Start Time] DESC
