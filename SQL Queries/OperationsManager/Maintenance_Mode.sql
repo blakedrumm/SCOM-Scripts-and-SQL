@@ -1,4 +1,5 @@
 SELECT
+MM.BaseManagedEntityId,
 FullName as [Object in Maintenance],
 case MM.IsInMaintenanceMode
 When 0 then 'False'
