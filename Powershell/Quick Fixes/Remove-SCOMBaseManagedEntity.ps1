@@ -30,7 +30,7 @@
 		SQL Server/Instance,Port that hosts OperationsManager Database for SCOM.
 	
 	.EXAMPLE
-		Remove SCOM BME Related Data from the OperationsManager DB, on every Agent in the in Management Group.
+		Remove SCOM BME Related Data from the OperationsManager DB, on every Agent in the Management Group.
 		PS C:\> Get-SCOMAgent | %{.\Remove-SCOMBaseManagedEntity.ps1 -Agents $_}
 		
 		Remove SCOM BME Related Data for 2 Agents machines:
