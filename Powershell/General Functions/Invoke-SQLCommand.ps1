@@ -1,82 +1,16 @@
 function Invoke-SqlCommand
 {
-    <#
-        .SYNOPSIS
-            Executes an SQL statement. Executes using Windows Authentication unless the Username and Password are provided.
-
-        .PARAMETER Server
-            The SQL Server instance name.
-
-        .PARAMETER Database
-            The SQL Server database name where the query will be executed.
-
-        .PARAMETER Timeout
-            The connection timeout.
-
-        .PARAMETER Connection
-            The System.Data.SqlClient.SQLConnection instance used to connect.
-
-        .PARAMETER Username
-            The SQL Authentication Username.
-
-        .PARAMETER Password
-            The SQL Authentication Password.
-
-        .PARAMETER CommandType
-            The System.Data.CommandType value specifying Text or StoredProcedure.
-
-        .PARAMETER Query
-            The SQL query to execute.
-
-         .PARAMETER Path
-            The path to an SQL script.
-
-        .PARAMETER Parameters
-            Hashtable containing the key value pairs used to generate as collection of System.Data.SqlParameter.
-
-        .PARAMETER As
-            Specifies how to return the result.
-
-            PSCustomObject
-             - Returns the result set as an array of System.Management.Automation.PSCustomObject objects.
-            DataSet
-             - Returns the result set as an System.Data.DataSet object.
-            DataTable
-             - Returns the result set as an System.Data.DataTable object.
-            DataRow
-             - Returns the result set as an array of System.Data.DataRow objects.
-            Scalar
-             - Returns the first column of the first row in the result set. Should be used when a value with no column name is returned (i.e. SELECT COUNT(*) FROM Test.Sample).
-            NonQuery
-             - Returns the number of rows affected. Should be used for INSERT, UPDATE, and DELETE.
-
-        .EXAMPLE
-            PS C:\> Invoke-SqlCommand -Server "DATASERVER" -Database "Web" -Query "SELECT TOP 1 * FROM Test.Sample"
-
-            datetime2         : 1/17/2013 8:46:22 AM
-            ID                : 202507
-            uniqueidentifier1 : 1d0cf1c0-9fb1-4e21-9d5a-b8e9365400fc
-            bool1             : False
-            datetime1         : 1/17/2013 12:00:00 AM
-            double1           : 1
-            varchar1          : varchar11
-            decimal1          : 1
-            int1              : 1
-
-            Returned the first row as a System.Management.Automation.PSCustomObject.
-
-        .EXAMPLE
-            PS C:\> Invoke-SqlCommand -Server "DATASERVER" -Database "Web" -Query "SELECT COUNT(*) FROM Test.Sample" -As Scalar
-
-            9544            
-    #>
-	[CmdletBinding(DefaultParameterSetName = "Default")]
-	param (
-		[Parameter(Mandatory = $true, Position = 0)]
-		[string]$Server,
-		[Parameter(Mandatory = $true, Position = 1)]
+	[CmdletBinding(DefaultParameterSetName = 'Default')]
+	param
+	(
+		[Parameter(Mandatory = $true,
+				   Position = 0)]
+		[string]$ServerInstance,
+		[Parameter(Mandatory = $true,
+				   Position = 1)]
 		[string]$Database,
-		[Parameter(Mandatory = $false, Position = 2)]
+		[Parameter(Mandatory = $false,
+				   Position = 2)]
 		[int]$Timeout = 30,
 		[System.Data.SqlClient.SQLConnection]$Connection,
 		[string]$Username,
@@ -86,12 +20,43 @@ function Invoke-SqlCommand
 		[ValidateScript({ Test-Path -Path $_ })]
 		[string]$Path,
 		[hashtable]$Parameters,
-		[ValidateSet("DataSet", "DataTable", "DataRow", "PSCustomObject", "Scalar", "NonQuery")]
+		[ValidateSet('DataSet', 'DataTable', 'DataRow', 'PSCustomObject', 'Scalar', 'NonQuery')]
 		[string]$As = "PSCustomObject"
 	)
 	
 	begin
 	{
+		
+		trap
+		{
+			$ErrorDetails = @"
+
+User:
+$([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)
+
+Error Details:
+$($Error[0])
+
+SQL Query:
+$Query
+"@
+			Write-Warning "Encountered exception while running SQL Query: $ErrorDetails"
+			
+			[void][System.Reflection.Assembly]::LoadWithPartialName("Microsoft.VisualBasic")
+			[Microsoft.VisualBasic.Interaction]::MsgBox(@"
+Event ID:
+11
+
+User:
+$([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)
+
+Error Details:
+$($Error[0])
+
+For more details see the Application Event Log.
+"@, "OKOnly,SystemModal,Critical,DefaultButton2", "Encountered exception while attempting to run SQL Query") | Out-Null
+		}
+		
 		if ($Path)
 		{
 			$Query = [System.IO.File]::ReadAllText("$((Resolve-Path -Path $Path).Path)")
@@ -111,11 +76,11 @@ function Invoke-SqlCommand
 			$Connection = New-Object System.Data.SqlClient.SQLConnection
 			if ($Username -and $Password)
 			{
-				$Connection.ConnectionString = "Server=$($Server);Database=$($Database);User Id=$($Username);Password=$($Password);"
+				$Connection.ConnectionString = "Server=$($ServerInstance);Database=$($Database);User Id=$($Username);Password=$($Password);"
 			}
 			else
 			{
-				$Connection.ConnectionString = "Server=$($Server);Database=$($Database);Integrated Security=SSPI;"
+				$Connection.ConnectionString = "Server=$($ServerInstance);Database=$($Database);Integrated Security=SSPI;"
 			}
 			if ($PSBoundParameters.Verbose)
 			{
@@ -207,8 +172,39 @@ function Invoke-SqlCommand
 				}
 			}
 		}
-		
-		$result = Invoke-Command -ScriptBlock $ScriptBlock
+		try
+		{
+			$result = Invoke-Command -ScriptBlock $ScriptBlock
+		}
+		catch
+		{
+			$ErrorDetails = @"
+
+User:
+$([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)
+
+Error Details:
+$($Error[0])
+
+SQL Query:
+$Query
+"@
+			Write-Warning "Encountered exception while running SQL Query: $ErrorDetails"
+			
+			[void][System.Reflection.Assembly]::LoadWithPartialName("Microsoft.VisualBasic")
+			[Microsoft.VisualBasic.Interaction]::MsgBox(@"
+Event ID:
+10
+
+User:
+$([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)
+
+Error Details:
+$($Error[0])
+
+For more details see the Application Event Log.
+"@, "OKOnly,SystemModal,Critical,DefaultButton2", "Encountered exception while attempting to run SQL Query") | Out-Null
+		}
 		$command.Parameters.Clear()
 	}
 	
