@@ -193,16 +193,11 @@ $Query
 			
 			[void][System.Reflection.Assembly]::LoadWithPartialName("Microsoft.VisualBasic")
 			[Microsoft.VisualBasic.Interaction]::MsgBox(@"
-Event ID:
-10
-
 User:
 $([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)
 
 Error Details:
 $($Error[0])
-
-For more details see the Application Event Log.
 "@, "OKOnly,SystemModal,Critical,DefaultButton2", "Encountered exception while attempting to run SQL Query") | Out-Null
 		}
 		$command.Parameters.Clear()
