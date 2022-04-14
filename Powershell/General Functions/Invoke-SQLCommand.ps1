@@ -44,9 +44,6 @@ $Query
 			
 			[void][System.Reflection.Assembly]::LoadWithPartialName("Microsoft.VisualBasic")
 			[Microsoft.VisualBasic.Interaction]::MsgBox(@"
-Event ID:
-11
-
 User:
 $([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)
 
