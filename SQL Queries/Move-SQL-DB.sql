@@ -1,5 +1,5 @@
--- Author: Alex Kremenetskiy
--- Author: Blake Drumm
+-- Original Author: Alex Kremenetskiy
+-- Modified by: Blake Drumm
 
 ------------------------------------------------------
 -- Change Variables Below
