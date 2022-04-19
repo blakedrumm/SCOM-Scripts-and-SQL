@@ -1,6 +1,8 @@
 -- Author: Alex Kremenetskiy
 DECLARE @OpsMgrSQLInstance nvarchar(50) = '<OpsMgr DB Instance>'
 DECLARE @DWSQLInstance nvarchar(50) = '<DW DB Instance>'
+DECLARE @OpsMgrSQLDB nvarchar(50) = '<OpsMgr DB Name>'
+DECLARE @DWDBName nvarchar(50) = '<OpsMgr DW DB Name>'
 
 DECLARE @tblName varchar(100)
 DECLARE @colName varchar(100)
@@ -16,7 +18,7 @@ CREATE TABLE #tmp
 --
 --Update OperationsManager
 --
-USE OperationsManager
+USE @OpsMgrSQLDB
 
 SET @tblName = 'MT_Microsoft$SystemCenter$ManagementGroup'
 SET @colName = (SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @tblName AND COLUMN_NAME LIKE 'SQLServerName_%')
@@ -52,7 +54,7 @@ exec (@sqlstmt)
 --
 --Update DW
 --
-USE OperationsManager
+USE @OpsMgrSQLDB
 
 SET @tblName = 'MT_Microsoft$SystemCenter$DataWarehouse'
 SET @colName = (SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @tblName AND COLUMN_NAME LIKE 'MainDatabaseServerName_%')
@@ -137,13 +139,13 @@ SET @sqlstmt = N'UPDATE #tmp SET NewValue = (SELECT TOP(1) ' + @colName + ' FROM
 exec (@sqlstmt)
 
 
-USE OperationsManagerDW
+USE @DWDBName
 
 INSERT INTO #tmp SELECT TOP(1) 'MemberDatabase' AS TableName, ServerName AS OldValue, NULL AS NewValue FROM MemberDatabase
 UPDATE TOP(1) dbo.MemberDatabase SET ServerName = @DWSQLInstance
 UPDATE #tmp SET NewValue = (SELECT TOP(1) ServerName FROM MemberDatabase) WHERE TableName = 'MemberDatabase'
 
-USE OperationsManager
+USE @OpsMgrSQLDB
 
 INSERT INTO #tmp SELECT TOP(1) 'GlobalSettings' AS TableName, SettingValue AS OldValue, NULL AS NewValue FROM GlobalSettings WHERE ManagedTypePropertyId IN (select ManagedTypePropertyId from [dbo].[ManagedTypeProperty] where [ManagedTypePropertyName] like 'MainDatabaseServerName')
 UPDATE TOP(1) GlobalSettings SET SettingValue = @OpsMgrSQLInstance WHERE ManagedTypePropertyId IN (select ManagedTypePropertyId from [dbo].[ManagedTypeProperty] where [ManagedTypePropertyName] like 'MainDatabaseServerName')
