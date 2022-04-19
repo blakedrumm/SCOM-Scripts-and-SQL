@@ -1,8 +1,16 @@
 -- Author: Alex Kremenetskiy
+-- Author: Blake Drumm
+
+------------------------------------------------------
+-- Change Variables Below
+------------------------------------------------------
+
 DECLARE @OpsMgrSQLInstance nvarchar(50) = '<OpsMgr DB Instance>'
 DECLARE @DWSQLInstance nvarchar(50) = '<DW DB Instance>'
 DECLARE @OpsMgrSQLDB nvarchar(50) = '<OpsMgr DB Name>'
 DECLARE @DWDBName nvarchar(50) = '<OpsMgr DW DB Name>'
+
+------------------------------------------------------
 
 DECLARE @tblName varchar(100)
 DECLARE @colName varchar(100)
