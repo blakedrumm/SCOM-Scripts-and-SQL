@@ -376,7 +376,7 @@ PROCESS
        or
        Set-UserRights -RemoveRight -UserRight SeServiceLogonRight, SeBatchLogonRight -Username CONTOSO\User1
 	   #>
-		Set-UserRights -UserRight SeBackupPrivilege -ComputerName MS02-2022 -AddRight
+		Set-UserRights
 	}
 }
 END
