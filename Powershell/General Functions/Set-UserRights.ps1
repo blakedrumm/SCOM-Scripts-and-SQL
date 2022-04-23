@@ -64,7 +64,7 @@
 		Based heavily on the script found here: https://github.com/weloytty/QuirkyPSFunctions/blob/ab4b02f9cc05505eee97d2f744f4c9c798143af1/Source/Users/Grant-LogOnAsService.ps1
 		I modified to my own needs: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/General%20Functions/Set-UserRights.ps1
 		
-		My blog post: https://blakedrumm.com/blog/add-and-check-user-rights-assignment/
+		My blog post: https://blakedrumm.com/blog/set-and-check-user-rights-assignment/
 		
 		Author: Blake Drumm (blakedrumm@microsoft.com)
 		First Created on: January 5th, 2022
