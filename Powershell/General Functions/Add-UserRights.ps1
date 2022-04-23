@@ -148,25 +148,30 @@ PROCESS
 			[Alias('right')]
 			[array]$UserRight
 		)
+		if (!$UserRight)
+		{
+			Write-Warning "Inner Function: Unable to continue because you did not supply the '-UserRight' parameter."
+			break
+		}
 		if (!$AddRight -and !$RemoveRight)
 		{
-			Write-Warning "Unable to continue because you did not supply the '-AddRight' or '-RemoveRight' switches."
+			Write-Warning "Inner Function: Unable to continue because you did not supply the '-AddRight' or '-RemoveRight' switches."
 			break
 		}
 		elseif ($AddRight -and $RemoveRight)
 		{
-			Write-Warning "Unable to continue because you used both the '-AddRight' and '-RemoveRight' switches. Run again with just one of these present, either Add or Remove."
+			Write-Warning "Inner Function: Unable to continue because you used both the '-AddRight' and '-RemoveRight' switches. Run again with just one of these present, either Add or Remove."
 			break
 		}
 		elseif ($AddRight)
 		{
-			Write-Verbose "Detected -AddRight switch in execution."
-			$ActionType = 'Add'
+			Write-Verbose "Inner Function: Detected -AddRight switch in execution."
+			$ActionType = 'Adding'
 		}
 		elseif ($RemoveRight)
 		{
-			Write-Verbose "Detected -RemoveRight switch in execution."
-			$ActionType = 'Remove'
+			Write-Verbose "Inner Function: Detected -RemoveRight switch in execution."
+			$ActionType = 'Removing'
 		}
 		else
 		{
@@ -204,7 +209,7 @@ PROCESS
 					"SeServiceLogonRight"			    { "Log on as a service (SeServiceLogonRight)" }
 					Default 							{ "($right)" }
 				}
-				Write-Output ("$(Time-Stamp)$ActionType `"$UserLogonRight`" right for user account: $Username on host: $env:COMPUTERNAME.")
+				Write-Output ("$(Time-Stamp)$ActionType `"$UserLogonRight`" right for user account: '$Username' on host: '$env:COMPUTERNAME'")
 				if ($Username -match "^S-.*-.*-.*$|^S-.*-.*-.*-.*-.*-.*$|^S-.*-.*-.*-.*-.*$|^S-.*-.*-.*-.*$")
 				{
 					$sid = $Username
@@ -216,11 +221,11 @@ PROCESS
 				secedit /export /cfg $export | Out-Null
 				#Change the below to any right you would like
 				$sids = (Select-String $export -Pattern "$right").Line
-				if ($ActionType -eq 'Add')
+				if ($ActionType -eq 'Adding')
 				{
 					$sidList = "$sids,*$sid"
 				}
-				elseif ($ActionType -eq 'Remove')
+				elseif ($ActionType -eq 'Removing')
 				{
 					$sidList = "$($sids.Replace("*$sid", '').Replace("$Username", '').Replace(",,", ',').Replace("= ,", '= '))"
 				}
@@ -281,27 +286,27 @@ PROCESS
 		}
 		if (!$UserRight)
 		{
-			Write-Warning "Unable to continue because you did not supply the '-UserRight' parameter."
+			Write-Warning "Main Function: Unable to continue because you did not supply the '-UserRight' parameter."
 			break
 		}
 		if (!$AddRight -and !$RemoveRight)
 		{
-			Write-Warning "Unable to continue because you did not supply the '-AddRight' or '-RemoveRight' switches."
+			Write-Warning "Main Function: Unable to continue because you did not supply the '-AddRight' or '-RemoveRight' switches."
 			break
 		}
 		elseif ($AddRight -and $RemoveRight)
 		{
-			Write-Warning "Unable to continue because you used both the '-AddRight' and '-RemoveRight' switches. Run again with just one of these present, either Add or Remove."
+			Write-Warning "Main Function: Unable to continue because you used both the '-AddRight' and '-RemoveRight' switches. Run again with just one of these present, either Add or Remove."
 			break
 		}
 		elseif ($AddRight)
 		{
-			Write-Verbose "Detected -AddRight switch in execution."
+			Write-Verbose "Main Function: Detected -AddRight switch in execution."
 			$ActionType = 'Adding'
 		}
 		elseif ($RemoveRight)
 		{
-			Write-Verbose "Detected -RemoveRight switch in execution."
+			Write-Verbose "Main Function: Detected -RemoveRight switch in execution."
 			$ActionType = 'Removing'
 		}
 		if (!$ComputerName)
@@ -329,10 +334,18 @@ PROCESS
 								$RemoveRight,
 								$VerbosePreference)
 							. ([ScriptBlock]::Create($script))
+							$VerbosePreference = $VerbosePreference
 							$Error.Clear()
 							try
 							{
-								Inner-SetUserRights -Username $Username -UserRight $UserRight -AddRight $AddRight -RemoveRight $RemoveRight
+								if ($VerbosePreference -eq 0)
+								{
+									Inner-SetUserRights -Username $Username -UserRight $UserRight -AddRight:$AddRight -RemoveRight:$RemoveRight
+								}
+								else
+								{
+									Inner-SetUserRights -Username $Username -UserRight $UserRight -AddRight:$AddRight -RemoveRight:$RemoveRight -Verbose
+								}
 							}
 							catch
 							{
@@ -349,14 +362,14 @@ PROCESS
 								Write-Warning "$info"
 							}
 							
-						} -ArgumentList $InnerSetUserRightFunctionScript, $user, $right, $AddRight, $RemoveRight
+						} -ArgumentList $InnerSetUserRightFunctionScript, $user, $right, $AddRight, $RemoveRight, $VerbosePreference
 					}
 				}
 			}
 		}
 		
 	}
-	if ($ComputerName -or $Username -or $UserRight)
+	if ($ComputerName -or $Username -or $UserRight -or $RemoveRight)
 	{
 		foreach ($user in $Username)
 		{
@@ -366,15 +379,15 @@ PROCESS
 	else
 	{
 		
-	 <# Edit line 379 to modify the default command run when this script is executed.
+	 <# Edit line 392 to modify the default command run when this script is executed.
 	   Example: 
-	   Set-UserRights -AddRight -UserRight SeServiceLogonRight, SeBatchLogonRight -ComputerName $env:COMPUTERNAME, SQL.contoso.com -UserName CONTOSO\User1, CONTOSO\User2
-       or
-       Set-UserRights -AddRight -UserRight SeBatchLogonRight -Username S-1-5-11
-       or
-       Set-UserRights -RemoveRight -UserRight SeBatchLogonRight -Username CONTOSO\User2
-       or
-       Set-UserRights -RemoveRight -UserRight SeServiceLogonRight, SeBatchLogonRight -Username CONTOSO\User1
+	        Set-UserRights -AddRight -UserRight SeServiceLogonRight, SeBatchLogonRight -ComputerName $env:COMPUTERNAME, SQL.contoso.com -UserName CONTOSO\User1, CONTOSO\User2
+	        or
+	        Set-UserRights -AddRight -UserRight SeBatchLogonRight -Username S-1-5-11
+	        or
+	        Set-UserRights -RemoveRight -UserRight SeBatchLogonRight -Username CONTOSO\User2
+	        or
+	        Set-UserRights -RemoveRight -UserRight SeServiceLogonRight, SeBatchLogonRight -Username CONTOSO\User1
 	   #>
 		Set-UserRights
 	}
