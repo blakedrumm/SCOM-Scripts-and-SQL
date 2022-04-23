@@ -41,6 +41,8 @@
 		This script is located in the following GitHub Repository: https://github.com/blakedrumm/SCOM-Scripts-and-SQL
 		Exact location: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/General%20Functions/Get-UserRights.ps1
 		
+		Blog post: https://blakedrumm.com/blog/set-and-check-user-rights-assignment/
+		
 		Author: Blake Drumm (blakedrumm@microsoft.com)
 		First Created on: June 10th, 2021
 		Last Modified on: January 11th, 2022
