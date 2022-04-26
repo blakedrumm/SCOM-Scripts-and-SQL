@@ -61,7 +61,7 @@
 	
 	.Notes
 		Original Creator: Bill Loytty (weloytty)
-		Based heavily on the script found here: https://github.com/weloytty/QuirkyPSFunctions/blob/ab4b02f9cc05505eee97d2f744f4c9c798143af1/Source/Users/Grant-LogOnAsService.ps1
+		Based on this script found here: https://github.com/weloytty/QuirkyPSFunctions/blob/ab4b02f9cc05505eee97d2f744f4c9c798143af1/Source/Users/Grant-LogOnAsService.ps1
 		I modified to my own needs: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/General%20Functions/Set-UserRights.ps1
 		
 		My blog post: https://blakedrumm.com/blog/set-and-check-user-rights-assignment/
