@@ -1,7 +1,7 @@
-DECLARE @DB_USers TABLE
+DECLARE @DB_Users TABLE
 (DBName sysname, UserName sysname, LoginType sysname, AssociatedRole varchar(max),create_date datetime,modify_date datetime)
 
-INSERT @DB_USers
+INSERT @DB_Users
 EXEC sp_MSforeachdb
 
 '
