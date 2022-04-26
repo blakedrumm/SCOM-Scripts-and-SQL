@@ -20,13 +20,13 @@ dbname,username ,logintype ,create_date ,modify_date ,
 STUFF(
 (
 SELECT ',' + CONVERT(VARCHAR(500),associatedrole)
-FROM @DB_USers user2
+FROM @DB_Users user2
 WHERE
 user1.DBName=user2.DBName AND user1.UserName=user2.UserName
 FOR XML PATH('')
 )
 ,1,1,'') AS Permissions_user
-FROM @DB_USers user1
+FROM @DB_Users user1
 GROUP BY
 dbname,username ,logintype ,create_date ,modify_date
 ORDER BY DBName, username
