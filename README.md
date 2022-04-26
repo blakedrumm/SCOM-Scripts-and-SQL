@@ -21,3 +21,5 @@ ___
 ### SCOM DW Grooming Tool
 [![SCOM DW Grooming Tool](https://user-images.githubusercontent.com/63755224/165334550-e71685f9-8033-4e00-96d7-28aff34a5720.png)](/Powershell/SCOM-DW-Grooming) \
 This tool can be used to modify the System Center Operations Manager Data Warehouse Grooming retention days, allows you to see grooming history, you can manually run grooming, and you may also export the current configuration so you can keep a backup of your settings.
+
+**Go to script location:** [Click Here](/Powershell/SCOM-DW-Grooming)
