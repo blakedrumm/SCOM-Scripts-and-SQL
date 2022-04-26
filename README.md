@@ -16,3 +16,9 @@ ___
 [![Download Count Releases](https://img.shields.io/github/downloads/blakedrumm/SCOM-Scripts-and-SQL/total.svg?style=for-the-badge&color=brightgreen)](https://github.com/blakedrumm/SCOM-Scripts-and-SQL/releases) \
 <sup>Started tracking on February 13th, 2021</sup>
 
+___
+
+### SCOM DW Grooming Tool
+This tool can be used to modify the System Center Operations Manager Data Warehouse Grooming retention days, allows you to see grooming history, you can manually run grooming, and you may also export the current configuration so you can keep a backup of your settings.
+
+[![SCOM DW Grooming Tool](https://user-images.githubusercontent.com/63755224/165334550-e71685f9-8033-4e00-96d7-28aff34a5720.png)](/Powershell/SCOM-DW-Grooming)
