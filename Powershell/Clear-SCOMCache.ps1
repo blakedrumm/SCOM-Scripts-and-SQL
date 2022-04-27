@@ -85,24 +85,7 @@ BEGIN
 ===================================================================
 ==========================  Start of Script =======================
 ==================================================================='
-	
-	Write-Output "Checking for elevated permissions..."
-	if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))
-	{
-		$currentPath = $myinvocation.mycommand.definition
-		$nopermission = "Insufficient permissions to run this script. Attempting to open the PowerShell script ($currentPath) as administrator."
-		Write-Warning $nopermission
-		# We are not running "as Administrator" - so relaunch as administrator
-		# ($MyInvocation.Line -split '\.ps1[\s\''\"]\s*', 2)[-1]
-		Start-Process powershell.exe "-File", ('"{0}"' -f $MyInvocation.MyCommand.Path) -Verb RunAs
-		break
-	}
-	else
-	{
-		$permissiongranted = " Currently running as administrator - proceeding with script execution..."
-		Write-Output $permissiongranted
-	}
-	
+
 	Function Get-TimeStamp
 	{
 		$TimeStamp = (Get-Date).DateTime
