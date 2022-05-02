@@ -1,6 +1,6 @@
 > Blog Post: [https://blakedrumm.com/blog/scom-dw-grooming-tool/](https://blakedrumm.com/blog/scom-dw-grooming-tool/)
 
-**Latest Version:** `1.0.5.2`
+**Latest Version:** `1.0.5.3`
 
 ![SCOM DW Grooming Tool](https://user-images.githubusercontent.com/63755224/165334550-e71685f9-8033-4e00-96d7-28aff34a5720.png)
 
