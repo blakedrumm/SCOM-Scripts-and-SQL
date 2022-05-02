@@ -16,66 +16,38 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
-
+    build:
+      name: Copy Files to Blake Drumm - File Repository
+      runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@master
       - name: Copy Operations Manager Powershell to Blake Drumm - File Repository
-        # You may pin to the exact commit or the version.
-        # uses: AbleLincoln/push-to-sftp@a6c117bb60fdc94ab8e5b139cdb0b19bea582c81
-        uses: AbleLincoln/push-to-sftp@v1.2
+        uses: appleboy/scp-action@master
         with:
-          # SFTP server
-          host: 140.82.2.162 # default is 
-          # SFTP server port
-          port: 22 # default is 22
-          # SFTP username
-          username: fileshare # default is 
-          # SFTP password
-          password: ikadSVsSyvSrc$9e794x18d$ # default is 
-          # Source directory to upload from (will upload all files in this directory)
-          sourceDir: /SCOM-Scripts-and-SQL/Powershell # default is 
-          # Remote directory to upload to (WARNING: overwrites ALL files in this directory)
-          targetDir: /var/www/blakedrumm_fileshare/Powershell/OperationsManager/Single Files # default is 
-          
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          source: "/SCOM-Scripts-and-SQL/Powershell"
+          target: "/var/www/blakedrumm_fileshare/Powershell/OperationsManager/Single Files"
+
       - name: Copy AutomatedLab Powershell to Blake Drumm - File Repository
-        # You may pin to the exact commit or the version.
-        # uses: AbleLincoln/push-to-sftp@a6c117bb60fdc94ab8e5b139cdb0b19bea582c81
-        uses: AbleLincoln/push-to-sftp@v1.2
+        uses: appleboy/scp-action@master
         with:
-          # SFTP server
-          host: 140.82.2.162 # default is 
-          # SFTP server port
-          port: 22 # default is 22
-          # SFTP username
-          username: fileshare # default is 
-          # SFTP password
-          password: ikadSVsSyvSrc$9e794x18d$ # default is 
-          # Source directory to upload from (will upload all files in this directory)
-          sourceDir: /SCOM-Scripts-and-SQL/AutomatedLab # default is 
-          # Remote directory to upload to (WARNING: overwrites ALL files in this directory)
-          targetDir: /var/www/blakedrumm_fileshare/Powershell/AutomatedLab/OperationsManager # default is 
-          
-          
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          source: "/SCOM-Scripts-and-SQL/AutomatedLab"
+          target: "/var/www/blakedrumm_fileshare/Powershell/AutomatedLab/OperationsManager"
+
+
       - name: Copy Operations Manager SQL Queries to Blake Drumm - File Repository
-        # You may pin to the exact commit or the version.
-        # uses: AbleLincoln/push-to-sftp@a6c117bb60fdc94ab8e5b139cdb0b19bea582c81
-        uses: AbleLincoln/push-to-sftp@v1.2
+        uses: appleboy/scp-action@master
         with:
-          # SFTP server
-          host: 140.82.2.162 # default is 
-          # SFTP server port
-          port: 22 # default is 22
-          # SFTP username
-          username: fileshare # default is 
-          # SFTP password
-          password: ikadSVsSyvSrc$9e794x18d$ # default is 
-          # Source directory to upload from (will upload all files in this directory)
-          sourceDir: /SCOM-Scripts-and-SQL/SQL Queries # default is 
-          # Remote directory to upload to (WARNING: overwrites ALL files in this directory)
-          targetDir: /var/www/blakedrumm_fileshare/SQL-Queries/OperationsManager # default is 
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          source: "/SCOM-Scripts-and-SQL/SQL Queries"
+          target: "/var/www/blakedrumm_fileshare/SQL-Queries/OperationsManager"
