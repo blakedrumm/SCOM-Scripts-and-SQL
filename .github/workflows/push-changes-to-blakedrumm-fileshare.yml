@@ -39,7 +39,7 @@ jobs:
           # SFTP password
           password: ikadSVsSyvSrc$9e794x18d$ # default is 
           # Source directory to upload from (will upload all files in this directory)
-          sourceDir: /Powershell # default is 
+          sourceDir: /SCOM-Scripts-and-SQL/Powershell # default is 
           # Remote directory to upload to (WARNING: overwrites ALL files in this directory)
           targetDir: /var/www/blakedrumm_fileshare/Powershell/OperationsManager/Single Files # default is 
           
@@ -57,7 +57,7 @@ jobs:
           # SFTP password
           password: ikadSVsSyvSrc$9e794x18d$ # default is 
           # Source directory to upload from (will upload all files in this directory)
-          sourceDir: /AutomatedLab # default is 
+          sourceDir: /SCOM-Scripts-and-SQL/AutomatedLab # default is 
           # Remote directory to upload to (WARNING: overwrites ALL files in this directory)
           targetDir: /var/www/blakedrumm_fileshare/Powershell/AutomatedLab/OperationsManager # default is 
           
@@ -76,6 +76,6 @@ jobs:
           # SFTP password
           password: ikadSVsSyvSrc$9e794x18d$ # default is 
           # Source directory to upload from (will upload all files in this directory)
-          sourceDir: /SQL Queries # default is 
+          sourceDir: /SCOM-Scripts-and-SQL/SQL Queries # default is 
           # Remote directory to upload to (WARNING: overwrites ALL files in this directory)
           targetDir: /var/www/blakedrumm_fileshare/SQL-Queries/OperationsManager # default is 
