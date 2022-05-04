@@ -28,7 +28,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
-          source: "Powershell"
+          source: "/blakedrumm/SCOM-Scripts-and-SQL/Powershell"
           target: "/var/www/blakedrumm_fileshare/Powershell/OperationsManager/Single Files"
 
       - name: Copy AutomatedLab Powershell to Blake Drumm - File Repository
@@ -38,7 +38,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
-          source: "AutomatedLab"
+          source: "/blakedrumm/SCOM-Scripts-and-SQL/AutomatedLab"
           target: "/var/www/blakedrumm_fileshare/Powershell/AutomatedLab/OperationsManager"
 
 
@@ -49,5 +49,5 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
-          source: "SQL Queries"
+          source: "/blakedrumm/SCOM-Scripts-and-SQL/SQL Queries"
           target: "/var/www/blakedrumm_fileshare/SQL-Queries/OperationsManager"
