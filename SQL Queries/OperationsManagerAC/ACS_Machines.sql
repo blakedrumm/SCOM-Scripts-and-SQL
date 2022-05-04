@@ -1,0 +1,2 @@
+--Machines
+select * from dtMachine
