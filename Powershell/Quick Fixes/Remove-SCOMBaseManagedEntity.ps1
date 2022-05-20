@@ -637,6 +637,7 @@ COMMIT TRANSACTION
 "@
 					Write-Verbose $delete_query
 					Invoke-SqlCommand -Timeout $Timeout -Server $SqlServer -Database $Database -Query $delete_query
+					Start-Sleep -Seconds 1
 				}
 				
 				$remove_pending_management = @"
