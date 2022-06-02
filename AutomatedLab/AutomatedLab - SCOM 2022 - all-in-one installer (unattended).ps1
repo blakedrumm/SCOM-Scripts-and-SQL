@@ -1,7 +1,7 @@
 # Author: Blake Drumm (blakedrumm@microsoft.com)
 # Date Created: November 12th, 2021
 # Date Modified: November 16th, 2021
-#requires -Version 5 -Modules AutomatedLab -RunAsAdministrator 
+#requires -Modules AutomatedLab -RunAsAdministrator 
 trap
 {
 	Write-Host "Stopping Transcript ..."
