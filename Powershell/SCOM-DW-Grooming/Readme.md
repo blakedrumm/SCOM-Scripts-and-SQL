@@ -12,9 +12,9 @@ This tool can be used to modify the System Center Operations Manager Data Wareho
 
 You have multiple ways to run the SCOM DW Grooming GUI Tool:
 
-1. Download and install the MSI: [MSI Download](https://github.com/blakedrumm/SCOM-Scripts-and-SQL/raw/master/Powershell/SCOM-DW-Grooming/Installer%20(MSI)/SCOM-DW-GroomingGUI.msi)
-2. Download and run the EXE: [EXE Downloads](https://github.com/blakedrumm/SCOM-Scripts-and-SQL/tree/master/Powershell/SCOM-DW-Grooming/Executable%20(EXE))
-3. Download or Copy the Powershell Script: [Powershell Script](https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/SCOM-DW-Grooming/Source%20(PS1)/SCOM-DW-GroomingGUI.ps1)
+1. Download and install the MSI: [MSI Download](https://github.com/blakedrumm/SCOM-DW-Grooming-Tool/releases/latest/download/SCOM-DW-GroomingGUI-MSI.zip)
+2. Download and run the EXE: [EXE Downloads](https://github.com/blakedrumm/SCOM-DW-Grooming-Tool/releases/latest/download/SCOM-DW-GroomingGUI-EXE-64bit.zip)
+3. Download or Copy the Powershell Script: [Powershell Script](https://github.com/blakedrumm/SCOM-DW-Grooming-Tool/releases/latest/download/SCOM-DW-GroomingGUI.ps1)
 
 You will need to provide the Data Warehouse DB Server Name or Address, and the Data Warehouse Database Name. The script may auto detect these variables from the local registry on the machine you are running the script. To get started, you will need to press the **Get Current Settings** button. This will allow the script to gather the information from the Data Warehouse database server. Once you make the changes you can save the change with **Set**.
 
