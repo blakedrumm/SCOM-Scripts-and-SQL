@@ -477,7 +477,7 @@ public static extern bool LookupPrivilegeDisplayName(
 	}
 	else
 	{
-	 <# Edit line 485 to modify the default command run when this script is executed.
+	 <# Edit line 487 to modify the default command run when this script is executed.
 	   Example for output multiple servers to a text file: 
 	   	 Get-UserRights -ComputerName MS01-2019, IIS-2019 -FileOutputPath C:\Temp -FileOutputType Text
 
