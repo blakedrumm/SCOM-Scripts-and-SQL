@@ -22,7 +22,7 @@ function Invoke-SCOMDecrypt
 	}
 	else
 	{
-		Write-Host "[!] Unable to find installation directory of SCOM"
+		Write-Host "[Critical Error] Unable to find installation directory of SCOM" -ForegroundColor Yellow
 		return
 	}
 	
@@ -39,7 +39,7 @@ function Invoke-SCOMDecrypt
 	}
 	Catch [System.Management.Automation.ItemNotFoundException]
 	{
-		Write-Host "[!] Unable to detect SQL server"
+		Write-Host "[Critical Error] Unable to detect SQL server"
 		return
 	}
 	
@@ -50,7 +50,7 @@ function Invoke-SCOMDecrypt
 	}
 	Catch [System.Management.Automation.ItemNotFoundException]
 	{
-		Write-Host "[!] Unable to find key"
+		Write-Host "[Critical Error] Unable to find key"
 		return
 	}
 	
@@ -83,18 +83,21 @@ function Invoke-SCOMDecrypt
 			
 			if ($domain -notlike "")
 			{
-				Write-Host "[+] $domain\$user : $truePass"
+				Write-Host "Username: $domain\$user"
+				Write-Host "Password: $truePass"
 			}
 			else
 			{
-				Write-Host "[+] $user : $truePass"
+				Write-Host "Username: $user"
+				Write-Host "Password: $truePass "
 			}
+			Write-Host " "
 		}
 	}
 }
 Invoke-SCOMDecrypt
 <#
-		GNU AFFERO GENERAL PUBLIC LICENSE
+				GNU AFFERO GENERAL PUBLIC LICENSE
                     Version 3, 19 November 2007
 
  Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>
