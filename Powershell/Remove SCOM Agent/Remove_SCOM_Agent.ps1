@@ -12,8 +12,6 @@
         This script will attempt to remove all registered services, performance counters, DLLs, and program files. This script makes direct deletions
         from the registry and file system.
 
-        One external file is REQUIRED: RegistryKeys.txt
-
     .HOWTO
         1. Have the 'Remove_SCOM_Agent.ps1' file downloaded to the local machine that you want to remove an agent on
         2. Make sure the user in question has Administrator rights on the machine
