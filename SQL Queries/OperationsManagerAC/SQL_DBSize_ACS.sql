@@ -1,5 +1,5 @@
 -- Modified 2/9/2022 - Included Free Space %, added MB to value fields.
--- Modified 6/21/2022 - Attempted to fix Arithmetic Overflow error when run in large environments. Added 'SpaceUsed(%)'.
+-- Modified 6/21/2022 - Attempted to fix Arithmetic Overflow error when run in large environments. Added 'SpaceUsed(%)' and 'AutoGrowStatus' columns.
 -- Blake Drumm (blakedrumm@microsoft.com)
 
 SELECT sf.NAME AS 'Name',
@@ -8,6 +8,10 @@ CONCAT(convert(int, round(100 * convert(bigint,(sf.size-fileproperty(sf.name, 'S
 CONCAT(convert(decimal(12,2), round((sf.size-fileproperty(sf.name, 'SpaceUsed'))/128.000, 2)), ' MB') AS 'FreeSpace(MB)',
 CONCAT(convert(int, 100 - (round(100 * convert(bigint,(sf.size-fileproperty(sf.name, 'SpaceUsed'))) / convert(bigint,sf.size), 2))),' %') AS 'SpaceUsed(%)',
 CONCAT(convert(decimal(12,2), round(fileproperty(sf.name, 'SpaceUsed')/128.000, 2)), ' MB') AS 'SpaceUsed(MB)',
+CASE smf.growth
+	WHEN 0 THEN 'Disabled'
+	ELSE 'Enabled'
+END AS 'AutoGrowStatus',
 CASE smf.is_percent_growth
     WHEN 1 THEN CONCAT(CONVERT(bigint, smf.growth), ' %')
     ELSE CONCAT(convert(decimal(12,2), smf.growth/128),' MB')
