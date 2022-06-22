@@ -11,11 +11,11 @@ CONCAT(convert(decimal(12,2), round(fileproperty(sf.name, 'SpaceUsed')/128.000, 
 CASE smf.growth
 	WHEN 0 THEN 'Disabled'
 	ELSE 'Enabled'
-END AS 'AutoGrowStatus',
+END AS 'AutoGrowthStatus',
 CASE smf.is_percent_growth
     WHEN 1 THEN CONCAT(CONVERT(bigint, smf.growth), ' %')
     ELSE CONCAT(convert(decimal(12,2), smf.growth/128),' MB')
-END AS 'AutoGrow',
+END AS 'AutoGrowth',
 CASE (sf.maxsize)
     WHEN -1 THEN 'Unlimited'
     WHEN 268435456 THEN 'Max Size (2TB)'
