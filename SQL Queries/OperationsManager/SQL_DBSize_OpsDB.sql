@@ -1,5 +1,5 @@
 -- Modified 2/9/2022 - Included Free Space %, added MB to value fields.
--- Modified 6/21/2022 - Attempted to fix Arithmetic Overflow error when run in large environments. Added 'SpaceUsed(%)' and 'AutoGrowStatus' columns.
+-- Modified 6/21/2022 - Attempted to fix Arithmetic Overflow error when run in large environments. Added 'SpaceUsed(%)' and 'AutoGrowthStatus' columns.
 -- Blake Drumm (blakedrumm@microsoft.com)
 
 SELECT sf.NAME AS 'Name',
