@@ -23,7 +23,3 @@ ___
 This tool can be used to modify the System Center Operations Manager Data Warehouse Grooming retention days, allows you to see grooming history, you can manually run grooming, and you may also export the current configuration so you can keep a backup of your settings.
 
 **Go to script location:** [Click Here](https://github.com/blakedrumm/SCOM-DW-Grooming-Tool)
-
-<a href="https://trackgit.com">
-<img src="https://us-central1-trackgit-analytics.cloudfunctions.net/token/ping/l4xcyr8nbl5ww9esqlgl" alt="trackgit-views" />
-</a>
