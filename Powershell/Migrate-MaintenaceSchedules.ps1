@@ -1,3 +1,5 @@
+#Original Author: Mike Wallace (mike.wallace@microsoft.com)
+
 # Export Maintenance Schedules from Old Management Group
 Import-Module OperationsManager
 $schedlist = Get-SCOMMaintenanceScheduleList
