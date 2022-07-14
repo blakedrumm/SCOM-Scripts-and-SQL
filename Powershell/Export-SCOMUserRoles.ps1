@@ -1,7 +1,7 @@
 # This script will export the SCOM User Roles to CSV or Text File Format.
 # -----------------------------------------------
 # Outputs the file to the current users desktop
-# Initial Upload: July 20th, 2022
+# Initial Upload: June 20th, 2022
 # -----------------------------------------------
 $UserRoles = @()
 $UserRoleList = Get-SCOMUserRole
