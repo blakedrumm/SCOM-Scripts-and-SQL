@@ -1,6 +1,6 @@
-#Original Author: Benign Sage
-#Original Location: https://github.com/benignsage/sqlserver-sys.messages-scom/blob/master/script1.sql
-#Original Post: https://www.sqlalliance.com/viewtopic.php?f=8&t=3
+-- Original Author: Benign Sage
+-- Original Location: https://github.com/benignsage/sqlserver-sys.messages-scom/blob/master/script1.sql
+-- Original Post: https://www.sqlalliance.com/viewtopic.php?f=8&t=3
 SELECT
 m.message_id,
 m.language_id,
