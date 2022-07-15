@@ -267,13 +267,13 @@ Function Get-TLSRegistryKeys
 			"460805" { ".NET Framework 4.7" }
 			"461308" { ".NET Framework 4.7.1" }
 			"461310" { ".NET Framework 4.7.1" }
-            "461814" { ".NET Framework 4.7.2" }
+            		"461814" { ".NET Framework 4.7.2" }
 			"461808" { ".NET Framework 4.7.2" }
 			"461814" { ".NET Framework 4.7.2" }
 			"528040" { ".NET Framework 4.8" }
-            "528372" { ".NET Framework 4.8" }
+           		"528372" { ".NET Framework 4.8" }
 			"528049" { ".NET Framework 4.8" }
-            "528449" { ".NET Framework 4.8" }
+            		"528449" { ".NET Framework 4.8" }
 			default { "Unknown .NET version: $ReleaseRegValue" }
 		}
 		Write-Host '-' -NoNewline -ForegroundColor Green
