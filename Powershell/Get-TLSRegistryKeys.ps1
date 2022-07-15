@@ -1,37 +1,27 @@
-<#
-	.SYNOPSIS
-		Check TLS Settings for SCOM
-
-	.DESCRIPTION
-		Gathers TLS settings from the registry.
-
-	.PARAMETER Servers
-		The servers you would like to run this script to check TLS settings for Operations Manager.
-
-	.EXAMPLE
-		PS C:\> .\Get-TLSRegistryKeys.ps1
-
-	.NOTES
-
-		ODBC 17.3 : https://docs.microsoft.com/sql/connect/odbc/windows/release-notes-odbc-sql-server-windows?view=sql-server-ver15#173&preserve-view=true
-		OLEDB 18.2 : https://docs.microsoft.com/sql/connect/oledb/release-notes-for-oledb-driver-for-sql-server?view=sql-server-ver15#1821&preserve-view=true
-        	.NET 4.6 - https://support.microsoft.com/help/3151800/the-net-framework-4-6-2-offline-installer-for-windows
-
-
-		Original Author: Mike Kallhoff
-		Author: Blake Drumm (blakedrumm@microsoft.com)
-
-		Modified: March 18th, 2022
-
-		Hosted here: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Get-TLSRegistryKeys.ps1
-#>
-param
-(
-	[Parameter(HelpMessage = 'The servers you would like to run this script to check TLS settings for Operations Manager.')]
-	[string[]]$Servers
-)
 Function Get-TLSRegistryKeys
 {
+	<#
+		.SYNOPSIS
+			Check TLS Settings for SCOM
+		
+		.DESCRIPTION
+			Gathers TLS settings from the registry.
+		
+		.PARAMETER Servers
+			The servers you would like to run this script to check TLS settings for Operations Manager.
+		
+		.EXAMPLE
+			PS C:\> .\Get-TLSRegistryKeys.ps1
+		
+		.NOTES
+			
+			Original Author: Mike Kallhoff
+			Author: Blake Drumm (blakedrumm@microsoft.com)
+			
+			Modified: July 15th, 2022
+
+			Hosted here: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Get-TLSRegistryKeys.ps1
+	#>
 	[CmdletBinding()]
 	Param
 	(
@@ -41,7 +31,7 @@ Function Get-TLSRegistryKeys
 	{
 		$Servers = $env:COMPUTERNAME
 	}
-	# Blake Drumm - modified on 09/02/2021
+	$Servers = $Servers | Sort-Object
 	Write-Host "  Accessing Registry on:`n" -NoNewline -ForegroundColor Gray
 	$scriptOut = $null
 	
@@ -57,8 +47,6 @@ Function Get-TLSRegistryKeys
 		$DisabledByDefault = "DisabledByDefault"
 		$Enabled = "Enabled"
 		$registryPath = "HKLM:\\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\"
-		
-		[string[]]$data = (Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*sql*" }).name
 		
 		foreach ($Protocol in $ProtocolList)
 		{
@@ -148,6 +136,9 @@ Function Get-TLSRegistryKeys
 			$DefaultTLSVersions64 = $False
 		}
 		
+		##  ODBC : https://www.microsoft.com/en-us/download/details.aspx?id=50420
+		##  OLEDB : https://docs.microsoft.com/en-us/sql/connect/oledb/download-oledb-driver-for-sql-server?view=sql-server-ver15
+		[string[]]$data = (Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*sql*" }).name
 		$odbcOutput = $data | where { $_ -like "Microsoft ODBC Driver *" } # Need to validate version
 		$odbc = @()
 		foreach ($driver in $odbcOutput)
@@ -168,7 +159,7 @@ Function Get-TLSRegistryKeys
 				$odbc = "Not Found."
 			}
 		}
-		$odbc = $odbc.Split("`n") | Out-String -Width 2048
+		$odbc = $odbc -split "`n" | Out-String -Width 2048
 		$oledb = $data | where { $_ -eq 'Microsoft OLE DB Driver for SQL Server' }
 		if ($oledb)
 		{
@@ -232,7 +223,7 @@ Function Get-TLSRegistryKeys
 		}
 		[version]$MinSQLClient11Version = [version]"11.4.7001.0"
 		Write-Host '-' -NoNewline -ForegroundColor Green
-		$SQLClientProgramVersion = $data | where { $_ -eq "Microsoft SQL Server 2012 Native Client" } # Need to validate version
+		$SQLClientProgramVersion = $data | where { $_ -like "Microsoft SQL Server 2012 Native Client" } # Need to validate version
 		IF ($SQLClient11Version -ge $MinSQLClient11Version)
 		{
 			Write-Verbose "SQL Client - is installed and version: ($SQLClient11VersionString) and greater or equal to the minimum version required: (11.4.7001.0)"
@@ -307,14 +298,19 @@ Function Get-TLSRegistryKeys
 		try
 		{
 			Write-Host '-' -NoNewline -ForegroundColor Green
-			$odbcODBCDataSources = Get-ItemProperty 'Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SOFTWARE\ODBC\ODBC.INI\ODBC Data Sources' -ErrorAction Stop | Select-Object OpsMgrAC -ExpandProperty OpsMgrAC
+			$odbcODBCDataSources = Get-ItemProperty 'HKLM:\SOFTWARE\ODBC\ODBC.INI\ODBC Data Sources' -ErrorAction Stop | Select-Object OpsMgrAC -ExpandProperty OpsMgrAC -ErrorAction Stop
 		}
 		catch { $odbcODBCDataSources = 'Not Found.' }
 		try
 		{
-			$odbcOpsMgrAC = Get-ItemProperty 'Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SOFTWARE\ODBC\ODBC.INI\OpsMgrAC' -ErrorAction Stop | Select-Object Driver -ExpandProperty Driver
+			$odbcOpsMgrAC = Get-ItemProperty 'HKLM:\SOFTWARE\ODBC\ODBC.INI\OpsMgrAC' -ErrorAction Stop | Select-Object Driver -ExpandProperty Driver -ErrorAction Stop
 		}
 		catch { $odbcOpsMgrAC = 'Not Found.' }
+		try
+		{
+			$SSLCiphers = ((Get-ItemProperty 'HKLM:\SOFTWARE\Policies\Microsoft\Cryptography\Configuration\SSL\00010002').Functions).Split(",") | Sort-Object | Out-String
+		}
+		catch { $SSLCiphers = 'Not Found' }
 		
 		$additional = ('PipeLineKickStart' | Select @{ n = 'SchUseStrongCrypto'; e = { $Crypt1 } },
 													@{ n = 'SchUseStrongCrypto_WOW6432Node'; e = { $Crypt2 } },
@@ -326,7 +322,8 @@ Function Get-TLSRegistryKeys
 													@{ n = 'ODBC (OpsMgrAC\Driver)'; e = { $odbcOpsMgrAC } },
 													@{ n = 'SQLClient'; e = { $SQLClient } },
 													@{ n = '.NetFramework'; e = { $NetVersion } },
-													@{ n = 'SChannel Logging'; e = { $SChannelSwitch } }
+													@{ n = 'SChannel Logging'; e = { $SChannelSwitch } },
+													@{ n = 'SSL Cipher Suites'; e = { $SSLCiphers } }
 		)
 		$results += $additional | select -Property * -ExcludeProperty PSComputerName, RunspaceId, PSShowComputerName
 		
@@ -371,13 +368,4 @@ Function Get-TLSRegistryKeys
 		}
 	}
 	$scriptOut | Out-String -Width 4096
-}
-if ($Servers)
-{
-	Get-TLSRegistryKeys -Servers $Servers -Verbose:$VerbosePreference -Debug:$DebugPreference
-}
-else
-{
-	# Change the default action of this script when run without any parameters
-	Get-TLSRegistryKeys
 }
