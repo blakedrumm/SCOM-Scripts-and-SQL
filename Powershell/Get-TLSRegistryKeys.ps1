@@ -36,7 +36,6 @@ Function Get-TLSRegistryKeys
 		$Servers = $env:COMPUTERNAME
 	}
 	$Servers = $Servers | Sort-Object
-	# Blake Drumm - modified on 09/02/2021
 	Write-Host "  Accessing Registry on:`n" -NoNewline -ForegroundColor Gray
 	$scriptOut = $null
 	
