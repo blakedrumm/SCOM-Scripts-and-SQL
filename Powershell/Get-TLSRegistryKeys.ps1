@@ -11,7 +11,11 @@ Function Get-TLSRegistryKeys
 			The servers you would like to run this script to check TLS settings for Operations Manager.
 		
 		.EXAMPLE
+			Local Machine:
 			PS C:\> .\Get-TLSRegistryKeys.ps1
+
+			Remote Machine
+			PS C:\> .\Get-TLSRegistryKeys.ps1 -Servers MS01-2019.contoso.com, MS02-2019.contoso.com
 		
 		.NOTES
 			
@@ -32,6 +36,7 @@ Function Get-TLSRegistryKeys
 		$Servers = $env:COMPUTERNAME
 	}
 	$Servers = $Servers | Sort-Object
+	# Blake Drumm - modified on 09/02/2021
 	Write-Host "  Accessing Registry on:`n" -NoNewline -ForegroundColor Gray
 	$scriptOut = $null
 	
@@ -46,8 +51,8 @@ Function Get-TLSRegistryKeys
 		$ProtocolSubKeyList = "Client", "Server"
 		$DisabledByDefault = "DisabledByDefault"
 		$Enabled = "Enabled"
-		$registryPath = "HKLM:\\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\"
-		
+		$registryPath = "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\"
+		Write-Output "Path`n----`n$registryPath"
 		foreach ($Protocol in $ProtocolList)
 		{
 			
@@ -262,10 +267,13 @@ Function Get-TLSRegistryKeys
 			"460805" { ".NET Framework 4.7" }
 			"461308" { ".NET Framework 4.7.1" }
 			"461310" { ".NET Framework 4.7.1" }
+            "461814" { ".NET Framework 4.7.2" }
 			"461808" { ".NET Framework 4.7.2" }
 			"461814" { ".NET Framework 4.7.2" }
 			"528040" { ".NET Framework 4.8" }
+            "528372" { ".NET Framework 4.8" }
 			"528049" { ".NET Framework 4.8" }
+            "528449" { ".NET Framework 4.8" }
 			default { "Unknown .NET version: $ReleaseRegValue" }
 		}
 		Write-Host '-' -NoNewline -ForegroundColor Green
