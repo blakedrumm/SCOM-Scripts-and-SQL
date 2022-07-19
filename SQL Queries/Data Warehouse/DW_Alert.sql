@@ -9,4 +9,5 @@ Select     M.[Path] as Path,
                A.[RepeatCount] as Repeat_Count
 From [Alert].[vAlert] as A
 Join [dbo].[vManagedEntity] As M On A.ManagedEntityRowId=M.ManagedEntityRowId
+--WHERE RaisedDateTime BETWEEN GETDATE()-7 AND GETDATE()
 Order by RaisedDateTime Desc
