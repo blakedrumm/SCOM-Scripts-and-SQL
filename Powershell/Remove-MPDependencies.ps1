@@ -12,10 +12,12 @@
 # Arguments		: 	ManagementPackName.  (Provide the value of the management pack name or id from the management pack properties.  Otherwise, the script will fail.)
 
 <# 
-Updated - August 19th, 2021:
+Change Log
+----------
+August 19th, 2021:
 	Added ability to remove XML Reference from Unsealed Management Packs
-
-Updated - July 19th, 2022:
+	
+July 19th, 2022:
 	Attempted to fix some issues with processing MP Elements
 #>
 
