@@ -2,8 +2,8 @@
 
 # PowerShell script to automatically remove an MP and its dependencies.
 #
-# Original Author(s):   Christopher Crammond, Chandra Bose
-# Author	 		:   Blake Drumm (blakedrumm@microsoft.com)
+# Original Author(s)    :   Christopher Crammond, Chandra Bose
+# Author	        :   Blake Drumm (blakedrumm@microsoft.com)
 # Date Created	 	:	April 24th, 2012
 # Date Modified		: 	July 19th, 2021
 #
