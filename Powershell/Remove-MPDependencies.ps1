@@ -1,28 +1,32 @@
-# THIS SCRIPT CAN BE DANGEROUS, MAKE BACKUPS OF YOUR OPSDB AND DW!
+# THIS SCRIPT CAN BE DANGEROUS, MAKE BACKUPS OF YOUR OPSDB AND DW! OR RUN WITH THE '-PauseOnEach' PARAMETER 
 
-# PowerShell script to automagically remove an MP and its dependencies.
+# PowerShell script to automatically remove an MP and its dependencies.
 #
 # Original Author	:     	Christopher Crammond, Chandra Bose
 # Modified By	 	:     	Blake Drumm (blakedrumm@microsoft.com)
 # Date Created	 	:	April 24th, 2012
-# Date Modified		: 	July 19th, 2022
+# Date Modified		: 	July 19th, 2021
 #
-# Version		:       2.0.6
+# Version		:       2.0.7
 #
 # Arguments		: 	ManagementPackName.  (Provide the value of the management pack name or id from the management pack properties.  Otherwise, the script will fail.)
 
-<# NOTE:
+<# 
+Updated - August 19th, 2021:
+	Added ability to remove XML Reference from Unsealed Management Packs
 
-Added ability to remove XML Reference from Unsealed Management Packs - August 19th, 2021
-
+Updated - July 19th, 2022:
+	Attempted to fix some issues with processing MP Elements
 #>
 
 # Example:
+# .\Remove-MPDependencies -ManagementPackName "*APM*"
+#
+# .\Remove-MPDependencies.ps1 -ManagementPackName Microsoft.Azure.ManagedInstance.Discovery
+#
 # Get-SCOMManagementPack -DisplayName "Microsoft Azure SQL Managed Instance (Discovery)" | .\Remove-MPDependencies.ps1 -DryRun -PauseOnEach
 #
 # Get-SCOMManagementPack -DisplayName "Microsoft Azure SQL Managed Instance (Discovery)" | .\Remove-MPDependencies.ps1
-# 
-# .\Remove-MPDependencies.ps1 -ManagementPackName Microsoft.Azure.ManagedInstance.Discovery
 
 # Needed for SCOM SDK
 param
@@ -68,19 +72,19 @@ function Remove-MPDependencies
 		$ExportPath = $env:TEMP
 	}
 	if (!(Test-Path $ExportPath))
-    {
-        New-Item -ItemType Directory -Path $ExportPath | Out-Null
-    }
+	{
+		New-Item -ItemType Directory -Path $ExportPath | Out-Null
+	}
 	if (!$ManagementPackName -and !$ManagementPackId)
 	{
 		Write-Host "-ManagementPackName or -ManagementPackId is required!" -ForegroundColor Red
 		set-location $cwd
 		break
 	}
-    if ($ManagementPackName -contains "*")
-    {
-        $ManagementPackName = Get-SCManagementPack -Name $ManagementPackName | Select-First 1
-    }
+	if ($ManagementPackName -contains "*")
+	{
+		$ManagementPackName = Get-SCManagementPack -Name $ManagementPackName | Select-First 1
+	}
 	$ipProperties = [System.Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties()
 	$rootMS = "{0}.{1}" -f $ipProperties.HostName, $ipProperties.DomainName
 	
@@ -125,49 +129,61 @@ function Remove-MPDependencies
 					}
 					elseif ($mpPresent.Sealed -eq $false)
 					{
-						Write-Host "    * Removing reference from " -NoNewLine
-						Write-Host $($mp.Name) -ForegroundColor Cyan
-						try
+						foreach ($arg in $firstArgName)
 						{
-							[array]$removed = $null
-							[array]$alias = $null
-							$mpPresent | Export-SCOMManagementPack -Path $ExportPath -PassThru -ErrorAction Stop | Out-Null
-							$xmldata = [xml](Get-Content "$ExportPath`\$($mpPresent.Name).xml" -ErrorAction Stop);
-							$xmlData.Save("$ExportPath`\$($mpPresent.Name).backup.xml")
-							[version]$mpversion = $xmldata.ManagementPack.Manifest.Identity.Version
-							$xmldata.ManagementPack.Manifest.Identity.Version = [version]::New($mpversion.Major, $mpversion.Minor, $mpversion.Build, $mpversion.Revision + 1).ToString()
-							$xmlData.ChildNodes.Manifest.References.Reference | Where-Object { $_.ID -eq $firstArgName } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $aliases += $_.Alias; [void]$_.ParentNode.RemoveChild($_); }
-
-							foreach ($alias in $aliases)
-							{
-                                				$xmlData.ChildNodes.Monitoring.Overrides.SecureReferenceOverride | Where-Object { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id = $_.Id; [void]$_.ParentNode.RemoveChild($_) }
-								$xmlData.ChildNodes.Monitoring.Overrides.MonitorPropertyOverride | Where-Object { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id = $_.Id; [void]$_.ParentNode.RemoveChild($_) }
-								$xmlData.ChildNodes.Monitoring.Overrides.DiscoveryConfigurationOverride | Where-Object { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id += $_.Id; [void]$_.ParentNode.RemoveChild($_) }
-								$xmlData.ChildNodes.Monitoring.Overrides.RulePropertyOverride | Where-Object { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id += $_.Id; [void]$_.ParentNode.RemoveChild($_) }
-							}
-							
-							foreach ($identifer in $id)
-							{
-								$xmlData.ChildNodes.LanguagePacks.LanguagePack.DisplayStrings.DisplayString | Where-Object { $_.ElementID -eq $identifer } | ForEach-Object { $removed += $_.ParentNode.InnerXML; [void]$_.ParentNode.RemoveChild($_) }
-							}
-							Write-Host "    * Removed the following XML Data from the MP: " -NoNewline
+							Write-Host "    * Removing " -NoNewline
+							Write-Host $arg -ForegroundColor Green -NoNewline
+							Write-Host " reference from " -NoNewLine
 							Write-Host $($mp.Name) -ForegroundColor Cyan
-							$removed | Foreach { $_ }
-							
-							$xmlData.Save("$ExportPath`\$($mpPresent.Name).xml")
-							Import-SCOMManagementPack -FullName "$ExportPath`\$($mpPresent.Name).xml" | Out-Null
+							try
+							{
+								[array]$removed = $null
+								[array]$alias = $null
+								$mpPresent | Export-SCOMManagementPack -Path $ExportPath -PassThru -ErrorAction Stop | Out-Null
+								$xmldata = [xml](Get-Content "$ExportPath`\$($mpPresent.Name).xml" -ErrorAction Stop);
+								Write-Host "      * Backing up to:" -ForegroundColor Green -NoNewline
+								Write-Host "$ExportPath`\$($mpPresent.Name).backup.xml" -ForegroundColor Cyan
+								$xmlData.Save("$ExportPath`\$($mpPresent.Name).backup.xml")
+								[version]$mpversion = $xmldata.ManagementPack.Manifest.Identity.Version
+								$xmldata.ManagementPack.Manifest.Identity.Version = [version]::New($mpversion.Major, $mpversion.Minor, $mpversion.Build, $mpversion.Revision + 1).ToString()
+								$aliases = $null
+								$xmlData.ChildNodes.Manifest.References.Reference | Where-Object { $_.ID -eq $arg } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $aliases += $_.Alias; [void]$_.ParentNode.RemoveChild($_); }
+								foreach ($alias in $aliases)
+								{
+									Write-Host "    * Alias found: $alias"
+									$xmlData.ChildNodes.Monitoring.Overrides.SecureReferenceOverride | Where-Object { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id = $_.Id; [void]$_.ParentNode.RemoveChild($_) }
+									$xmlData.ChildNodes.Monitoring.Overrides.MonitorPropertyOverride | Where-Object { $($_.Context -split '!')[0] -eq $alias -or ($($_.Monitor) -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id = $_.Id; [void]$_.ParentNode.RemoveChild($_) }
+									$xmlData.ChildNodes.Monitoring.Overrides.DiscoveryConfigurationOverride | Where-Object { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id += $_.Id; [void]$_.ParentNode.RemoveChild($_) }
+									$xmlData.ChildNodes.Monitoring.Overrides.RulePropertyOverride | Where-Object { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id += $_.Id; [void]$_.ParentNode.RemoveChild($_) }
+								}
+								
+								foreach ($identifer in $id)
+								{
+									$xmlData.ChildNodes.LanguagePacks.LanguagePack.DisplayStrings.DisplayString | Where-Object { $_.ElementID -eq $identifer } | ForEach-Object { $removed += $_.ParentNode.InnerXML; [void]$_.ParentNode.RemoveChild($_) }
+								}
+								Write-Host "    * Removed the following XML Data from the MP: " -NoNewline
+								Write-Host $($mp.Name) -ForegroundColor Cyan
+								$removed
+								
+								Write-Host "      * Saving copy to: " -NoNewline -ForegroundColor Green
+								Write-Host "$ExportPath`\$($mpPresent.Name).xml" -ForegroundColor Cyan
+								$xmlData.Save("$ExportPath`\$($mpPresent.Name).xml")
+								Write-Host "    * Importing MP: " -NoNewLine
+								Write-Host $($mpPresent.Name) -ForegroundColor Cyan
+								Import-SCOMManagementPack -FullName "$ExportPath`\$($mpPresent.Name).xml" | Out-Null
+								Write-Host "    * Imported modified Management Pack: " -NoNewLine
+								Write-Host $($mpPresent.Name) -ForegroundColor Cyan
+							}
+							catch
+							{ Write-Warning $_ }
 						}
-						catch
-						{ Write-Warning $_ }
-						Write-Host "    * Imported modified Management Pack: " -NoNewLine
-						Write-Host $($mp.Name) -ForegroundColor Cyan
 						#pause
 					}
 					else
 					{
 						Write-Host "	* Backing up Sealed Management Pack: " -NoNewLine -ForegroundColor Green
-						Write-Host $($mp.Name) -ForegroundColor Cyan
-						$mpPresent | Export-SCOMManagementPack -Path $ExportPath -PassThru -ErrorAction Stop
+						Write-Host "$ExportPath`\$($mp.Name).xml" -ForegroundColor Cyan
+						$mpPresent | Export-SCOMManagementPack -Path $ExportPath -PassThru -ErrorAction Stop | Out-Null
 						Write-Host "    * Uninstalling Sealed Management Pack: " -NoNewLine -ForegroundColor Red
 						Write-Host $($mp.Name) -ForegroundColor Cyan
 						Uninstall-ManagementPack -managementpack $mp
@@ -232,8 +248,8 @@ function Remove-MPDependencies
 	#
 	if ($ManagementPackName -like "*")
 	{
-     	        $firstArgName = Get-SCManagementPack -Name $ManagementPackName | Select-Object Name -ExpandProperty Name
-        }
+		$firstArgName = (Get-SCManagementPack -Name $ManagementPackName).Name
+	}
 	elseif ($ManagementPackName -like "*,*")
 	{
 		$firstArgName = ($ManagementPackName.Split(",").Split("["))[1]
@@ -282,6 +298,10 @@ if ($ManagementPackName -or $ManagementPackId -or $PauseOnEach -or $DryRun -or $
 else
 {
 	# Example:
-	#         Remove-MPDependencies -ManagementPackName "*APM*" -ExportPath C:\Users\omadmin\Desktop\Backup
+	#         Remove-MPDependencies -ManagementPackName "*APM*" -ExportPath C:\MPBackups
+	#		  or
+	#		  Remove-MPDependencies -ManagementPackName "*APM*"
+	#		  or
+	#		  Remove-MPDependencies -ManagementPackName Microsoft.Azure.ManagedInstance.Discovery
 	Remove-MPDependencies
 }
