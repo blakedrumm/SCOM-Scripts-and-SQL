@@ -140,7 +140,7 @@ function Remove-MPDependencies
 
 							foreach ($alias in $aliases)
 							{
-                                $xmlData.ChildNodes.Monitoring.Overrides.SecureReferenceOverride | Where-Object { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id = $_.Id; [void]$_.ParentNode.RemoveChild($_) }
+                                				$xmlData.ChildNodes.Monitoring.Overrides.SecureReferenceOverride | Where-Object { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id = $_.Id; [void]$_.ParentNode.RemoveChild($_) }
 								$xmlData.ChildNodes.Monitoring.Overrides.MonitorPropertyOverride | Where-Object { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id = $_.Id; [void]$_.ParentNode.RemoveChild($_) }
 								$xmlData.ChildNodes.Monitoring.Overrides.DiscoveryConfigurationOverride | Where-Object { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id += $_.Id; [void]$_.ParentNode.RemoveChild($_) }
 								$xmlData.ChildNodes.Monitoring.Overrides.RulePropertyOverride | Where-Object { $($_.Context -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id += $_.Id; [void]$_.ParentNode.RemoveChild($_) }
