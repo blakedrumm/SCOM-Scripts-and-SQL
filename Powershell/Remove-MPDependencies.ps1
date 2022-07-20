@@ -230,10 +230,10 @@ function Remove-MPDependencies
 	#######################################################################
 	# Begin Script functionality
 	#
-    if ($ManagementPackName -like "*")
-    {
-        $firstArgName = Get-SCManagementPack -Name $ManagementPackName | Select-Object Name -ExpandProperty Name
-    }
+	if ($ManagementPackName -like "*")
+	{
+     	        $firstArgName = Get-SCManagementPack -Name $ManagementPackName | Select-Object Name -ExpandProperty Name
+        }
 	elseif ($ManagementPackName -like "*,*")
 	{
 		$firstArgName = ($ManagementPackName.Split(",").Split("["))[1]
