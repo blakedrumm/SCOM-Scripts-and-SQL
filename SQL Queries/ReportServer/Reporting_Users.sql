@@ -1,4 +1,4 @@
-SELECT TOP (1000) [UserID]
+SELECT [UserID]
       ,[UserType]
       ,[AuthType]
       ,[UserName]
