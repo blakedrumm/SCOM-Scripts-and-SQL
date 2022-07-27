@@ -1,4 +1,4 @@
-# THIS SCRIPT CAN BE DANGEROUS, MAKE BACKUPS OF YOUR OPSDB AND DW! OR RUN WITH THE '-PauseOnEach' PARAMETER 
+# THIS SCRIPT CAN BE DANGEROUS, MAKE BACKUPS OF YOUR OPSDB AND DW! OR RUN WITH THE '-PauseOnEach' AND `-DryRun` PARAMETERS
 
 # PowerShell script to automatically remove an MP and its dependencies.
 #
@@ -17,6 +17,10 @@ Updated - August 19th, 2021:
 
 Updated - July 20th, 2022:
 	Major Update, my attempt to fix some issues with processing MP Elements
+	
+Updated - July 26th, 2022:
+	Minor Update
+
 #>
 
 # Example:
@@ -93,14 +97,16 @@ function Remove-MPDependencies
 	function Remove-MPsHelper
 	{
 		param ($mpList)
+		$recursiveListOfManagementPacksToRemove = $null
+		$mpList = $mpList
 		foreach ($mp in $mpList)
 		{
-			$id += $null
+			$id = $null
 			$recursiveListOfManagementPacksToRemove = Get-SCManagementPack -Name $mp.Name -Recurse
 			if ($recursiveListOfManagementPacksToRemove.Count -gt 1)
 			{
 				Write-Output "`r`n"
-				Write-Host "The following dependent management packs have to be deleted, before deleting " -NoNewline
+				Write-Host "The following dependent management packs have to be edited/deleted, before deleting " -NoNewline
 				Write-Host $($mp.Name) -ForegroundColor Cyan
 				
 				#$recursiveListOfManagementPacksToRemove | format-table name, Sealed
@@ -117,21 +123,14 @@ function Remove-MPDependencies
 				}
 				else
 				{
-					if ($DryRun)
-					{
-						Write-Host "    * NOT Uninstalling " -NoNewLine -ForegroundColor Gray
-						Write-Host $($mp.Name) -ForegroundColor Cyan
-						Write-Host "         Cannot continue, as this script relies on realtime data to go through each Management Pack." -ForegroundColor Gray
-						break
-					}
-					elseif ($mpPresent.Sealed -eq $false)
+					if ($mpPresent.Sealed -eq $false)
 					{
 						foreach ($arg in $firstArgName)
 						{
 							Write-Host "    * Removing " -NoNewline -ForegroundColor Green
 							Write-Host $arg -ForegroundColor Cyan -NoNewline
 							Write-Host " reference from " -NoNewLine -ForegroundColor Green
-							Write-Host $($mp.Name) -ForegroundColor DarkCyan
+							Write-Host $($mp.Name) -ForegroundColor Magenta
 							try
 							{
 								[array]$removed = $null
@@ -147,19 +146,19 @@ function Remove-MPDependencies
 								Write-Host "$ExportPath`\$($mpPresent.Name).backup-v$mpversion.xml" -ForegroundColor Cyan
 								$xmlData.Save("$ExportPath`\$($mpPresent.Name).backup.xml")
 								$xmldata.ManagementPack.Manifest.Identity.Version = [version]::New($mpversion.Major, $mpversion.Minor, $mpversion.Build, $mpversion.Revision + 1).ToString()
-								Write-Host "        * Current Management Pack Version: " -NoNewline -ForegroundColor DarkCyan
-								Write-Host $mpversion -ForegroundColor Cyan
 								
-								Write-Host "        * Updating Management Pack Version to: " -NoNewline -ForegroundColor DarkCyan
-								Write-Host $($xmldata.ManagementPack.Manifest.Identity.Version) -ForegroundColor Cyan
 								$aliases = $null
 								$xmlData.ChildNodes.Manifest.References.Reference | Where-Object { $_.ID -eq $arg } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $aliases += $_.Alias; [void]$_.ParentNode.RemoveChild($_); }
 								foreach ($alias in $aliases)
 								{
 									Write-Host "      * Alias found: " -NoNewline -ForegroundColor Green
-									Write-Host $alias -ForegroundColor DarkCyan
+									Write-Host $alias -ForegroundColor Magenta
+									
 									# Type Definitions
 									$xmlData.ChildNodes.TypeDefinitions.EntityTypes.ClassTypes.ClassType | Where-Object { $($_.Id -split '!')[0] -eq $alias -or ($($_.Base) -split '!')[0] -eq $alias } | ForEach-Object { if ($_.Property) { $id += $_.Id }; $removed += $_.ParentNode.InnerXML; $id += $_.Id; [void]$_.ParentNode.RemoveChild($_) }
+									$xmlData.ChildNodes.TypeDefinitions.ModuleTypes.DataSourceModuleType | Where-Object { $($_.RunAs -split '!')[0] -eq $alias -or ($($_.Id) -split '!')[0] -eq $alias } | ForEach-Object { $id += $_.Id; $removed += $_.InnerXML; $id += $_.Id; [void]$_.RemoveChild($_) }
+									$xmlData.ChildNodes.TypeDefinitions.ModuleTypes.ProbeActionModuleType.ModuleImplementation.Managed.Assembly | Where-Object { $($_ -split '!')[0] -eq $alias } | ForEach-Object { $removed += ($_.ParentNode).InnerXML; $id += $_.Id; [void]$_.ParentNode.RemoveChild($_) }
+									$xmlData.ChildNodes.TypeDefinitions.MonitorTypes.UnitMonitorType | Where-Object { $($_.RunAs -split '!')[0] -eq $alias -or ($($_.Id) -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id += $_.Id; [void]$_.ParentNode.RemoveChild($_) }
 									
 									# Discoveries
 									$xmlData.ChildNodes.Monitoring.Discoveries.Discovery | Where-Object { $($_.Id -split '!')[0] -eq $alias -or ($($_.Target) -split '!')[0] -eq $alias } | ForEach-Object { $removed += $_.ParentNode.InnerXML; $id += $_.Id; [void]$_.ParentNode.RemoveChild($_) }
@@ -196,21 +195,45 @@ function Remove-MPDependencies
 								{
 									$xmlData.ChildNodes.LanguagePacks.LanguagePack.DisplayStrings.DisplayString | Where-Object { $_.ElementID -eq $identifer } | ForEach-Object { $removed += $_.ParentNode.InnerXML; [void]$_.ParentNode.RemoveChild($_) }
 								}
-								Write-Host "    * Removed the following XML Data from the MP: " -NoNewline -ForegroundColor DarkYellow
-								Write-Host $($mp.Name) -ForegroundColor Cyan
-								Write-Host "`"$removed`"" -ForegroundColor Gray
-								
-								Write-Host "      * Saving Updated MP to: " -NoNewline -ForegroundColor DarkCyan
-								Write-Host "$ExportPath`\$($mpPresent.Name).xml" -ForegroundColor Green
-								$xmlData.Save("$ExportPath`\$($mpPresent.Name).xml")
-								Write-Host "    * Importing MP: " -NoNewLine -ForegroundColor Green
-								Write-Host $($mpPresent.Name) -ForegroundColor Cyan
+								if ($removed)
+								{
+									Write-Host "        * Current Management Pack Version: " -NoNewline -ForegroundColor DarkCyan
+									Write-Host $mpversion -ForegroundColor Cyan
+									
+									Write-Host "        * Updating Management Pack Version to: " -NoNewline -ForegroundColor DarkCyan
+									Write-Host $($xmldata.ManagementPack.Manifest.Identity.Version) -ForegroundColor Cyan
+									
+									Write-Host "    * Removed the following XML Data from the MP: " -NoNewline -ForegroundColor DarkYellow
+									Write-Host $($mp.Name) -ForegroundColor Cyan
+									Write-Host "`"$removed`"" -ForegroundColor Gray
+									
+									Write-Host "      * Saving Updated MP to: " -NoNewline -ForegroundColor DarkCyan
+									Write-Host "$ExportPath`\$($mpPresent.Name).xml" -ForegroundColor Green
+									$xmlData.Save("$ExportPath`\$($mpPresent.Name).xml")
+								}
+								else
+								{
+									Write-Host "    * Unable to locate any XML Nodes to remove" -ForegroundColor Red
+								}
 								$Error.Clear()
 								try
 								{
-									Import-SCManagementPack -FullName "$ExportPath`\$($mpPresent.Name).xml" -ErrorAction Stop | Out-Null
-									Write-Host "    * Imported modified Management Pack: " -NoNewLine -ForegroundColor Green
-									Write-Host $($mpPresent.Name) -ForegroundColor Cyan
+									if ($DryRun)
+									{
+										Write-Host "    * Dry Run Parameter Present - Skipping Import Step for: " -NoNewLine -ForegroundColor Gray
+										Write-Host $($mp.Name) -ForegroundColor Cyan
+									}
+									else
+									{
+										if ($removed)
+										{
+											Write-Host "    * Importing MP: " -NoNewLine -ForegroundColor Green
+											Write-Host $($mpPresent.Name) -ForegroundColor Cyan
+											Import-SCManagementPack -FullName "$ExportPath`\$($mpPresent.Name).xml" -ErrorAction Stop | Out-Null
+											Write-Host "    * Imported modified Management Pack: " -NoNewLine -ForegroundColor Green
+											Write-Host $($mpPresent.Name) -ForegroundColor Cyan
+										}
+									}
 								}
 								catch
 								{
@@ -231,15 +254,26 @@ function Remove-MPDependencies
 						Write-Host "	* Backing up Sealed Management Pack: " -NoNewLine -ForegroundColor DarkCyan
 						Write-Host "$ExportPath`\$($mp.Name).xml" -ForegroundColor Green
 						$mpPresent | Export-SCManagementPack -Path $ExportPath -PassThru -ErrorAction Stop | Out-Null
-						Write-Host "    * Uninstalling Sealed Management Pack: " -NoNewLine -ForegroundColor Red
-						Write-Host $($mp.Name) -ForegroundColor Cyan
-						Remove-SCManagementPack -managementpack $mp
+						
+						if ($DryRun)
+						{
+							Write-Host "    * Dry Run Parameter Present - Skipping Delete Step for: " -NoNewLine -ForegroundColor Gray
+							Write-Host $($mp.Name) -ForegroundColor Cyan
+						}
+						else
+						{
+							Write-Host "    * Uninstalling Sealed Management Pack: " -NoNewLine -ForegroundColor Red
+							Write-Host $($mp.Name) -ForegroundColor Cyan
+							Remove-SCManagementPack -managementpack $mp
+						}
+						
 					}
 				}
 				if ($PauseOnEach)
 				{
 					pause
 				}
+				continue
 			}
 		}
 	}
