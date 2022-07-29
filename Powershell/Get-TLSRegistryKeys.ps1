@@ -164,11 +164,16 @@ Function Get-TLSRegistryKeys
 			}
 		}
 		$odbc = $odbc -split "`n" | Out-String -Width 2048
-		$oledb = $data | where { $_ -eq 'Microsoft OLE DB Driver for SQL Server' }
+		$oledb = $data | where { $_ -like "Microsoft OLE DB Driver*" }
 		if ($oledb)
 		{
 			Write-Verbose "Found: $oledb"
-			$OLEDB = "$OLEDB - $((Get-ItemProperty HKLM:\SOFTWARE\Microsoft\MSOLEDBSQL).InstalledVersion) (Good)"
+			$OLEDB_Output = @()
+			foreach ($software in $oledb)
+			{
+				$OLEDB_Output += "$software - $((Get-ItemProperty HKLM:\SOFTWARE\Microsoft\MSOLEDBSQL*).InstalledVersion) (Good)"
+			}
+			
 		}
 		else
 		{
@@ -266,13 +271,13 @@ Function Get-TLSRegistryKeys
 			"460805" { ".NET Framework 4.7" }
 			"461308" { ".NET Framework 4.7.1" }
 			"461310" { ".NET Framework 4.7.1" }
-            		"461814" { ".NET Framework 4.7.2" }
+			"461814" { ".NET Framework 4.7.2" }
 			"461808" { ".NET Framework 4.7.2" }
 			"461814" { ".NET Framework 4.7.2" }
 			"528040" { ".NET Framework 4.8" }
-           		"528372" { ".NET Framework 4.8" }
+			"528372" { ".NET Framework 4.8" }
 			"528049" { ".NET Framework 4.8" }
-            		"528449" { ".NET Framework 4.8" }
+			"528449" { ".NET Framework 4.8" }
 			default { "Unknown .NET version: $ReleaseRegValue" }
 		}
 		Write-Host '-' -NoNewline -ForegroundColor Green
@@ -323,7 +328,7 @@ Function Get-TLSRegistryKeys
 													@{ n = 'SchUseStrongCrypto_WOW6432Node'; e = { $Crypt2 } },
 													@{ n = 'DefaultTLSVersions'; e = { $DefaultTLSVersions } },
 													@{ n = 'DefaultTLSVersions_WOW6432Node'; e = { $DefaultTLSVersions64 } },
-													@{ n = 'OLEDB'; e = { $OLEDB } },
+													@{ n = 'OLEDB'; e = { $OLEDB_Output } },
 													@{ n = 'ODBC'; e = { $odbc } },
 													@{ n = 'ODBC (ODBC Data Sources\OpsMgrAC)'; e = { $odbcODBCDataSources } },
 													@{ n = 'ODBC (OpsMgrAC\Driver)'; e = { $odbcOpsMgrAC } },
