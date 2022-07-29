@@ -1,23 +1,29 @@
+<#
+    .SYNOPSIS
+        Check TLS Settings for SCOM
+    .DESCRIPTION
+        Gathers TLS settings from the registry.
+    .PARAMETER Servers
+        The servers you would like to run this script to check TLS settings for Operations Manager.
+    .EXAMPLE
+        Local Machine:
+        PS C:\> .\Get-TLSRegistryKeys.ps1
+        Remote Machine
+        PS C:\> .\Get-TLSRegistryKeys.ps1 -Servers MS01-2019.contoso.com, MS02-2019.contoso.com
+    .NOTES
+        Original Author: Mike Kallhoff
+        Author: Blake Drumm (blakedrumm@microsoft.com)
+        Modified: July 29th, 2022
+        Hosted here: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Get-TLSRegistryKeys.ps1
+#>
+param
+(
+	[Parameter(Mandatory = $false)]
+	[array]$Servers
+)
+
 Function Get-TLSRegistryKeys
 {
-    <#
-        .SYNOPSIS
-            Check TLS Settings for SCOM
-        .DESCRIPTION
-            Gathers TLS settings from the registry.
-        .PARAMETER Servers
-            The servers you would like to run this script to check TLS settings for Operations Manager.
-        .EXAMPLE
-            Local Machine:
-            PS C:\> .\Get-TLSRegistryKeys.ps1
-            Remote Machine
-            PS C:\> .\Get-TLSRegistryKeys.ps1 -Servers MS01-2019.contoso.com, MS02-2019.contoso.com
-        .NOTES
-            Original Author: Mike Kallhoff
-            Author: Blake Drumm (blakedrumm@microsoft.com)
-            Modified: July 15th, 2022
-            Hosted here: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Get-TLSRegistryKeys.ps1
-    #>
 	[CmdletBinding()]
 	Param
 	(
@@ -370,4 +376,12 @@ Function Get-TLSRegistryKeys
 		}
 	}
 	$scriptOut | Out-String -Width 4096
+}
+if ($Servers)
+{
+	Get-TLSRegistryKeys -Servers $Servers
+}
+else
+{
+	Get-TLSRegistryKeys
 }
