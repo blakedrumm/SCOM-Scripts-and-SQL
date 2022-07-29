@@ -1,31 +1,23 @@
 Function Get-TLSRegistryKeys
 {
-	<#
-		.SYNOPSIS
-			Check TLS Settings for SCOM
-		
-		.DESCRIPTION
-			Gathers TLS settings from the registry.
-		
-		.PARAMETER Servers
-			The servers you would like to run this script to check TLS settings for Operations Manager.
-		
-		.EXAMPLE
-			Local Machine:
-			PS C:\> .\Get-TLSRegistryKeys.ps1
-
-			Remote Machine
-			PS C:\> .\Get-TLSRegistryKeys.ps1 -Servers MS01-2019.contoso.com, MS02-2019.contoso.com
-		
-		.NOTES
-			
-			Original Author: Mike Kallhoff
-			Author: Blake Drumm (blakedrumm@microsoft.com)
-			
-			Modified: July 15th, 2022
-
-			Hosted here: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Get-TLSRegistryKeys.ps1
-	#>
+    <#
+        .SYNOPSIS
+            Check TLS Settings for SCOM
+        .DESCRIPTION
+            Gathers TLS settings from the registry.
+        .PARAMETER Servers
+            The servers you would like to run this script to check TLS settings for Operations Manager.
+        .EXAMPLE
+            Local Machine:
+            PS C:\> .\Get-TLSRegistryKeys.ps1
+            Remote Machine
+            PS C:\> .\Get-TLSRegistryKeys.ps1 -Servers MS01-2019.contoso.com, MS02-2019.contoso.com
+        .NOTES
+            Original Author: Mike Kallhoff
+            Author: Blake Drumm (blakedrumm@microsoft.com)
+            Modified: July 15th, 2022
+            Hosted here: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Get-TLSRegistryKeys.ps1
+    #>
 	[CmdletBinding()]
 	Param
 	(
@@ -38,12 +30,10 @@ Function Get-TLSRegistryKeys
 	$Servers = $Servers | Sort-Object
 	Write-Host "  Accessing Registry on:`n" -NoNewline -ForegroundColor Gray
 	$scriptOut = $null
-	
 	function Inner-TLSRegKeysFunction
 	{
 		[CmdletBinding()]
 		param ()
-		
 		$finalData = @()
 		$LHost = $env:computername
 		$ProtocolList = "TLS 1.0", "TLS 1.1", "TLS 1.2"
@@ -54,7 +44,6 @@ Function Get-TLSRegistryKeys
 		Write-Output "Path`n----`n$registryPath"
 		foreach ($Protocol in $ProtocolList)
 		{
-			
 			foreach ($key in $ProtocolSubKeyList)
 			{
 				Write-Host "-" -NoNewline -ForegroundColor Green
@@ -98,7 +87,6 @@ Function Get-TLSRegistryKeys
 			}
 		}
 		$results += $finaldata | select -Property * -ExcludeProperty PSComputerName, RunspaceId, PSShowComputerName | ft * -AutoSize
-		
 		$CrypKey1 = "HKLM:\SOFTWARE\Microsoft\.NETFramework\v4.0.30319"
 		$CrypKey2 = "HKLM:\SOFTWARE\WOW6432Node\Microsoft\.NETFramework\v4.0.30319"
 		$Strong = "SchUseStrongCrypto"
@@ -120,7 +108,6 @@ Function Get-TLSRegistryKeys
 		{
 			$Crypt2 = $False
 		}
-		
 		$DefaultTLSVersions = (Get-ItemProperty -Path $CrypKey1 -Name $Strong -ea 0).SystemDefaultTlsVersions
 		If ($DefaultTLSVersions -eq 1)
 		{
@@ -139,7 +126,6 @@ Function Get-TLSRegistryKeys
 		{
 			$DefaultTLSVersions64 = $False
 		}
-		
 		##  ODBC : https://www.microsoft.com/en-us/download/details.aspx?id=50420
 		##  OLEDB : https://docs.microsoft.com/en-us/sql/connect/oledb/download-oledb-driver-for-sql-server?view=sql-server-ver15
 		[string[]]$data = (Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*sql*" }).name
@@ -171,11 +157,11 @@ Function Get-TLSRegistryKeys
 			$OLEDB_Output = @()
 			foreach ($software in $oledb)
 			{
-				if ((Get-ItemProperty HKLM:\SOFTWARE\Microsoft\MSOLEDBSQL19).InstalledVersion)
+				if ($software -eq 'Microsoft OLE DB Driver 19 for SQL Server')
 				{
 					$OLEDB_Output += "$software - $((Get-ItemProperty HKLM:\SOFTWARE\Microsoft\MSOLEDBSQL19).InstalledVersion) (Good)"
 				}
-				elseif ((Get-ItemProperty HKLM:\SOFTWARE\Microsoft\MSOLEDBSQL).InstalledVersion)
+				elseif ($software -eq 'Microsoft OLE DB Driver for SQL Server')
 				{
 					$OLEDB_Output += "$software - $((Get-ItemProperty HKLM:\SOFTWARE\Microsoft\MSOLEDBSQL).InstalledVersion) (Good)"
 				}
@@ -183,9 +169,7 @@ Function Get-TLSRegistryKeys
 				{
 					$OLEDB_Output += "$software - $((Get-ItemProperty HKLM:\SOFTWARE\Microsoft\MSOLEDBSQL*).InstalledVersion) (Good)"
 				}
-				
 			}
-			
 		}
 		else
 		{
@@ -262,7 +246,6 @@ Function Get-TLSRegistryKeys
 		}
 		###################################################
 		# Test .NET Framework version on ALL servers
-		
 		# Get version from registry
 		$RegPath = "HKLM:SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\"
 		[int]$ReleaseRegValue = (Get-ItemProperty $RegPath).Release
@@ -298,7 +281,6 @@ Function Get-TLSRegistryKeys
 		{
 			Write-Verbose ".NET version is 4.6 or later ($VersionString) (Good)"
 			$NetVersion = "$VersionString (Good)"
-			
 		}
 		ELSE
 		{
@@ -306,7 +288,6 @@ Function Get-TLSRegistryKeys
 			$NetVersion = "$VersionString (Does not match required version)"
 		}
 		$SChannelLogging = Get-ItemProperty 'HKLM:\System\CurrentControlSet\Control\SecurityProviders\SCHANNEL' -Name EventLogging | Select-Object EventLogging -ExpandProperty EventLogging
-		
 		$SChannelSwitch = switch ($SChannelLogging)
 		{
 			1 { '0x0001 - Log error messages. (Default)' }
@@ -335,7 +316,6 @@ Function Get-TLSRegistryKeys
 			$SSLCiphers = ((Get-ItemProperty 'HKLM:\SOFTWARE\Policies\Microsoft\Cryptography\Configuration\SSL\00010002').Functions).Split(",") | Sort-Object | Out-String
 		}
 		catch { $SSLCiphers = 'Not Found' }
-		
 		$additional = ('PipeLineKickStart' | Select @{ n = 'SchUseStrongCrypto'; e = { $Crypt1 } },
 													@{ n = 'SchUseStrongCrypto_WOW6432Node'; e = { $Crypt2 } },
 													@{ n = 'DefaultTLSVersions'; e = { $DefaultTLSVersions } },
@@ -350,7 +330,6 @@ Function Get-TLSRegistryKeys
 													@{ n = 'SSL Cipher Suites'; e = { $SSLCiphers } }
 		)
 		$results += $additional | select -Property * -ExcludeProperty PSComputerName, RunspaceId, PSShowComputerName
-		
 		$results += "====================================================="
 		return $results
 	}
@@ -375,7 +354,6 @@ Function Get-TLSRegistryKeys
 					}
 				} -HideComputerName | Out-String) -replace "RunspaceId.*", ""
 			Write-Host "> Completed!`n" -NoNewline -ForegroundColor Green
-			
 		}
 		else
 		{
