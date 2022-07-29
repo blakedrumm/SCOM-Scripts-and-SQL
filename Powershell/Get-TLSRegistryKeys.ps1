@@ -171,7 +171,19 @@ Function Get-TLSRegistryKeys
 			$OLEDB_Output = @()
 			foreach ($software in $oledb)
 			{
-				$OLEDB_Output += "$software - $((Get-ItemProperty HKLM:\SOFTWARE\Microsoft\MSOLEDBSQL*).InstalledVersion) (Good)"
+				if ((Get-ItemProperty HKLM:\SOFTWARE\Microsoft\MSOLEDBSQL19).InstalledVersion)
+				{
+					$OLEDB_Output += "$software - $((Get-ItemProperty HKLM:\SOFTWARE\Microsoft\MSOLEDBSQL19).InstalledVersion) (Good)"
+				}
+				elseif ((Get-ItemProperty HKLM:\SOFTWARE\Microsoft\MSOLEDBSQL).InstalledVersion)
+				{
+					$OLEDB_Output += "$software - $((Get-ItemProperty HKLM:\SOFTWARE\Microsoft\MSOLEDBSQL).InstalledVersion) (Good)"
+				}
+				else
+				{
+					$OLEDB_Output += "$software - $((Get-ItemProperty HKLM:\SOFTWARE\Microsoft\MSOLEDBSQL*).InstalledVersion) (Good)"
+				}
+				
 			}
 			
 		}
