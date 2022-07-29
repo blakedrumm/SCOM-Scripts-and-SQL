@@ -328,7 +328,7 @@ Function Get-TLSRegistryKeys
 													@{ n = 'SchUseStrongCrypto_WOW6432Node'; e = { $Crypt2 } },
 													@{ n = 'DefaultTLSVersions'; e = { $DefaultTLSVersions } },
 													@{ n = 'DefaultTLSVersions_WOW6432Node'; e = { $DefaultTLSVersions64 } },
-													@{ n = 'OLEDB'; e = { $OLEDB_Output } },
+													@{ n = 'OLEDB'; e = { ($OLEDB_Output | Out-String) -join ", " } },
 													@{ n = 'ODBC'; e = { $odbc } },
 													@{ n = 'ODBC (ODBC Data Sources\OpsMgrAC)'; e = { $odbcODBCDataSources } },
 													@{ n = 'ODBC (OpsMgrAC\Driver)'; e = { $odbcOpsMgrAC } },
