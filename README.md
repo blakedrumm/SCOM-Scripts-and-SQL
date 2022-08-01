@@ -1,6 +1,7 @@
 # System Center Operations Manager Script / Guide Repository
 This is where all scripts and SQL Queries I find useful for SCOM and SQL will be stored. If you have any questions, please feel free to submit an issue or a pull request. \
-![Page Views](https://counter.blakedrumm.com/count/tag.svg?url=github.com/blakedrumm/SCOM-Scripts-and-SQL)
+[![Visits Badge](https://badges.strrl.dev/visits/blakedrumm/SCOM-Scripts-and-SQL)](https://badges.strrl.dev)
+<!-- ![Page Views](https://counter.blakedrumm.com/count/tag.svg?url=github.com/blakedrumm/SCOM-Scripts-and-SQL) -->
 <!-- [![Visits Badge](https://badges.pufler.dev/visits/blakedrumm/SCOM-Scripts-and-SQL)](https://badges.pufler.dev) -->
 <!--[![Updated Badge](https://badges.pufler.dev/updated/blakedrumm/SCOM-Scripts-and-SQL)](https://badges.pufler.dev) -->
 
