@@ -484,7 +484,7 @@ public static extern bool LookupPrivilegeDisplayName(
 	   Example for gathering locally:
 	   	 Get-UserRights
 	   #>
-		Get-UserRights
+		Get-UserRights -FileOutputType Text
 	}
 }
 END
