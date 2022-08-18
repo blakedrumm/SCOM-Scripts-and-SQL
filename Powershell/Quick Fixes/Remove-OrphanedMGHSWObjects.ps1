@@ -1,7 +1,8 @@
 #Original Author: Rogério Barros
 #Edited by: Blake Drumm (blakedrumm@microsoft.com)
-$MSWatcherClass = get-scomclass -name "Microsoft.SystemCenter.ManagementServerWatcher"
-$MSClass = get-scomclass -name "Microsoft.SystemCenter.ManagementServer"
+# Modified on: August 18th, 2022
+$MSWatcherClass = get-scomclass -name "Microsoft.SystemCenter.ManagementServerWatcher", "Microsoft.SystemCenter.AgentWatcher"
+$MSClass = get-scomclass -name "Microsoft.SystemCenter.ManagementServer", "Microsoft.SystemCenter.Agent"
 
 
 $watchers = ($MSWatcherClass | Get-SCOMClassInstance).DisplayName
@@ -21,7 +22,7 @@ if ($OrphanedObjects)
 {
 	foreach ($obj in $OrphanedObjects)
 	{
-		Write-Host "Removing: $($obj.DiplayName)" -ForegroundColor Red
+		Write-Host "Removing: $($obj.DisplayName)" -ForegroundColor Red
 		$discdata.Remove($obj)
 	}
 	Write-Host "Committing Removal: $($obj.FullName)" -ForegroundColor Green
@@ -29,5 +30,5 @@ if ($OrphanedObjects)
 }
 else
 {
-	Write-Host "Did not find any orphaned Management Server objects" -ForegroundColor Magenta
+	Write-Host "Did not find any orphaned objects" -ForegroundColor Magenta
 }
