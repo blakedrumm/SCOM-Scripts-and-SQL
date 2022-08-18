@@ -1,26 +1,37 @@
 #Original Author: Rogério Barros
+#Edited by: Blake Drumm (blakedrumm@microsoft.com)
 $MSWatcherClass = get-scomclass -name "Microsoft.SystemCenter.ManagementServerWatcher"
-$MSClass =  get-scomclass -name "Microsoft.SystemCenter.ManagementServer"
+$MSClass = get-scomclass -name "Microsoft.SystemCenter.ManagementServer"
 
 
 $watchers = ($MSWatcherClass | Get-SCOMClassInstance).DisplayName
 $MS = ($MSClass | Get-SCOMClassInstance).DisplayName
 
 $OrphanedObjects = @()
-$OrphanedWatchers = (Compare-Object $watchers $ms | ? {$_.SideIndicator -eq "<="}).inputobject
+$OrphanedWatchers = (Compare-Object $watchers $ms | ? { $_.SideIndicator -eq "<=" }).inputobject
 
 foreach ($ow in $OrphanedWatchers)
 {
-    $OrphanedObjects += get-scomclassinstance -Class $MSWatcherClass | ? {$_.DisplayName -eq $ow}
+	$OrphanedObjects += get-scomclassinstance -Class $MSWatcherClass | ? { $_.DisplayName -eq $ow }
 }
 
 $MG = Get-SCOMManagementGroup
 $discdata = New-Object Microsoft.EnterpriseManagement.ConnectorFramework.IncrementalDiscoveryData
-
-foreach ($obj in $OrphanedObjects)
+if ($OrphanedObjects)
 {
-        Write-Host $obj.Name -ForegroundColor Red
-	$discdata.Remove($obj)
+	if ($($OrphanedObjects.DisplayName.ToCharArray().Count()) -gt 0)
+	{
+		Write-Host "Found $($OrphanedObjects.Count()) orphaned objects!" -ForegroundColor Cyan
+		foreach ($obj in $OrphanedObjects)
+		{
+			Write-Host "Removing: $($obj.Name)" -ForegroundColor Red
+			$discdata.Remove($obj)
+		}
+		Write-Host "Committing: $($obj.Name)" -ForegroundColor Green
+		$discdata.commit($mg)
+	}
 }
-
-$discdata.commit($mg)
+else
+{
+	Write-Host "Did not find any orphaned Management Server objects" -ForegroundColor Magenta
+}
