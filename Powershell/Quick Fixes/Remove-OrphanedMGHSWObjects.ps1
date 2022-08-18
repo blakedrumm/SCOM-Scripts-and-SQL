@@ -2,7 +2,7 @@
 #Edited by: Blake Drumm (blakedrumm@microsoft.com)
 # Modified on: August 18th, 2022
 #
-# This script supports both Management Servers and Agents Orphaned
+# This script supports both Orphaned Management Servers and Agents
 $MSWatcherClass = get-scomclass -name "Microsoft.SystemCenter.ManagementServerWatcher", "Microsoft.SystemCenter.AgentWatcher"
 $MSClass = get-scomclass -name "Microsoft.SystemCenter.ManagementServer", "Microsoft.SystemCenter.Agent"
 
