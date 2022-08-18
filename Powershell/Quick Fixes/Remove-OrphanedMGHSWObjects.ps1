@@ -19,17 +19,13 @@ $MG = Get-SCOMManagementGroup
 $discdata = New-Object Microsoft.EnterpriseManagement.ConnectorFramework.IncrementalDiscoveryData
 if ($OrphanedObjects)
 {
-	if ($($OrphanedObjects.DisplayName.ToCharArray().Count()) -gt 0)
+	foreach ($obj in $OrphanedObjects)
 	{
-		Write-Host "Found $($OrphanedObjects.Count()) orphaned objects!" -ForegroundColor Cyan
-		foreach ($obj in $OrphanedObjects)
-		{
-			Write-Host "Removing: $($obj.Name)" -ForegroundColor Red
-			$discdata.Remove($obj)
-		}
-		Write-Host "Committing: $($obj.Name)" -ForegroundColor Green
-		$discdata.commit($mg)
+		Write-Host "Removing: $($obj.DiplayName)" -ForegroundColor Red
+		$discdata.Remove($obj)
 	}
+	Write-Host "Committing Removal: $($obj.FullName)" -ForegroundColor Green
+	$discdata.commit($mg)
 }
 else
 {
