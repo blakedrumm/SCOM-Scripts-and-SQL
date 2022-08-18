@@ -53,7 +53,7 @@
 		April 10th, 2021
 		
 		.MODIFIED
-		February 26th, 2022
+		August 18th, 2022
 #>
 [OutputType([string])]
 param
@@ -453,9 +453,30 @@ DO NOT EDIT PAST THIS POINT
 					$agentList = new-object $genericList.FullName
 					foreach ($serv in $Servers)
 					{
-						Write-Host "$(Time-Stamp)Deleting SCOM Agent: `'$serv`' from Agent Managed Computers"
-						$agent = Get-SCOMAgent *$serv*
-						$agentList.Add($agent);
+						if (!$AssumeYes)
+						{
+							do
+							{
+								$answer = Read-Host -Prompt 'Do you want to delete the SCOM Agent from Managed Computers? (Y/N)'
+							}
+							until ($answer -eq "y" -or $answer -eq "n")
+							
+						}
+						else
+						{
+							$answer = 'y'
+						}
+						if ($answer -eq 'y')
+						{
+							Write-Host "$(Time-Stamp)Deleting SCOM Agent: `'$serv`' from Agent Managed Computers"
+							$agent = Get-SCOMAgent $serv*
+							$agentList.Add($agent);
+						}
+						else
+						{
+							Write-Host "$(Time-Stamp)Skipping deletion from Agent Managed Computers."
+						}
+						
 					}
 					$genericReadOnlyCollectionType = [System.Collections.ObjectModel.ReadOnlyCollection``1]
 					$genericReadOnlyCollection = $genericReadOnlyCollectionType.MakeGenericType($agentManagedComputerType)
@@ -464,7 +485,7 @@ DO NOT EDIT PAST THIS POINT
 					{
 						$administration.DeleteAgentManagedComputers($agentReadOnlyCollection);
 					}
-					catch { Write-Host 'Unable to delete from Agent Managed Computers' -ForegroundColor Cyan }
+					catch { Write-Host "$(Time-Stamp)Unable to delete from Agent Managed Computers" -ForegroundColor Cyan }
 				}
 				else
 				{
@@ -712,7 +733,7 @@ EXEC p_DiscoveryDataPurgingByBaseManagedEntity @TimeGenerated, @BatchSize, @RowC
 	}
 	else
 	{
-<# Edit line 727 to modify the default command run when this script is executed.
+<# Edit line 748 to modify the default command run when this script is executed.
    Example:
    Remove-SCOMBaseManagedEntity -ManagementServer MS1-2019.contoso.com -SqlServer SQL-2019\SCOM2019 -Database OperationsManager -Servers Agent1.contoso.com, Agent2.contoso.com
    
