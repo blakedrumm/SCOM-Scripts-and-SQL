@@ -19,6 +19,7 @@ $discdata = New-Object Microsoft.EnterpriseManagement.ConnectorFramework.Increme
 
 foreach ($obj in $OrphanedObjects)
 {
+        Write-Host $obj.Name -ForegroundColor Red
 	$discdata.Remove($obj)
 }
 
