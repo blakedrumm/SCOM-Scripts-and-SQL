@@ -1,4 +1,4 @@
-cd 'C:\Program Files\Microsoft System Center\Operations Manager'
+#cd 'C:\Program Files\Microsoft System Center\Operations Manager'
 $output = $null
 $output = @()
 
