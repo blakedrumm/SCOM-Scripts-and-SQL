@@ -1,4 +1,5 @@
 --Detect Orphaned objects; Added FullName
+-- September 9th, 2022 - Updated to include HealthServiceWatchers
 declare @DiscoverySourceId uniqueidentifier;
 declare @TimeGenerated datetime;
 set @TimeGenerated = GETUTCDATE();
@@ -23,8 +24,11 @@ LEFT OUTER JOIN dbo.Relationship HSC
 ON HSC.[SourceEntityId] = HS.[BaseManagedEntityId]
 AND HSC.[RelationshipTypeId] = dbo.fn_RelationshipTypeId_HealthServiceCommunication()
 AND HSC.[IsDeleted] = 0
+-- Check Health Service Watcher
+INNER JOIN MT_Microsoft$SystemCenter$HealthServiceWatcher HSW
+ON BHS.BaseManagedEntityId = HSW.BaseManagedEntityId
 INNER JOIN DiscoverySourceToTypedManagedEntity DSTME
 ON DSTME.[TypedManagedEntityId] = TME.[TypedManagedEntityId]
 AND DSTME.[DiscoverySourceId] = @DiscoverySourceId
 WHERE HS.[IsAgent] = 1
-AND HSC.[RelationshipId] IS NULL;
+AND HSC.[RelationshipId] IS NULL
