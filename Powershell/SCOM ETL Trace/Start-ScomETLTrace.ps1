@@ -82,7 +82,7 @@
 		September 3rd 2020
 		
 		.MODIFIED
-		August 4th, 2022
+		September 7th, 2022
 #>
 [CmdletBinding()]
 [OutputType([string])]
@@ -790,7 +790,22 @@ exit 0
 		Remove-Item $TempETLTrace`\ETL\* -Confirm:$false | Out-Null
 	}
 	Copy-Item "C:\Windows\Logs\OpsMgrTrace\*" "$TempETLTrace`\ETL" -Force | Out-Null
-	
+    Write-Host "$(Out-TimeStamp)Gathering IP Address Infomration." -ForegroundColor Cyan
+	$ip = ([System.Net.Dns]::GetHostAddresses($Env:COMPUTERNAME)).IPAddressToString;
+	[string]$IPList = ""
+	$IPSplit = $IP.Split(",")
+	FOREACH ($IPAddr in $IPSplit)
+	{
+		[string]$IPAddr = $IPAddr.Trim()
+		IF (!($IPAddr.StartsWith("fe80") -or $IPAddr.StartsWith("169.254")))
+		{
+			$IPList = $IPList + $IPAddr + ", "
+		}
+	}
+	$IPList = $IPList.TrimEnd(", ")
+	Write-Host "$(Out-TimeStamp)Writing to: $TempETLTrace`\ComputerInfo.txt" -ForegroundColor Cyan
+	"Hostname    : $env:COMPUTERNAME" | Out-File "$TempETLTrace`\ComputerInfo.txt"
+	"IP Addresses: $IPList" | Out-File "$TempETLTrace`\ComputerInfo.txt" -Append
 	#Zip output
 	$Error.Clear()
 	Write-Host "$(Out-TimeStamp)Zipping up Trace Output." -ForegroundColor DarkCyan
