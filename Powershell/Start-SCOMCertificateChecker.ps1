@@ -39,6 +39,9 @@
 		PS C:\> .\Check-SCOMCertificates.ps1 -All
 	
 	.NOTES
+		Update 09/2022 (Blake Drumm, https://github.com/blakedrumm/ )
+		Added ability to gather issuer. Fixed bug in output.
+
 		Update 03/2022 (Blake Drumm, https://github.com/blakedrumm/ )
 		Major Update / alot of changes to how this script acts remotely and locally and added remoting abilites that are much superior to previous versions
 		
@@ -164,7 +167,7 @@ $(Time-Stamp) : Starting Script
 		$certs = [Array] (dir cert:\LocalMachine\my\)
 		$text1 = "Running against server: $env:COMPUTERNAME"
 		$out += "`n" + $text1
-		Write-Host $text1
+		Write-Host $text1 -ForegroundColor Cyan
 		if ($certs -eq $null)
 		{
 			$text2 = @"
@@ -179,6 +182,7 @@ $(Time-Stamp) : Starting Script
 		}
 		$x = 0
 		$a = 0
+		$alreadyCheckedThis = $false
 		if ($All)
 		{
 			$FoundCount = "Found: $($certs.Count) certificates"
@@ -206,6 +210,10 @@ $(Time-Stamp) : Starting Script
 			}
 			if (!$All)
 			{
+				if ($alreadyCheckedThis)
+				{
+					break
+				}
 				$certSerial = $cert.SerialNumber
 				$certSerialReversed = [System.String]("")
 				-1 .. -19 | % { $certSerialReversed += $certSerial[2 * $_] + $certSerial[2 * $_ + 1] }
@@ -250,30 +258,34 @@ $(Time-Stamp) : Starting Script
 						{
 							$i = $i
 							$i++
-							$NotPresentCount = $i
 							$text36 = "Serial Number written to the registry does not match"
 							$out += "`n" + $text36
-							Write-Verbose $text36
+							Write-Host $text36 -BackgroundColor Red -ForegroundColor Black
 							$text37 = @"
-    The certificate serial number is does not match what is written to registry.
+    The certificate serial number does not match what is written to registry.
     Need to run MomCertImport.exe
 "@
-							Write-Verbose $text37
+							Write-Host $text37
 							$out += "`n" + $text37
-							continue
+							break
                                 <# Do Nothing.#>
 						}
 					}
+					$alreadyCheckedThis = $true
 				}
 			}
 			$certificateReversed = -1 .. - $($cert.SerialNumber.Length) | % { $cert.SerialNumber[2 * $_] + $cert.SerialNumber[2 * $_ + 1] }
 			$text4 = @"
 =====================================================================================================================
+$(if (!$SerialNumber -and $All) { "($x`/$($certs.Count)) " })Examining Certificate
 
-=====================================================================================================================
-$(if (!$SerialNumber -and $All) { "($x`/$($certs.Count)) " })Examining Certificate`n`nSubject: "$($cert.Subject)"
+Subject: "$($cert.Subject)"
 
-$(if ($cert.FriendlyName) { "Friendly name: $($cert.FriendlyName)`n`n" })Serial Number: "$($cert.SerialNumber)"
+$(if ($cert.FriendlyName) { "Friendly name: $($cert.FriendlyName)" })
+
+Issued by: $(($cert.Issuer -split ',' | Where { $_ -match "CN=|DC=" }).Replace("CN=", '').Replace("DC=", '').Trim() -join '.')
+
+Serial Number: "$($cert.SerialNumber)"
 
 Serial Number Reversed: $($certificateReversed)
 =====================================================================================================================
@@ -525,7 +537,7 @@ Enhanced Key Usage Extension is Good
 			
 			if (! (Test-Path "HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Machine Settings"))
 			{
-				$text36 = "Serial Number is not written to registry"
+				$text36 = "Serial Number is not written to the registry"
 				$out += "`n" + $text36
 				Write-Host $text36 -BackgroundColor Red -ForegroundColor Black
 				$text37 = @"
@@ -541,7 +553,7 @@ Enhanced Key Usage Extension is Good
 				$regKeys = get-itemproperty -path "HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Machine Settings"
 				if ($regKeys.ChannelCertificateSerialNumber -eq $null)
 				{
-					$text38 = "Serial Number is not written to registry"
+					$text38 = "Serial Number is not written to the registry"
 					$out += "`n" + $text38
 					Write-Host $text38 -BackgroundColor Red -ForegroundColor Black
 					$text39 = @"
@@ -559,7 +571,7 @@ Enhanced Key Usage Extension is Good
 					if ($regSerial -eq "" -or $null) { $regSerial = "`{Empty`}" }
 					if ($regSerial -ne $certSerialReversed)
 					{
-						$text40 = "Serial Number (mismatch) written to registry"
+						$text40 = "Serial Number (mismatch) written to the registry"
 						$out += "`n" + $text40
 						Write-Host $text40 -BackgroundColor Red -ForegroundColor Black
 						$text41 = @"
@@ -571,7 +583,7 @@ Enhanced Key Usage Extension is Good
 						Write-Host $text41
 						$pass = $false
 					}
-					else { $text42 = "The serial number is written the to registry"; $out += "`n" + $text42; Write-Host $text42 -BackgroundColor Green -ForegroundColor Black }
+					else { $text42 = "Serial Number is written to the registry"; $out += "`n" + $text42; Write-Host $text42 -BackgroundColor Green -ForegroundColor Black }
 				}
 			}
 			
@@ -586,18 +598,19 @@ Enhanced Key Usage Extension is Good
 			{
 				$text43 = "Certification Chain Issue"
 				$out += "`n" + $text43
-				Write-Host $text43 -BackgroundColor Yellow -ForegroundColor Black
+				Write-Host $text43 -BackgroundColor Red -ForegroundColor Black
 				$text44 = @"
     The following error occurred building a certification chain with this certificate:
     $($chain.ChainStatus[0].StatusInformation)
     This is an error if the certificates on the remote machines are issued
     from this same CA - $($cert.Issuer)
     Please ensure the certificates for the CAs which issued the certificates configured
-    on the remote machines is installed to the Local Machine Trusted Root Authorities
-    store on this machine.
+    on the remote machines are installed to the Local Machine Trusted Root Authorities
+    store on this machine. (certlm.msc)
 "@
 				$out += "`n" + $text44
-				Write-Host $text44
+				Write-Host $text44 -ForegroundColor Yellow
+				$pass = $false
 			}
 			else
 			{
@@ -607,16 +620,17 @@ Enhanced Key Usage Extension is Good
 				{
 					$text45 = "Certification Chain Root CA Missing"
 					$out += "`n" + $text45
-					Write-Host $text45 -BackgroundColor Yellow -ForegroundColor Black
+					Write-Host $text45 -BackgroundColor Red -ForegroundColor Black
 					$text46 = @"
     This certificate has a valid certification chain installed, but
     a root CA certificate verifying the issuer $($cert.Issuer)
     was not found in the Local Machine Trusted Root Authorities store.
     Make sure the proper root CA certificate is installed there, and not in
-    the Current User Trusted Root Authorities store.
+    the Current User Trusted Root Authorities store. (certlm.msc)
 "@
 					$out += "`n" + $text46
-					Write-Host $text46
+					Write-Host $text46 -ForegroundColor Yellow
+					$pass = $false
 				}
 				else
 				{
@@ -636,7 +650,14 @@ Enhanced Key Usage Extension is Good
 			}
 			
 			
-			if ($pass) { $text49 = "***This certificate is properly configured and imported for System Center Operations Manager.***"; $out += "`n" + $text49; Write-Host $text49 -ForegroundColor Green }
+			if ($pass)
+			{
+				$text49 = "`n*** This certificate is properly configured and imported for System Center Operations Manager ***"; $out += "`n" + $text49; Write-Host $text49 -ForegroundColor Green
+			}
+			else
+			{
+				$text49 = "`n*** This certificate is NOT properly configured for System Center Operations Manager ***"; $out += "`n" + $text49; Write-Host $text49 -ForegroundColor White -BackgroundColor Red
+			}
 			$out += "`n" + " " # This is so there is white space between each Cert. Makes it less of a jumbled mess.
 		}
 		if ($certs.Count -eq $NotPresentCount)
@@ -647,6 +668,7 @@ Enhanced Key Usage Extension is Good
 
 $(Time-Stamp) : Script Completed
 "@
+		Write-Verbose "$out"
 		return $out
 	}
 	$InnerCheckSCOMCertificateFunctionScript = "function Inner-SCOMCertCheck { ${function:Inner-SCOMCertCheck} }"
@@ -691,20 +713,35 @@ PROCESS
 Certificate Checker
 
 "@
-			Write-Host $startofline
+			Write-Host '========================================================'
+			Write-Host @"
+Certificate Checker
+
+"@ -ForegroundColor Black -BackgroundColor Cyan
 			$MainScriptOutput += $startofline
 			if ($server -ne $env:COMPUTERNAME)
 			{
-				$MainScriptOutput += Invoke-Command -ComputerName $server -ArgumentList $InnerCheckSCOMCertificateFunctionScript, $All -ScriptBlock {
+				$MainScriptOutput += Invoke-Command -ComputerName $server -ArgumentList $InnerCheckSCOMCertificateFunctionScript, $All, $SerialNumber -ScriptBlock {
 					Param ($script,
-						$All)
+						$All,
+						$SerialNumber,
+						$VerbosePreference)
 					. ([ScriptBlock]::Create($script))
-					return Inner-SCOMCertCheck -All:$All
+					return Inner-SCOMCertCheck -All:$All -SerialNumber $SerialNumber
+					
 				} -ErrorAction SilentlyContinue
 			}
 			else
 			{
-				$MainScriptOutput += Inner-SCOMCertCheck -Servers $Servers -All:$All -SerialNumber:$SerialNumber -ErrorAction SilentlyContinue
+				if ($VerbosePreference.value__ -ne 0)
+				{
+					$MainScriptOutput += Inner-SCOMCertCheck -Servers $Servers -All:$All -SerialNumber:$SerialNumber -Verbose -ErrorAction SilentlyContinue
+				}
+				else
+				{
+					$MainScriptOutput += Inner-SCOMCertCheck -Servers $Servers -All:$All -SerialNumber:$SerialNumber -ErrorAction SilentlyContinue
+				}
+				
 			}
 		}
 		if ($OutputFile)
@@ -723,15 +760,14 @@ Certificate Checker
 	}
 	else
 	{
-		#Modify line 730 if you want to change the default behavior when running this script through Powershell ISE
-		# Example: Check-SCOMCertificate -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
-		# Example: Check-SCOMCertificate -All
-		# Example: Check-SCOMCertificate -All -OutputFile C:\Temp\Certs-Output.txt
+		# Modify line 770 if you want to change the default behavior when running this script through Powershell ISE
+		#
+		# Examples: 
+		# Check-SCOMCertificate -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
+		# Check-SCOMCertificate -All
+		# Check-SCOMCertificate -All -OutputFile C:\Temp\Certs-Output.txt
+		# Check-SCOMCertificate -Servers MS01, MS02
 		Check-SCOMCertificate
 	}
 	#endregion DefaultActions
-}
-END
-{
-	Write-Host "Script Completed!"
 }
