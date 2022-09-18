@@ -1,4 +1,4 @@
-<#
+	<#
     .SYNOPSIS
         Check TLS Settings for SCOM
     .DESCRIPTION
@@ -13,13 +13,13 @@
     .NOTES
         Original Author: Mike Kallhoff
         Author: Blake Drumm (blakedrumm@microsoft.com)
-        Modified: July 29th, 2022
+        Modified: September 18th, 2022
         Hosted here: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Get-TLSRegistryKeys.ps1
 #>
-param
+[CmdletBinding()]
+Param
 (
-	[Parameter(Mandatory = $false)]
-	[array]$Servers
+	[string[]]$Servers
 )
 
 Function Get-TLSRegistryKeys
@@ -253,45 +253,51 @@ Function Get-TLSRegistryKeys
 		###################################################
 		# Test .NET Framework version on ALL servers
 		# Get version from registry
-		$RegPath = "HKLM:SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\"
-		[int]$ReleaseRegValue = (Get-ItemProperty $RegPath).Release
-		# Interpret .NET version
-		[string]$VersionString = switch ($ReleaseRegValue)
+		$NetVersion = @()
+		$RegPath = "HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\"
+		$ReleaseRegValues = (Get-ItemProperty $RegPath)
+		foreach ($ReleaseRegValue in $ReleaseRegValues)
 		{
-			"378389" { ".NET Framework 4.5" }
-			"378675" { ".NET Framework 4.5.1" }
-			"378758" { ".NET Framework 4.5.1" }
-			"379893" { ".NET Framework 4.5.2" }
-			"393295" { ".NET Framework 4.6" }
-			"393297" { ".NET Framework 4.6" }
-			"394254" { ".NET Framework 4.6.1" }
-			"394271" { ".NET Framework 4.6.1" }
-			"394802" { ".NET Framework 4.6.2" }
-			"394806" { ".NET Framework 4.6.2" }
-			"460798" { ".NET Framework 4.7" }
-			"460805" { ".NET Framework 4.7" }
-			"461308" { ".NET Framework 4.7.1" }
-			"461310" { ".NET Framework 4.7.1" }
-			"461814" { ".NET Framework 4.7.2" }
-			"461808" { ".NET Framework 4.7.2" }
-			"461814" { ".NET Framework 4.7.2" }
-			"528040" { ".NET Framework 4.8" }
-			"528372" { ".NET Framework 4.8" }
-			"528049" { ".NET Framework 4.8" }
-			"528449" { ".NET Framework 4.8" }
-			default { "Unknown .NET version: $ReleaseRegValue" }
-		}
-		Write-Host '-' -NoNewline -ForegroundColor Green
-		# Check if version is 4.6 or higher
-		IF ($ReleaseRegValue -ge 393295)
-		{
-			Write-Verbose ".NET version is 4.6 or later ($VersionString) (Good)"
-			$NetVersion = "$VersionString (Good)"
-		}
-		ELSE
-		{
-			Write-Verbose ".NET version is NOT 4.6 or later ($VersionString) (Bad)"
-			$NetVersion = "$VersionString (Does not match required version)"
+            <#
+			# Interpret .NET version
+			[string]$VersionString = switch ($ReleaseRegValue)
+			{
+				"378389" { ".NET Framework 4.5" }
+				"378675" { ".NET Framework 4.5.1" }
+				"378758" { ".NET Framework 4.5.1" }
+				"379893" { ".NET Framework 4.5.2" }
+				"393295" { ".NET Framework 4.6" }
+				"393297" { ".NET Framework 4.6" }
+				"394254" { ".NET Framework 4.6.1" }
+				"394271" { ".NET Framework 4.6.1" }
+				"394802" { ".NET Framework 4.6.2" }
+				"394806" { ".NET Framework 4.6.2" }
+				"460798" { ".NET Framework 4.7" }
+				"460805" { ".NET Framework 4.7" }
+				"461308" { ".NET Framework 4.7.1" }
+				"461310" { ".NET Framework 4.7.1" }
+				"461814" { ".NET Framework 4.7.2" }
+				"461808" { ".NET Framework 4.7.2" }
+				"461814" { ".NET Framework 4.7.2" }
+				"528040" { ".NET Framework 4.8" }
+				"528372" { ".NET Framework 4.8" }
+				"528049" { ".NET Framework 4.8" }
+				"528449" { ".NET Framework 4.8" }
+				default { "Unknown .NET version: $ReleaseRegValue" }
+			}
+            #>
+			Write-Host '-' -NoNewline -ForegroundColor Green
+			# Check if version is 4.6 or higher
+			IF ($ReleaseRegValue.Release -ge 393295)
+			{
+				Write-Verbose ".NET version is 4.6 or later (Detected: $($ReleaseRegValue.Version)) (Good)"
+				$NetVersion += ".NET Framework $($ReleaseRegValue.Version) (Good)"
+			}
+			ELSE
+			{
+				Write-Verbose ".NET version is NOT 4.6 or later (Detected: $ReleaseRegValue.Version) (Bad)"
+				$NetVersion += ".NET Framework $($ReleaseRegValue.Version) (Does not match required version, .NET 4.6 ATLEAST is required)"
+			}
 		}
 		$SChannelLogging = Get-ItemProperty 'HKLM:\System\CurrentControlSet\Control\SecurityProviders\SCHANNEL' -Name EventLogging | Select-Object EventLogging -ExpandProperty EventLogging
 		$SChannelSwitch = switch ($SChannelLogging)
@@ -326,12 +332,12 @@ Function Get-TLSRegistryKeys
 													@{ n = 'SchUseStrongCrypto_WOW6432Node'; e = { $Crypt2 } },
 													@{ n = 'DefaultTLSVersions'; e = { $DefaultTLSVersions } },
 													@{ n = 'DefaultTLSVersions_WOW6432Node'; e = { $DefaultTLSVersions64 } },
-													@{ n = 'OLEDB'; e = { ($OLEDB_Output | Out-String) -join ", " } },
+													@{ n = 'OLEDB'; e = { $OLEDB_Output -split "`n" | Out-String -Width 2048 } },
 													@{ n = 'ODBC'; e = { $odbc } },
 													@{ n = 'ODBC (ODBC Data Sources\OpsMgrAC)'; e = { $odbcODBCDataSources } },
 													@{ n = 'ODBC (OpsMgrAC\Driver)'; e = { $odbcOpsMgrAC } },
 													@{ n = 'SQLClient'; e = { $SQLClient } },
-													@{ n = '.NetFramework'; e = { $NetVersion } },
+													@{ n = '.NetFramework'; e = { $NetVersion -split "`n" | Out-String -Width 2048 } },
 													@{ n = 'SChannel Logging'; e = { $SChannelSwitch } },
 													@{ n = 'SSL Cipher Suites'; e = { $SSLCiphers } }
 		)
