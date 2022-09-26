@@ -13,7 +13,7 @@
     .NOTES
         Original Author: Mike Kallhoff
         Author: Blake Drumm (blakedrumm@microsoft.com)
-        Modified: September 18th, 2022
+        Modified: September 26th, 2022
         Hosted here: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Get-TLSRegistryKeys.ps1
 #>
 [CmdletBinding()]
@@ -87,8 +87,8 @@ Function Get-TLSRegistryKeys
 				$localresults = "PipeLineKickStart" | select @{ n = 'Server'; e = { $LHost } },
 															 @{ n = 'Protocol'; e = { $Protocol } },
 															 @{ n = 'Type'; e = { $key } },
-															 @{ n = 'DisabledByDefault'; e = { $IsDisabledByDefault } },
-															 @{ n = 'IsEnabled'; e = { $IsEnabled } }
+															 @{ n = 'DisabledByDefault'; e = { ($IsDisabledByDefault).ToString().Replace('0', 'False').Replace('1', 'True') } },
+															 @{ n = 'IsEnabled'; e = { ($IsEnabled).ToString().Replace('0', 'False').Replace('1', 'True') } }
 				$finalData += $localresults
 			}
 		}
@@ -220,8 +220,8 @@ Function Get-TLSRegistryKeys
 				$localresults = "PipeLineKickStart" | select @{ n = 'Server'; e = { $LHost } },
 															 @{ n = 'Protocol'; e = { $Protocol } },
 															 @{ n = 'Type'; e = { $key } },
-															 @{ n = 'DisabledByDefault'; e = { $IsDisabledByDefault } },
-															 @{ n = 'IsEnabled'; e = { $IsEnabled } }
+															 @{ n = 'DisabledByDefault'; e = { ($IsDisabledByDefault).ToString().Replace('0', 'False').Replace('1', 'True') } },
+															 @{ n = 'IsEnabled'; e = { ($IsEnabled).ToString().Replace('0', 'False').Replace('1', 'True') } }
 				$finalData += $localresults
 			}
 		}
@@ -328,8 +328,17 @@ Function Get-TLSRegistryKeys
 			$SSLCiphers = ((Get-ItemProperty 'HKLM:\SOFTWARE\Policies\Microsoft\Cryptography\Configuration\SSL\00010002').Functions).Split(",") | Sort-Object | Out-String
 		}
 		catch { $SSLCiphers = 'Not Found' }
+		try
+		{
+			$FIPS = Get-ItemProperty "HKLM:\System\CurrentControlSet\Control\LSA\FIPSAlgorithmPolicy" | Select Enabled, PSPath
+		}
+		catch
+		{
+			$FIPS = 'PipelineKickstart' | Select @{ n = 'Enabled'; e = { 'Not Found.' } }, @{ n = 'PSPath'; e = { 'HKLM:\System\CurrentControlSet\Control\LSA\FIPSAlgorithmPolicy' } }
+		}
 		$additional = ('PipeLineKickStart' | Select @{ n = 'SchUseStrongCrypto'; e = { $Crypt1 } },
 													@{ n = 'SchUseStrongCrypto_WOW6432Node'; e = { $Crypt2 } },
+													@{ n = 'FIPS Enabled'; e = { ($FIPS.Enabled).ToString().Replace("0", "False").Replace("1", "True") } },
 													@{ n = 'DefaultTLSVersions'; e = { $DefaultTLSVersions } },
 													@{ n = 'DefaultTLSVersions_WOW6432Node'; e = { $DefaultTLSVersions64 } },
 													@{ n = 'OLEDB'; e = { $OLEDB_Output -split "`n" | Out-String -Width 2048 } },
