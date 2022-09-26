@@ -40,6 +40,9 @@
 	
 	.NOTES
 		Update 09/2022 (Blake Drumm, https://github.com/blakedrumm/ )
+		Fixed bug introduced in last update. Certificates are checked correctly now.
+	
+		Update 09/2022 (Blake Drumm, https://github.com/blakedrumm/ )
 		Added ability to gather issuer. Fixed bug in output.
 
 		Update 03/2022 (Blake Drumm, https://github.com/blakedrumm/ )
@@ -113,7 +116,7 @@ begin
 		$nopermission = "Insufficient permissions to run this script. Open the PowerShell console as an administrator and run this script again."
 		$MainScriptOutput += $nopermission
 		Write-Warning $nopermission
-		sleep 5
+		Start-Sleep 5
 		break
 	}
 	else
@@ -164,7 +167,7 @@ $(Time-Stamp) : Starting Script
 
 "@
 		# Consider all certificates in the Local Machine "Personal" store
-		$certs = [Array] (dir cert:\LocalMachine\my\)
+		$certs = [Array] (Get-ChildItem cert:\LocalMachine\my\)
 		$text1 = "Running against server: $env:COMPUTERNAME"
 		$out += "`n" + $text1
 		Write-Host $text1 -ForegroundColor Cyan
@@ -210,14 +213,9 @@ $(Time-Stamp) : Starting Script
 			}
 			if (!$All)
 			{
-				if ($alreadyCheckedThis)
-				{
-					break
-				}
 				$certSerial = $cert.SerialNumber
 				$certSerialReversed = [System.String]("")
-				-1 .. -19 | % { $certSerialReversed += $certSerial[2 * $_] + $certSerial[2 * $_ + 1] }
-				
+				-1 .. -19 | ForEach-Object { $certSerialReversed += $certSerial[2 * $_] + $certSerial[2 * $_ + 1] }
 				if (! (Test-Path "HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Machine Settings"))
 				{
 					$text36 = "Serial Number is not written to registry"
@@ -252,29 +250,16 @@ $(Time-Stamp) : Starting Script
 					else
 					{
 						$regSerial = ""
-						$regKeys.ChannelCertificateSerialNumber | % { $regSerial += $_.ToString("X2") }
+						$regKeys.ChannelCertificateSerialNumber | ForEach-Object { $regSerial += $_.ToString("X2") }
 						if ($regSerial -eq "" -or $null) { $regSerial = "`{Empty`}" }
-						if ($regSerial -ne $certSerialReversed)
+						if ($regSerial -ne $($certSerialReversed -Join (" ")))
 						{
-							$i = $i
-							$i++
-							$text36 = "Serial Number written to the registry does not match"
-							$out += "`n" + $text36
-							Write-Host $text36 -BackgroundColor Red -ForegroundColor Black
-							$text37 = @"
-    The certificate serial number does not match what is written to registry.
-    Need to run MomCertImport.exe
-"@
-							Write-Host $text37
-							$out += "`n" + $text37
-							break
-                                <# Do Nothing.#>
+							continue
 						}
 					}
-					$alreadyCheckedThis = $true
 				}
 			}
-			$certificateReversed = -1 .. - $($cert.SerialNumber.Length) | % { $cert.SerialNumber[2 * $_] + $cert.SerialNumber[2 * $_ + 1] }
+			$certificateReversed = -1 .. - $($cert.SerialNumber.Length) | ForEach-Object { $cert.SerialNumber[2 * $_] + $cert.SerialNumber[2 * $_ + 1] }
 			$text4 = @"
 =====================================================================================================================
 $(if (!$SerialNumber -and $All) { "($x`/$($certs.Count)) " })Examining Certificate
@@ -283,7 +268,7 @@ Subject: "$($cert.Subject)"
 
 $(if ($cert.FriendlyName) { "Friendly name: $($cert.FriendlyName)" })
 
-Issued by: $(($cert.Issuer -split ',' | Where { $_ -match "CN=|DC=" }).Replace("CN=", '').Replace("DC=", '').Trim() -join '.')
+Issued by: $(($cert.Issuer -split ',' | Where-Object { $_ -match "CN=|DC=" }).Replace("CN=", '').Replace("DC=", '').Trim() -join '.')
 
 Serial Number: "$($cert.SerialNumber)"
 
@@ -386,7 +371,7 @@ Expiration
 			
 			# Enhanced key usage extension
 			
-			$enhancedKeyUsageExtension = $cert.Extensions | ? { $_.ToString() -match "X509EnhancedKeyUsageExtension" }
+			$enhancedKeyUsageExtension = $cert.Extensions | Where-Object { $_.ToString() -match "X509EnhancedKeyUsageExtension" }
 			if ($enhancedKeyUsageExtension -eq $null)
 			{
 				$text16 = "Enhanced Key Usage Extension Missing"
@@ -430,7 +415,7 @@ Expiration
 "@
 						$out += "`n" + $text21
 						Write-Host $text21
-						$usages | %{ $text22 = "      $($_.Value)"; $out += "`n" + $text22; Write-Host $text22 }
+						$usages | ForEach-Object{ $text22 = "      $($_.Value)"; $out += "`n" + $text22; Write-Host $text22 }
 						$pass = $false
 					}
 					else
@@ -445,7 +430,7 @@ Enhanced Key Usage Extension is Good
 			
 			# KeyUsage extension
 			
-			$keyUsageExtension = $cert.Extensions | ? { $_.ToString() -match "X509KeyUsageExtension" }
+			$keyUsageExtension = $cert.Extensions | Where-Object { $_.ToString() -match "X509KeyUsageExtension" }
 			if ($keyUsageExtension -eq $null)
 			{
 				$text24 = "Key Usage Extensions Missing"
@@ -533,7 +518,7 @@ Enhanced Key Usage Extension is Good
 			
 			$certSerial = $cert.SerialNumber
 			$certSerialReversed = [System.String]("")
-			-1 .. -19 | % { $certSerialReversed += $certSerial[2 * $_] + $certSerial[2 * $_ + 1] }
+			-1 .. -19 | ForEach-Object { $certSerialReversed += $certSerial[2 * $_] + $certSerial[2 * $_ + 1] }
 			
 			if (! (Test-Path "HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Machine Settings"))
 			{
@@ -567,7 +552,7 @@ Enhanced Key Usage Extension is Good
 				else
 				{
 					$regSerial = ""
-					$regKeys.ChannelCertificateSerialNumber | % { $regSerial += $_.ToString("X2") }
+					$regKeys.ChannelCertificateSerialNumber | ForEach-Object { $regSerial += $_.ToString("X2") }
 					if ($regSerial -eq "" -or $null) { $regSerial = "`{Empty`}" }
 					if ($regSerial -ne $certSerialReversed)
 					{
@@ -614,8 +599,8 @@ Enhanced Key Usage Extension is Good
 			}
 			else
 			{
-				$rootCaCert = $chain.ChainElements | select -property Certificate -last 1
-				$localMachineRootCert = dir cert:\LocalMachine\Root | ? { $_ -eq $rootCaCert.Certificate }
+				$rootCaCert = $chain.ChainElements | Select-Object -property Certificate -last 1
+				$localMachineRootCert = Get-ChildItem cert:\LocalMachine\Root | Where-Object { $_ -eq $rootCaCert.Certificate }
 				if ($localMachineRootCert -eq $null)
 				{
 					$text45 = "Certification Chain Root CA Missing"
@@ -703,7 +688,7 @@ PROCESS
 		else
 		{
 			$Servers = ($Servers.Split(",").Split(" ") -replace (" ", ""))
-			$Servers = $Servers | select -Unique
+			$Servers = $Servers | Select-Object -Unique
 		}
 		foreach ($server in $Servers)
 		{
@@ -747,7 +732,7 @@ Certificate Checker
 		if ($OutputFile)
 		{
 			$MainScriptOutput | Out-File $OutputFile -Width 4096
-			start C:\Windows\explorer.exe -ArgumentList "/select, $OutputFile"
+			Start-Process C:\Windows\explorer.exe -ArgumentList "/select, $OutputFile"
 		}
 		#return $out
 		continue
@@ -760,7 +745,7 @@ Certificate Checker
 	}
 	else
 	{
-		# Modify line 770 if you want to change the default behavior when running this script through Powershell ISE
+		# Modify line 755 if you want to change the default behavior when running this script through Powershell ISE
 		#
 		# Examples: 
 		# Check-SCOMCertificate -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
