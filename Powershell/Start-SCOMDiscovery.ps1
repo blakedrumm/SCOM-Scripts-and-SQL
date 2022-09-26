@@ -25,7 +25,7 @@ param
 	[String]$DiscoveryId,
 	[Parameter(Mandatory = $false,
 			   Position = 5)]
-	[Int]$Wait,
+	$Wait,
 	[Parameter(Mandatory = $false,
 			   Position = 6)]
 	[String]$OutputFile
