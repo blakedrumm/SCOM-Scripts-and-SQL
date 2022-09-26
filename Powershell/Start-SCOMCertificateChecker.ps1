@@ -264,15 +264,13 @@ $(Time-Stamp) : Starting Script
 =====================================================================================================================
 $(if (!$SerialNumber -and $All) { "($x`/$($certs.Count)) " })Examining Certificate
 
-Subject: "$($cert.Subject)"
+`tSubject: "$($cert.Subject)" $(if ($cert.FriendlyName) { "`n`n`tFriendly name: $($cert.FriendlyName)" })
 
-$(if ($cert.FriendlyName) { "Friendly name: $($cert.FriendlyName)" })
+`tIssued by: $(($cert.Issuer -split ',' | Where-Object { $_ -match "CN=|DC=" }).Replace("CN=", '').Replace("DC=", '').Trim() -join '.')
 
-Issued by: $(($cert.Issuer -split ',' | Where-Object { $_ -match "CN=|DC=" }).Replace("CN=", '').Replace("DC=", '').Trim() -join '.')
+`tSerial Number: "$($cert.SerialNumber)"
 
-Serial Number: "$($cert.SerialNumber)"
-
-Serial Number Reversed: $($certificateReversed)
+`tSerial Number Reversed: $($certificateReversed)
 =====================================================================================================================
 "@
 			Write-Host $text4
@@ -745,7 +743,7 @@ Certificate Checker
 	}
 	else
 	{
-		# Modify line 755 if you want to change the default behavior when running this script through Powershell ISE
+		# Modify line 757 if you want to change the default behavior when running this script through Powershell ISE
 		#
 		# Examples: 
 		# Check-SCOMCertificate -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
