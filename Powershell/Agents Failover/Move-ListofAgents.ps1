@@ -11,6 +11,8 @@ SCSM.contoso.local
 SQL-SCEM02.contoso.local
 "@
 
+#We will look for all Agents Managed by this Management Server.
+$movefromManagementServer = Get-SCOMManagementServer -Name "MS02.contoso.local"
 #Primary Management Server
 $movetoPrimaryMgmtServer = Get-SCOMManagementServer -Name "MS01.contoso.local"
 #Secondary Management Server
@@ -26,12 +28,12 @@ foreach ($line in ($AgentList -split "`n"))
 		$i = $i
 		#Remove Failover Management Server
 		Write-Output "($i/$(($AgentList.Trim() -split "`n").Count)) $($agent.DisplayName)`n      Removing Failover: $(($agent.GetFailoverManagementServers()).DisplayName -join ", ")"
-		$scomAgentDetails | Set-SCOMParentManagementServer -FailoverServer $null | Out-Null
+		$agent | Set-SCOMParentManagementServer -FailoverServer $null | Out-Null
 		#Set Primary Management Server
 		Write-Output "      Primary: $(($agent.GetPrimaryManagementServer()).DisplayName) -> $($movetoPrimaryMgmtServer.DisplayName)"
-		$scomAgentDetails | Set-SCOMParentManagementServer -PrimaryServer $movetoPrimaryMgmtServer | Out-Null
+		$agent | Set-SCOMParentManagementServer -PrimaryServer $movetoPrimaryMgmtServer | Out-Null
 		#Set Secondary Management Server
 		Write-Output "      Failover: $($movetoFailoverMgmtServer.DisplayName)`n"
-		$scomAgentDetails | Set-SCOMParentManagementServer -FailoverServer $movetoFailoverMgmtServer | Out-Null
+		$agent | Set-SCOMParentManagementServer -FailoverServer $movetoFailoverMgmtServer | Out-Null
 	}
 }
