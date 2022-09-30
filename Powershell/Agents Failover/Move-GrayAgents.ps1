@@ -44,5 +44,6 @@ foreach ($agent in $scomAgent)
 		Write-Verbose "Unable to locate any data."
 	}
 }
+Write-Output "Script completed!"
 #endregion MainScript
 #===================================================================
