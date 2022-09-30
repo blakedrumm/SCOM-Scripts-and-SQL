@@ -26,6 +26,7 @@ foreach ($agent in $scomAgent)
 {
 	$i++
 	$i = $i
+	Write-Progress -Activity 'Running' -Status 'Script is executing' -PercentComplete $($i/$scomAgent.count * 100)
 	$scomAgentDetails = Get-SCOMAgent -ManagementServer $movefromManagementServer | Where { $_.DisplayName -match $agent.DisplayName }
 	if ($scomAgentDetails)
 	{
