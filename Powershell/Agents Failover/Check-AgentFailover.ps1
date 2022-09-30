@@ -9,7 +9,6 @@
 #region Script Start
 Import-Module OperationsManager;
 $agents = Get-SCOMAgent
-#endregion ScriptStart
 # ===============================
 
 # ===============================
@@ -17,6 +16,7 @@ $agents = Get-SCOMAgent
 $primaryOutput = @()
 $i = 0
 #endregion Initiate Variables
+#endregion ScriptStart
 # ===============================
 
 # ===============================
@@ -50,7 +50,9 @@ ForEach ($agent in $agents)
 
 # ===============================
 #region Output
+# Output to a table
 $primaryOutput | ft *
+# Output to a csv file in C:\Temp\
 $primaryOutput | Export-Csv -Path C:\Temp\AgentList_of_Primary_and_Failover.csv -NoTypeInformation
 #endregion Output
 # ===============================
