@@ -17,6 +17,7 @@ $i = 0
 #endregion Initiate Variables
 # ===============================
 
+# ===============================
 #region Main Script
 ForEach ($agent in $agents)
 {
@@ -42,8 +43,11 @@ ForEach ($agent in $agents)
 	
 };
 #endregion Main Script
+# ===============================
 
+# ===============================
 #region Output
 $primaryOutput | ft *
 $primaryOutput | Export-Csv -Path C:\Temp\AgentList_of_Primary_and_Failover.csv -NoTypeInformation
 #endregion Output
+# ===============================
