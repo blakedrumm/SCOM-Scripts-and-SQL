@@ -1,5 +1,7 @@
 # ===============================
 # Author: Blake Drumm (blakedrumm@microsoft.com)
+# Created: September 30th, 2022
+# Modified: September 30th, 2022
 # Script location: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Agents%20Failover/Check-AgentFailover.ps1
 # ===============================
 
@@ -23,6 +25,7 @@ ForEach ($agent in $agents)
 {
 	$i++
 	$i = $i
+	Write-Progress -Activity 'Running' -Status 'Script is executing' -PercentComplete $($i/$agents.count * 100)
 	Write-Output "($i / $($agents.count)) $($agent.DisplayName)"
 	$output = [pscustomobject]@{ }
 	$output | Add-Member -MemberType NoteProperty -Name 'Server Agent' -Value $agent.DisplayName -ErrorAction SilentlyContinue
@@ -40,7 +43,7 @@ ForEach ($agent in $agents)
 	
 	$output | Add-Member -MemberType NoteProperty -Name 'Failover Management Server' -Value $(($agent.GetFailoverManagementServers()).DisplayName -join ", ") -ErrorAction SilentlyContinue
 	$primaryOutput += $output
-	
+	sleep 2
 };
 #endregion Main Script
 # ===============================
