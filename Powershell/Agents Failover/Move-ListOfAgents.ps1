@@ -21,12 +21,12 @@ $movetoFailoverMgmtServer = Get-SCOMManagementServer -Name "MS02.contoso.local"
 $i = 0
 foreach ($line in ($AgentList -split "`n"))
 {
-	$SCOMAgent = Get-SCOMAgent $line.trim()
-	foreach ($agent in $SCOMAgent)
+	$SCOMAgents = Get-SCOMAgent $line.trim()
+	foreach ($agent in $SCOMAgents)
 	{
 		$i++
 		$i = $i
-		Write-Progress -Activity 'Running' -Status 'Script is executing' -PercentComplete $($i/$agents.count * 100)
+		Write-Progress -Activity 'Running' -Status 'Script is executing' -PercentComplete $($i/$SCOMAgents.count * 100)
 		#Remove Failover Management Server
 		Write-Output "($i/$(($AgentList.Trim() -split "`n").Count)) $($agent.DisplayName)`n      Removing Failover: $(($agent.GetFailoverManagementServers()).DisplayName -join ", ")"
 		$agent | Set-SCOMParentManagementServer -FailoverServer $null | Out-Null
