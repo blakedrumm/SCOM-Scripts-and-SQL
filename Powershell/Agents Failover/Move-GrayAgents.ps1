@@ -1,4 +1,10 @@
-#Author: Blake Drumm (blakedrumm@microsoft.com)
+# ===============================
+# Author: Blake Drumm (blakedrumm@microsoft.com)
+# Created: September 30th, 2022
+# Modified: September 30th, 2022
+# Script location: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Agents%20Failover/Move-ListofAgents.ps1
+# ===============================
+
 Import-Module OperationsManager
 
 #===================================================================
