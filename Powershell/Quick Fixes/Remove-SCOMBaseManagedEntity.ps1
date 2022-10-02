@@ -31,7 +31,7 @@
 	
 	.EXAMPLE
 		Remove SCOM BME Related Data from the OperationsManager DB, on every Agent in the Management Group.
-		PS C:\> Get-SCOMAgent | %{.\Remove-SCOMBaseManagedEntity.ps1 -Agents $_}
+		PS C:\> Get-SCOMAgent | %{.\Remove-SCOMBaseManagedEntity.ps1 -Servers $_}
 		
 		Remove SCOM BME Related Data for 2 Agent machines:
 		PS C:\> .\Remove-SCOMBaseManagedEntity.ps1 -Servers IIS-Server.contoso.com, WindowsServer.contoso.com
