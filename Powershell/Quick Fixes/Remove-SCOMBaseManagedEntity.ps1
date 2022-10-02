@@ -24,7 +24,7 @@
 		The Base Managed Entity Display Name of the object you are wanting to delete from the Operations Manager Database.
 	
 	.PARAMETER Servers
-		Each Server (comma seperated) you want to Remove related BME ID's related to the Display Name in the OperationsManager Database.
+		Each Server (comma separated) you want to Remove related BME ID's related to the Display Name in the OperationsManager Database.
 	
 	.PARAMETER SqlServer
 		SQL Server/Instance,Port that hosts OperationsManager Database for SCOM.
@@ -86,7 +86,7 @@ param
 	[Parameter(Mandatory = $false,
 			   ValueFromPipeline = $true,
 			   Position = 7,
-			   HelpMessage = "Each Server (comma seperated) you want to Remove related BME ID's related to the Display Name in the OperationsManager Database. This will also remove from Agent Managed.")]
+			   HelpMessage = "Each Server (comma separated) you want to Remove related BME ID's related to the Display Name in the OperationsManager Database. This will also remove from Agent Managed.")]
 	[Array]$Servers,
 	[Parameter(Mandatory = $false,
 			   Position = 8,
@@ -361,7 +361,7 @@ PROCESS
 			[Parameter(Mandatory = $false,
 					   ValueFromPipeline = $true,
 					   Position = 7,
-					   HelpMessage = "Each Server (comma seperated) you want to Remove related BME ID's related to the Display Name in the OperationsManager Database. This will also remove from Agent Managed.")]
+					   HelpMessage = "Each Server (comma separated) you want to Remove related BME ID's related to the Display Name in the OperationsManager Database. This will also remove from Agent Managed.")]
 			[Array]$Servers,
 			[Parameter(Mandatory = $false,
 					   Position = 8,
