@@ -736,7 +736,7 @@ EXEC p_DiscoveryDataPurgingByBaseManagedEntity @TimeGenerated, @BatchSize, @RowC
 	}
 	else
 	{
-<# Edit line 748 to modify the default command run when this script is executed.
+<# Edit line 751 to modify the default command run when this script is executed.
    Example:
    Remove-SCOMBaseManagedEntity -ManagementServer MS1-2019.contoso.com -SqlServer SQL-2019\SCOM2019 -Database OperationsManager -Servers Agent1.contoso.com, Agent2.contoso.com
    
