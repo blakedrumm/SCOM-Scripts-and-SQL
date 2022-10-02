@@ -43,6 +43,9 @@
 		.AUTHOR
 		Blake Drumm (blakedrumm@microsoft.com)
 		
+		Blog Post:
+		https://blakedrumm.com/blog/remove-data-from-scom-database/
+		
 		Github Page:
 		https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Remove-SCOMBaseManagedEntity.ps1
 		
@@ -53,7 +56,7 @@
 		April 10th, 2021
 		
 		.MODIFIED
-		August 18th, 2022
+		October 2nd, 2022
 #>
 [OutputType([string])]
 param
