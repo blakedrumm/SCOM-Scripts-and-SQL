@@ -25,7 +25,7 @@ ForEach ($agent in $agents)
 {
 	$i++
 	$i = $i
-	Write-Progress -Activity 'Running' -Status 'Script is executing' -PercentComplete $($i/$agents.count * 100)
+
 	Write-Output "($i / $($agents.count)) $($agent.DisplayName)"
 	$output = [pscustomobject]@{ }
 	$output | Add-Member -MemberType NoteProperty -Name 'Server Agent' -Value $agent.DisplayName -ErrorAction SilentlyContinue
