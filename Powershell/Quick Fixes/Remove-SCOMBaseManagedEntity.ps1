@@ -43,6 +43,7 @@
 		.AUTHOR
 		Blake Drumm (blakedrumm@microsoft.com)
 		
+		.NOTE
 		Blog Post:
 		https://blakedrumm.com/blog/remove-data-from-scom-database/
 		
