@@ -11,8 +11,6 @@ SCSM.contoso.local
 SQL-SCEM02.contoso.local
 "@
 
-#We will look for all Agents Managed by this Management Server.
-$movefromManagementServer = Get-SCOMManagementServer -Name "MS02.contoso.local"
 #Primary Management Server
 $movetoPrimaryMgmtServer = Get-SCOMManagementServer -Name "MS01.contoso.local"
 #Secondary Management Server
