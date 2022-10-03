@@ -24,7 +24,7 @@ foreach ($line in ($AgentList -split "`n"))
 	{
 		$i++
 		$i = $i
-		Write-Progress -Activity 'Running' -Status 'Script is executing' -PercentComplete $($i/$SCOMAgents.count * 100)
+		
 		#Remove Failover Management Server
 		Write-Output "($i/$(($AgentList.Trim() -split "`n").Count)) $($agent.DisplayName)`n      Removing Failover: $(($agent.GetFailoverManagementServers()).DisplayName -join ", ")"
 		$agent | Set-SCOMParentManagementServer -FailoverServer $null | Out-Null
