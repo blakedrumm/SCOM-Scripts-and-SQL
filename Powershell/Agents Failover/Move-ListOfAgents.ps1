@@ -5,6 +5,8 @@
 # Script location: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Agents%20Failover/Move-ListofAgents.ps1
 # ===============================
 
+Import-Module OperationsManager
+
 #List of agents to change
 $AgentList = @"
 SCSM.contoso.local
