@@ -22,32 +22,56 @@ jobs:
       steps:
       - uses: actions/checkout@master
       - name: Copy Operations Manager Powershell to Blake Drumm - File Repository
-        uses: appleboy/scp-action@master
+        # You may pin to the exact commit or the version.
+        # uses: AbleLincoln/push-to-sftp@a6c117bb60fdc94ab8e5b139cdb0b19bea582c81
+        uses: AbleLincoln/push-to-sftp@v1.2
         with:
+          # SFTP server
           host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSWORD }}
+          # SFTP server port
           port: ${{ secrets.PORT }}
-          source: "/github/workspace/Powershell"
-          target: "/var/www/blakedrumm_fileshare/Powershell/OperationsManager/Single Files"
-
+          # SFTP username
+          username: ${{ secrets.USERNAME }}
+          # SFTP password
+          password: ${{ secrets.PASSWORD }}
+          # Source directory to upload from (will upload all files in this directory)
+          sourceDir: "/github/workspace/Powershell"
+          # Remote directory to upload to (WARNING: overwrites ALL files in this directory)
+          targetDir: "/var/www/blakedrumm_fileshare/Powershell/OperationsManager/Single Files"
+          
       - name: Copy AutomatedLab Powershell to Blake Drumm - File Repository
-        uses: appleboy/scp-action@master
+        # You may pin to the exact commit or the version.
+        # uses: AbleLincoln/push-to-sftp@a6c117bb60fdc94ab8e5b139cdb0b19bea582c81
+        uses: AbleLincoln/push-to-sftp@v1.2
         with:
+          # SFTP server
           host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSWORD }}
+          # SFTP server port
           port: ${{ secrets.PORT }}
-          source: "/github/workspace/AutomatedLab"
-          target: "/var/www/blakedrumm_fileshare/Powershell/AutomatedLab/OperationsManager"
-
-
+          # SFTP username
+          username: ${{ secrets.USERNAME }}
+          # SFTP password
+          password: ${{ secrets.PASSWORD }}
+          # Source directory to upload from (will upload all files in this directory)
+          sourceDir: "/github/workspace/AutomatedLab"
+          # Remote directory to upload to (WARNING: overwrites ALL files in this directory)
+          targetDir: "/var/www/blakedrumm_fileshare/Powershell/AutomatedLab/OperationsManager"
+          
+          
       - name: Copy Operations Manager SQL Queries to Blake Drumm - File Repository
-        uses: appleboy/scp-action@master
+        # You may pin to the exact commit or the version.
+        # uses: AbleLincoln/push-to-sftp@a6c117bb60fdc94ab8e5b139cdb0b19bea582c81
+        uses: AbleLincoln/push-to-sftp@v1.2
         with:
+          # SFTP server
           host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSWORD }}
+          # SFTP server port
           port: ${{ secrets.PORT }}
-          source: "/github/workspace/SQL Queries"
-          target: "/var/www/blakedrumm_fileshare/SQL-Queries/OperationsManager"
+          # SFTP username
+          username: ${{ secrets.USERNAME }}
+          # SFTP password
+          password: ${{ secrets.PASSWORD }}
+          # Source directory to upload from (will upload all files in this directory)
+          sourceDir: "/github/workspace/SQL Queries"
+          # Remote directory to upload to (WARNING: overwrites ALL files in this directory)
+          targetDir: "/var/www/blakedrumm_fileshare/SQL-Queries/OperationsManager"
