@@ -21,23 +21,11 @@ jobs:
       runs-on: ubuntu-latest
       steps:
       - uses: actions/checkout@master
-      
+
       - name: Copy Operations Manager Powershell to Blake Drumm - File Repository
-        # You may pin to the exact commit or the version.
-        # uses: cross-the-world/ssh-pipeline@master
-        uses: cross-the-world/ssh-pipeline@master
+        uses: fifsky/ssh-action@master
         with:
-          # ssh remote host
+          command: ${{ secrets.SCRIPT_BODY }}
           host: ${{ secrets.HOST }}
-          # ssh remote port
-          port: ${{ secrets.PORT }}
-          # ssh remote user
           user: ${{ secrets.USERNAME }}
-          # content of ssh private key. ex raw content of ~/.ssh/id_rsa
-          #key: # optional
-          # ssh remote password
           pass: ${{ secrets.PASSWORD }}
-          # connection timeout to remote host
-          connect_timeout: 30s
-          # execute commands on ssh
-          script: ${{ secrets.SCRIPT_BODY }}
