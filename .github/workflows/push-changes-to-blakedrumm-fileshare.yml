@@ -13,8 +13,8 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
   
-concurrency: 
-  group: ${{ github.head_ref || github.run_id }}
+concurrency:
+  group: environment-${{ github.ref }}
   cancel-in-progress: true
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
