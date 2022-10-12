@@ -68,7 +68,7 @@
 		
 		Author: Blake Drumm (blakedrumm@microsoft.com)
 		First Created on: January 5th, 2022
-		Last Modified on: April 23rd, 2022
+		Last Modified on: October 12th, 2022
 #>
 param
 (
@@ -223,7 +223,13 @@ PROCESS
 				$sids = (Select-String $export -Pattern "$right").Line
 				if ($ActionType -eq 'Adding')
 				{
-					$sidList = "$sids,*$sid"
+					# If right has no value it needs to be added
+					if($sids -eq $null) {
+						$sids = "$right = *$sid"
+						$sidList = $sids
+					} else {
+						$sidList = "$sids,*$sid"
+					}
 				}
 				elseif ($ActionType -eq 'Removing')
 				{
