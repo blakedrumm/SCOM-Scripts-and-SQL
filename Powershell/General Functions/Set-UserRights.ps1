@@ -235,6 +235,7 @@ PROCESS
 				{
 					$sidList = "$($sids.Replace("*$sid", '').Replace("$Username", '').Replace(",,", ',').Replace("= ,", '= '))"
 				}
+                Write-Verbose $sidlist
 				foreach ($line in @("[Unicode]", "Unicode=yes", "[System Access]", "[Event Audit]", "[Registry Values]", "[Version]", "signature=`"`$CHICAGO$`"", "Revision=1", "[Profile Description]", "Description=$ActionType `"$UserLogonRight`" right for user account: $Username", "[Privilege Rights]", "$sidList"))
 				{
 					Add-Content $import $line
@@ -385,7 +386,7 @@ PROCESS
 	else
 	{
 		
-	 <# Edit line 392 to modify the default command run when this script is executed.
+	 <# Edit line 399 to modify the default command run when this script is executed.
 	   Example: 
 	        Set-UserRights -AddRight -UserRight SeServiceLogonRight, SeBatchLogonRight -ComputerName $env:COMPUTERNAME, SQL.contoso.com -UserName CONTOSO\User1, CONTOSO\User2
 	        or
