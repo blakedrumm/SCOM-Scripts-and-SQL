@@ -68,7 +68,7 @@
 		
 		Author: Blake Drumm (blakedrumm@microsoft.com)
 		First Created on: January 5th, 2022
-		Last Modified on: April 23rd, 2022
+		Last Modified on: October 12th, 2022
 #>
 param
 (
@@ -223,12 +223,19 @@ PROCESS
 				$sids = (Select-String $export -Pattern "$right").Line
 				if ($ActionType -eq 'Adding')
 				{
-					$sidList = "$sids,*$sid"
+					# If right has no value it needs to be added
+					if($sids -eq $null) {
+						$sids = "$right = *$sid"
+						$sidList = $sids
+					} else {
+						$sidList = "$sids,*$sid"
+					}
 				}
 				elseif ($ActionType -eq 'Removing')
 				{
 					$sidList = "$($sids.Replace("*$sid", '').Replace("$Username", '').Replace(",,", ',').Replace("= ,", '= '))"
 				}
+                Write-Verbose $sidlist
 				foreach ($line in @("[Unicode]", "Unicode=yes", "[System Access]", "[Event Audit]", "[Registry Values]", "[Version]", "signature=`"`$CHICAGO$`"", "Revision=1", "[Profile Description]", "Description=$ActionType `"$UserLogonRight`" right for user account: $Username", "[Privilege Rights]", "$sidList"))
 				{
 					Add-Content $import $line
@@ -379,7 +386,7 @@ PROCESS
 	else
 	{
 		
-	 <# Edit line 392 to modify the default command run when this script is executed.
+	 <# Edit line 399 to modify the default command run when this script is executed.
 	   Example: 
 	        Set-UserRights -AddRight -UserRight SeServiceLogonRight, SeBatchLogonRight -ComputerName $env:COMPUTERNAME, SQL.contoso.com -UserName CONTOSO\User1, CONTOSO\User2
 	        or
