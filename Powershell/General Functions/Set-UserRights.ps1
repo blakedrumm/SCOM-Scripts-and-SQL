@@ -25,17 +25,52 @@
 		Name of the right you want to add to: SeServiceLogonRight
 		There is no default for this argument
 		
-		Some (but not all) of the Options you can use:
-		"Log on as a batch job (SeBatchLogonRight)"
-		"Allow log on locally (SeInteractiveLogonRight)"
-		"Access this computer from the network (SeNetworkLogonRight)"
-		"Allow log on through Remote Desktop Services (SeRemoteInteractiveLogonRight)"
-		"Log on as a service (SeServiceLogonRight)"
-		"Deny log on as a batch job (SeDenyBatchLogonRight)"
-		"Deny log on locally (SeDenyInteractiveLogonRight)"
-		"Deny access to this computer from the network (SeDenyNetworkLogonRight)"
-		"Deny log on through Remote Desktop Services (SeDenyRemoteInteractiveLogonRight)"
-		"Deny log on as a service (SeDenyServiceLogonRight)"
+		All of the Options you can use:
+			Replace a process level token (SeAssignPrimaryTokenPrivilege)
+			Generate security audits (SeAuditPrivilege)
+			Back up files and directories (SeBackupPrivilege)
+			Log on as a batch job (SeBatchLogonRight)
+			Bypass traverse checking (SeChangeNotifyPrivilege)
+			Create global objects (SeCreateGlobalPrivilege)
+			Create a pagefile (SeCreatePagefilePrivilege)
+			Create permanent shared objects (SeCreatePermanentPrivilege)
+			Create symbolic links (SeCreateSymbolicLinkPrivilege)
+			Create a token object (SeCreateTokenPrivilege)
+			Debug programs (SeDebugPrivilege)
+			Obtain an impersonation token for another user in the same session (SeDelegateSessionUserImpersonatePrivilege)
+			Deny log on as a batch job (SeDenyBatchLogonRight)
+			Deny log on locally (SeDenyInteractiveLogonRight)
+			Deny access to this computer from the network (SeDenyNetworkLogonRight)
+			Deny log on through Remote Desktop Services (SeDenyRemoteInteractiveLogonRight)
+			Deny log on as a service (SeDenyServiceLogonRight)
+			Enable computer and user accounts to be trusted for delegation (SeEnableDelegationPrivilege)
+			Impersonate a client after authentication (SeImpersonatePrivilege)
+			Increase scheduling priority (SeIncreaseBasePriorityPrivilege)
+			Adjust memory quotas for a process (SeIncreaseQuotaPrivilege)
+			Increase a process working set (SeIncreaseWorkingSetPrivilege)
+			Allow log on locally (SeInteractiveLogonRight)
+			Load and unload device drivers (SeLoadDriverPrivilege)
+			Lock pages in memory (SeLockMemoryPrivilege)
+			Add workstations to domain (SeMachineAccountPrivilege)
+			Perform volume maintenance tasks (SeManageVolumePrivilege)
+			Access this computer from the network (SeNetworkLogonRight)
+			Profile single process (SeProfileSingleProcessPrivilege)
+			Modify an object label (SeRelabelPrivilege)
+			Allow log on through Remote Desktop Services (SeRemoteInteractiveLogonRight)
+			Force shutdown from a remote system (SeRemoteShutdownPrivilege)
+			Restore files and directories (SeRestorePrivilege)
+			Manage auditing and security log (SeSecurityPrivilege)
+			Log on as a service (SeServiceLogonRight)
+			Shut down the system (SeShutdownPrivilege)
+			Synchronize directory service data (SeSyncAgentPrivilege)
+			Modify firmware environment values (SeSystemEnvironmentPrivilege)
+			Profile system performance (SeSystemProfilePrivilege)
+			Change the system time (SeSystemtimePrivilege)
+			Take ownership of files or other objects (SeTakeOwnershipPrivilege)
+			Act as part of the operating system (SeTcbPrivilege)
+			Change the time zone (SeTimeZonePrivilege)
+			Access Credential Manager as a trusted caller (SeTrustedCredManAccessPrivilege)
+			Remove computer from docking station (SeUndockPrivilege)
 	
 	.Example
 		Usage:
@@ -224,10 +259,13 @@ PROCESS
 				if ($ActionType -eq 'Adding')
 				{
 					# If right has no value it needs to be added
-					if($sids -eq $null) {
+					if ($sids -eq $null)
+					{
 						$sids = "$right = *$sid"
 						$sidList = $sids
-					} else {
+					}
+					else
+					{
 						$sidList = "$sids,*$sid"
 					}
 				}
@@ -235,7 +273,7 @@ PROCESS
 				{
 					$sidList = "$($sids.Replace("*$sid", '').Replace("$Username", '').Replace(",,", ',').Replace("= ,", '= '))"
 				}
-                Write-Verbose $sidlist
+				Write-Verbose $sidlist
 				foreach ($line in @("[Unicode]", "Unicode=yes", "[System Access]", "[Event Audit]", "[Registry Values]", "[Version]", "signature=`"`$CHICAGO$`"", "Revision=1", "[Profile Description]", "Description=$ActionType `"$UserLogonRight`" right for user account: $Username", "[Privilege Rights]", "$sidList"))
 				{
 					Add-Content $import $line
@@ -386,7 +424,7 @@ PROCESS
 	else
 	{
 		
-	 <# Edit line 399 to modify the default command run when this script is executed.
+	 <# Edit line 437 to modify the default command run when this script is executed.
 	   Example: 
 	        Set-UserRights -AddRight -UserRight SeServiceLogonRight, SeBatchLogonRight -ComputerName $env:COMPUTERNAME, SQL.contoso.com -UserName CONTOSO\User1, CONTOSO\User2
 	        or
