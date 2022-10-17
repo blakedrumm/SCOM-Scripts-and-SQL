@@ -48,7 +48,7 @@
 		https://blakedrumm.com/blog/remove-data-from-scom-database/
 		
 		Github Page:
-		https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Remove-SCOMBaseManagedEntity.ps1
+		https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Quick%20Fixes/Remove-SCOMBaseManagedEntity.ps1
 		
 		Website:
 		https://blakedrumm.com/
