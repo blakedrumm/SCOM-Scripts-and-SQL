@@ -8,4 +8,4 @@ FROM (SELECT ManagementGroupName AS 'MG_Name' FROM __MOMManagementGroupInfo__) A
 (SELECT COUNT(*) AS 'Agent_Count' FROM MTV_HealthService WHERE IsManagementServer = 0 AND IsGateway = 0) AS Agent_Count,
 (SELECT COUNT(*) AS 'Agent_Pending' FROM AgentPendingAction) AS Agent_Pending,
 (SELECT COUNT(*) AS 'Unix_Count' FROM MTV_Microsoft$Unix$Computer) AS Unix_Count,
-(SELECT Count(*) AS 'NetworkDevice_Count' FROM MTV_System$NetworkManagement$Node) AS NetworkDevice_Count
+(SELECT COUNT(*) AS 'NetworkDevice_Count' FROM MTV_System$NetworkManagement$Node) AS NetworkDevice_Count

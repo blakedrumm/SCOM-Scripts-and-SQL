@@ -1,4 +1,4 @@
-SELECT TOP 20 RepeatCount, AlertStringName, AlertStringDescription, MonitoringRuleId, Name 
+SELECT TOP 50 RepeatCount, AlertStringName, AlertStringDescription, MonitoringRuleId, Name 
 FROM Alertview WITH (NOLOCK) 
 WHERE Timeraised is not NULL 
 GROUP BY AlertStringName, RepeatCount, AlertStringDescription, MonitoringRuleId, Name 

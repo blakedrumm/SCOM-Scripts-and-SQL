@@ -1,4 +1,4 @@
--- Modified by Alex Kremenetskiy
+﻿-- Modified by Alex Kremenetskiy
 SET NOCOUNT ON
 DECLARE 
        @Statement nvarchar(max)

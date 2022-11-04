@@ -1,4 +1,4 @@
-SELECT CASE
+﻿SELECT CASE
                   (SELECT is_broker_enabled
                    FROM sys.databases
                    WHERE name=db_name())

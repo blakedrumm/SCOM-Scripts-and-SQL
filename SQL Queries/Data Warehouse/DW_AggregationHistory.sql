@@ -11,4 +11,4 @@ SELECT ds.DatasetDefaultName,
 FROM StandardDatasetAggregationHistory sdah WITH(NOLOCK)
 JOIN Dataset ds WITH (NOLOCK) ON sdah.DatasetId = ds.DatasetId
 JOIN AggregationType atype WITH (NOLOCK) ON sdah.AggregationTypeId = atype.AggregationTypeId
-ORDER BY StandardDatasetAggregationHistoryRowId DESC
+ORDER BY sdah.FirstAggregationDurationSeconds DESC

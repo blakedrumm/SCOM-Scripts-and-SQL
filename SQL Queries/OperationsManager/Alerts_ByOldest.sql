@@ -1,4 +1,4 @@
-SELECT TOP 20 DATEDIFF(Day,TimeRaised,current_timestamp) AS DaysOpened, Case Severity
+SELECT TOP 50 DATEDIFF(Day,TimeRaised,current_timestamp) AS DaysOpened, Case Severity
 When 0 then 'Information'
 When 1 then 'Warning'
 When 2 then 'Critical'
