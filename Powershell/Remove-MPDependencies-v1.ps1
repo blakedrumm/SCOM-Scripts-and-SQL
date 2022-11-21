@@ -18,7 +18,9 @@
 		This allows you to remove and references from unsealed Management Packs.
 	
 	.EXAMPLE
-				PS C:\> .\
+				PS C:\> Get-SCOMManagementPack -Name Microsoft.SQLServer.Windows.Discovery | .\Remove-MPDependencies.ps1
+
+				PS C:\> .\Remove-MPDependencies.ps1 -Name Microsoft.SQLServer.Windows.Discovery
 	
 	.NOTES
 		Additional information about the file.
@@ -355,7 +357,7 @@ END
 	}
 	else
 	{
-		#Edit line 371 to change what happens when this script is run from Powershell ISE.
+		#Edit line 373 to change what happens when this script is run from Powershell ISE.
 		# Example 1:
 		# Get-SCOMManagementPack -Name Microsoft.SQLServer.Windows.Discovery | Remove-SCOMManagementPackDependencies
 		#
