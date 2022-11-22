@@ -364,7 +364,7 @@ PROCESS
 					}
 					
 				}
-				if ($null -eq $omsdk -and $cshost -and $healthservice)
+				if (-NOT ($omsdk -or $cshost -or $healthservice))
 				{
 					try
 					{
