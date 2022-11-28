@@ -1,6 +1,6 @@
 # Security Policies and Procedures
 
-This document outlines security procedures and general policies for the `SCOM-Reconfigure-DB-Move-Tool`
+This document outlines security procedures and general policies for the `SCOM-Scripts-and-SQL`
 project.
 
   * [Reporting a Bug](#reporting-a-bug)
@@ -9,8 +9,8 @@ project.
 
 ## Reporting a Bug
 
-The `SCOM-Reconfigure-DB-Move-Tool` team and community take all security bugs in `SCOM-Reconfigure-DB-Move-Tool` seriously.
-Thank you for improving the security of `SCOM-Reconfigure-DB-Move-Tool`. We appreciate your efforts and
+The `SCOM-Scripts-and-SQL` team and community take all security bugs in `SCOM-Scripts-and-SQL` seriously.
+Thank you for improving the security of `SCOM-Scripts-and-SQL`. We appreciate your efforts and
 responsible disclosure and will make every effort to acknowledge your
 contributions.
 
