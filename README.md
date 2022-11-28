@@ -27,3 +27,11 @@ ___
 This tool can be used to modify the System Center Operations Manager Data Warehouse Grooming retention days, allows you to see grooming history, you can manually run grooming, and you may also export the current configuration so you can keep a backup of your settings.
 
 **Go to script location:** [Click Here](https://github.com/blakedrumm/SCOM-DW-Grooming-Tool)
+
+___
+
+### SCOM Reconfigure DB Move Tool
+[![SCOM Reconfigure DB Move Tool](https://user-images.githubusercontent.com/63755224/203679185-d8fe5366-9ef7-4b22-ba9a-fc4560c9b9cf.png)](https://github.com/blakedrumm/SCOM-Reconfigure-DB-Move-Tool) \
+This tool allows you to reconfigure System Center Operations Manager's Databases in the configuration file, registry, and SQL Database Tables. This tool utilizes Powershell to provide a GUI for being able to easily navigate and verify the settings.
+
+**Go to script location:** [Click Here](https://github.com/blakedrumm/SCOM-Reconfigure-DB-Move-Tool)
