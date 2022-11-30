@@ -175,7 +175,7 @@ $(Invoke-TimeStamp) : Starting Script
 		$text1 = "Running against server: $env:COMPUTERNAME"
 		$out += "`n" + $text1
 		Write-Host $text1 -ForegroundColor Cyan
-		if ($certs -eq $null)
+		if ($null -eq $certs)
 		{
 			$text2 = @"
     There are no certificates in the Local Machine `"Personal`" store.
@@ -238,7 +238,7 @@ $(Invoke-TimeStamp) : Starting Script
 				else
 				{
 					$regKeys = get-itemproperty -path "HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Machine Settings"
-					if ($regKeys.ChannelCertificateSerialNumber -eq $null)
+					if ($null -eq $regKeys.ChannelCertificateSerialNumber)
 					{
 						$text36 = "Serial Number is not written to registry"
 						$out += "`n" + $text36
@@ -560,7 +560,7 @@ Enhanced Key Usage Extension is Good
 				{
 					$regSerial = ""
 					$regKeys.ChannelCertificateSerialNumber | ForEach-Object { $regSerial += $_.ToString("X2") }
-					if ($regSerial -eq "" -or $null) { $regSerial = "`{Empty`}" }
+					if (-NOT ($regSerial)) { $regSerial = "`{Empty`}" }
 					if ($regSerial -ne $certSerialReversed)
 					{
 						$text40 = "Serial Number (mismatch) written to the registry"
