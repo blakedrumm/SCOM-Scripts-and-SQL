@@ -39,6 +39,9 @@
 		PS C:\> .\Check-SCOMCertificates.ps1 -All
 	
 	.NOTES
+		Update 11/2022 (Blake Drumm, https://github.com/blakedrumm/ )
+		Script will now let you know if your registry key does not match any certificates in the local machine store.
+	
 		Update 09/2022 (Blake Drumm, https://github.com/blakedrumm/ )
 		Fixed bug introduced in last update. Certificates are checked correctly now.
 		
