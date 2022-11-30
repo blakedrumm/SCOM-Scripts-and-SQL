@@ -711,8 +711,8 @@ Certificate Checker
 			Write-Host '========================================================'
 			Write-Host @"
 Certificate Checker
-
 "@ -ForegroundColor Black -BackgroundColor Cyan
+			Write-Host ' '
 			$MainScriptOutput += $startofline
 			if ($server -ne $env:COMPUTERNAME)
 			{
