@@ -28,15 +28,15 @@
 	
 	.EXAMPLE
 		Check All Certificates on 4 Servers and outputting the results to C:\Temp\Output.txt:
-		PS C:\> .\Check-SCOMCertificates.ps1 -Servers ManagementServer1, ManagementServer2.contoso.com, Gateway.contoso.com, Agent1.contoso.com -All -OutputFile C:\Temp\Output.txt
+		PS C:\> .\Invoke-CheckSCOMCertificates.ps1 -Servers ManagementServer1, ManagementServer2.contoso.com, Gateway.contoso.com, Agent1.contoso.com -All -OutputFile C:\Temp\Output.txt
 	
 	.EXAMPLE
 		Check for a specific Certificate serialnumber in the Local Machine Personal Certificate store:
-		PS C:\> .\Check-SCOMCertificates.ps1 -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
+		PS C:\> .\Invoke-CheckSCOMCertificates.ps1 -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
 	
 	.EXAMPLE
 		Check all certificates on the local machine:
-		PS C:\> .\Check-SCOMCertificates.ps1 -All
+		PS C:\> .\Invoke-CheckSCOMCertificates.ps1 -All
 	
 	.NOTES
 		Update 11/2022 (Blake Drumm, https://github.com/blakedrumm/ )
@@ -129,13 +129,13 @@ begin
 		Write-Host $permissiongranted -ForegroundColor Green
 	}
 	#endregion CheckPermission
-	Function Time-Stamp
+	Function Invoke-TimeStamp
 	{
 		
 		$TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
 		return $TimeStamp
 	}
-	function Inner-SCOMCertCheck
+	function Invoke-InnerSCOMCertCheck
 	{
 		[OutputType([string])]
 		param
@@ -159,7 +159,7 @@ begin
 			[String]$OutputFile
 		)
 		
-		Function Time-Stamp
+		Function Invoke-TimeStamp
 		{
 			
 			$TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
@@ -167,7 +167,7 @@ begin
 		}
 		$out = @()
 		$out += "`n" + @"
-$(Time-Stamp) : Starting Script
+$(Invoke-TimeStamp) : Starting Script
 
 "@
 		# Consider all certificates in the Local Machine "Personal" store
@@ -189,7 +189,7 @@ $(Time-Stamp) : Starting Script
 		}
 		$x = 0
 		$a = 0
-		$alreadyCheckedThis = $false
+		
 		if ($All)
 		{
 			$FoundCount = "Found: $($certs.Count) certificates"
@@ -379,7 +379,7 @@ Expiration
 			# Enhanced key usage extension
 			
 			$enhancedKeyUsageExtension = $cert.Extensions | Where-Object { $_.ToString() -match "X509EnhancedKeyUsageExtension" }
-			if ($enhancedKeyUsageExtension -eq $null)
+			if ($null -eq $enhancedKeyUsageExtension)
 			{
 				$text16 = "Enhanced Key Usage Extension Missing"
 				$out += "`n" + $text16
@@ -392,7 +392,7 @@ Expiration
 			else
 			{
 				$usages = $enhancedKeyUsageExtension.EnhancedKeyUsages
-				if ($usages -eq $null)
+				if ($null -eq $usages)
 				{
 					$text18 = "Enhanced Key Usage Extension Missing"
 					$out += "`n" + $text18
@@ -438,7 +438,7 @@ Enhanced Key Usage Extension is Good
 			# KeyUsage extension
 			
 			$keyUsageExtension = $cert.Extensions | Where-Object { $_.ToString() -match "X509KeyUsageExtension" }
-			if ($keyUsageExtension -eq $null)
+			if ($null -eq $keyUsageExtension)
 			{
 				$text24 = "Key Usage Extensions Missing"
 				$out += "`n" + $text24
@@ -455,7 +455,7 @@ Enhanced Key Usage Extension is Good
 			else
 			{
 				$usages = $keyUsageExtension.KeyUsages
-				if ($usages -eq $null)
+				if ($null -eq $usages)
 				{
 					$text26 = "Key Usage Extensions Missing"
 					$out += "`n" + $text26
@@ -494,7 +494,7 @@ Enhanced Key Usage Extension is Good
 			# KeySpec
 			
 			$keySpec = $cert.PrivateKey.CspKeyContainerInfo.KeyNumber
-			if ($keySpec -eq $null)
+			if ($null -eq $keySpec)
 			{
 				$text31 = "KeySpec Missing / Not Found"
 				$out += "`n" + $text31
@@ -543,7 +543,7 @@ Enhanced Key Usage Extension is Good
 			else
 			{
 				$regKeys = get-itemproperty -path "HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Machine Settings"
-				if ($regKeys.ChannelCertificateSerialNumber -eq $null)
+				if ($null -eq $regKeys.ChannelCertificateSerialNumber)
 				{
 					$text38 = "Serial Number is not written to the registry"
 					$out += "`n" + $text38
@@ -608,7 +608,7 @@ Enhanced Key Usage Extension is Good
 			{
 				$rootCaCert = $chain.ChainElements | Select-Object -property Certificate -last 1
 				$localMachineRootCert = Get-ChildItem cert:\LocalMachine\Root | Where-Object { $_ -eq $rootCaCert.Certificate }
-				if ($localMachineRootCert -eq $null)
+				if ($null -eq $localMachineRootCert)
 				{
 					$text45 = "Certification Chain Root CA Missing"
 					$out += "`n" + $text45
@@ -660,17 +660,17 @@ Enhanced Key Usage Extension is Good
 		}
 		$out += "`n" + @"
 
-$(Time-Stamp) : Script Completed
+$(Invoke-TimeStamp) : Script Completed
 "@
 		Write-Verbose "$out"
 		return $out
 	}
-	$InnerCheckSCOMCertificateFunctionScript = "function Inner-SCOMCertCheck { ${function:Inner-SCOMCertCheck} }"
+	$InnerCheckSCOMCertificateFunctionScript = "function Invoke-InnerSCOMCertCheck { ${function:Invoke-InnerSCOMCertCheck} }"
 }
 PROCESS
 {
 	#region Function
-	function Check-SCOMCertificate
+	function Invoke-CheckSCOMCertificate
 	{
 		[OutputType([string])]
 		[CmdletBinding()]
@@ -722,7 +722,7 @@ Certificate Checker
 						$SerialNumber,
 						$VerbosePreference)
 					. ([ScriptBlock]::Create($script))
-					return Inner-SCOMCertCheck -All:$All -SerialNumber $SerialNumber
+					return Invoke-InnerSCOMCertCheck -All:$All -SerialNumber $SerialNumber
 					
 				} -ErrorAction SilentlyContinue
 			}
@@ -730,11 +730,11 @@ Certificate Checker
 			{
 				if ($VerbosePreference.value__ -ne 0)
 				{
-					$MainScriptOutput += Inner-SCOMCertCheck -Servers $Servers -All:$All -SerialNumber:$SerialNumber -Verbose -ErrorAction SilentlyContinue
+					$MainScriptOutput += Invoke-InnerSCOMCertCheck -Servers $Servers -All:$All -SerialNumber:$SerialNumber -Verbose -ErrorAction SilentlyContinue
 				}
 				else
 				{
-					$MainScriptOutput += Inner-SCOMCertCheck -Servers $Servers -All:$All -SerialNumber:$SerialNumber -ErrorAction SilentlyContinue
+					$MainScriptOutput += Invoke-InnerSCOMCertCheck -Servers $Servers -All:$All -SerialNumber:$SerialNumber -ErrorAction SilentlyContinue
 				}
 				
 			}
@@ -751,18 +751,18 @@ Certificate Checker
 	#region DefaultActions
 	if ($Servers -or $OutputFile -or $All -or $SerialNumber)
 	{
-		Check-SCOMCertificate -Servers $Servers -OutputFile $OutputFile -All:$All -SerialNumber:$SerialNumber
+		Invoke-CheckSCOMCertificate -Servers $Servers -OutputFile $OutputFile -All:$All -SerialNumber:$SerialNumber
 	}
 	else
 	{
-		# Modify line 762 if you want to change the default behavior when running this script through Powershell ISE
+		# Modify line 765 if you want to change the default behavior when running this script through Powershell ISE
 		#
 		# Examples: 
-		# Check-SCOMCertificate -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
-		# Check-SCOMCertificate -All
-		# Check-SCOMCertificate -All -OutputFile C:\Temp\Certs-Output.txt
-		# Check-SCOMCertificate -Servers MS01, MS02
-		Check-SCOMCertificate
+		# Invoke-CheckSCOMCertificate -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
+		# Invoke-CheckSCOMCertificate -All
+		# Invoke-CheckSCOMCertificate -All -OutputFile C:\Temp\Certs-Output.txt
+		# Invoke-CheckSCOMCertificate -Servers MS01, MS02
+		Invoke-CheckSCOMCertificate
 	}
 	#endregion DefaultActions
 }
