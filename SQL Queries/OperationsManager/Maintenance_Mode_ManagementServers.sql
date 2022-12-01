@@ -7,6 +7,7 @@ When 1 then 'True'
 End as [Currently in Maintenance Mode],
 StartTime as [Start Time],
 ScheduledEndTime as [Scheduled End Time],
+EndTime,
 MM.[User] as [User],
 Case ReasonCode
 When 0 then 'Other (Planned)'
