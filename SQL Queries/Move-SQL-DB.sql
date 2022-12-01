@@ -1,5 +1,5 @@
 -- Original Author: Alex Kremenetskiy
--- Modified by: Blake Drumm (blakedrumm@microsoft.com) - https://blakedrumm.com/
+-- Modified by: Blake Drumm (blakedrumm@microsoft.com) - https://blakedrumm.com/; Lorne Sepaugh(lornesepaugh@microsoft.com)
 -- Date Modified: April 19th, 2022
 
 ------------------------------------------------------
@@ -7,12 +7,12 @@
 ------------------------------------------------------
 
 -- Operations Manager DB Info
-DECLARE @OpsMgrSQLInstance nvarchar(50) = '<OpsDB SQL Server Instance>'
-DECLARE @OpsMgrSQLDB nvarchar(50) = '<OpsDB SQL Server DB Name>'
+DECLARE @OpsMgrSQLInstance nvarchar(50) = '<OpsDB SQL Server Instance>' -- This is the "Server\Instance, Port" that the DB lives on, if default instance and port, leave that off if desired
+DECLARE @OpsMgrSQLDB nvarchar(50) = '<OpsDB SQL Server DB Name>' -- This is the name of the Operations Manager database
 
 -- Operations Manager DW DB Info
-DECLARE @DWSQLInstance nvarchar(50) = '<OpsMgr DW SQL Server Instance>'
-DECLARE @DWDBName nvarchar(50) = '<OpsMgr DW SQL Server DB Name>'
+DECLARE @DWSQLInstance nvarchar(50) = '<OpsMgr DW SQL Server Instance>' -- This is the "Server\Instance, Port" that the DB lives on , if default instance and port, leave that off if desired
+DECLARE @DWDBName nvarchar(50) = '<OpsMgr DW SQL Server DB Name>' --This is the name of the Operations Manager Data Warehouse database
 
 ------------------------------------------------------
 -- DO NOT EDIT BELOW THIS LINE
