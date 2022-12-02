@@ -1,4 +1,3 @@
-
 ## Active Directory: PowerShell Function to Get Service Principal Names (SPNs) ##
 # Checked on 12/1/2022
 ## Original Location: https://gallery.technet.microsoft.com/scriptcenter/Get-SPN-Get-Service-3bd5524a
