@@ -70,7 +70,7 @@
 		v1.0   - Chad Miller - Initial release
 		v1.1   - ramblingcookiemonster - added parameters to specify service type, host, and specification
 		v1.1.1 - ramblingcookiemonster - added parameterset for explicit SPN lookup, added ServiceClass to results
-		v1.2   - blakedrumm - Fixed regular expression for determining the computer to return
+		v1.2   - blakedrumm - Fixed regular expression for determining the computer to return and other changes
 	
 	.FUNCTIONALITY
 		Active Directory
