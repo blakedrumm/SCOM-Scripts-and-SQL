@@ -1,7 +1,8 @@
 
 ## Active Directory: PowerShell Function to Get Service Principal Names (SPNs) ##
-# Checked on 11/23/2021
-## Resource: https://gallery.technet.microsoft.com/scriptcenter/Get-SPN-Get-Service-3bd5524a
+# Checked on 12/1/2022
+## Original Location: https://gallery.technet.microsoft.com/scriptcenter/Get-SPN-Get-Service-3bd5524a
+## New Location: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/General%20Functions/Get-SPN.ps1
 
 <#
 	.SYNOPSIS
@@ -74,45 +75,38 @@
 	.FUNCTIONALITY
 		Active Directory
 #>
-[CmdletBinding(DefaultParameterSetName = 'Parse')]
 param
 (
-	[Parameter(ParameterSetName = 'Parse',
-			   ValueFromPipeline = $true,
+	[Parameter(ValueFromPipeline = $true,
 			   ValueFromPipelineByPropertyName = $true,
 			   Position = 0,
 			   HelpMessage = 'One or more hostnames to filter on.  Default is *')]
+	[Alias('Servers')]
 	[string[]]$ComputerName = "*",
-	[Parameter(ParameterSetName = 'Parse',
-			   HelpMessage = 'Service class to filter on.')]
+	[Parameter(HelpMessage = 'Service class to filter on.')]
 	[string]$ServiceClass = "*",
-	[Parameter(ParameterSetName = 'Parse',
-			   HelpMessage = 'Filter results to this specific port or instance name.')]
+	[Parameter(HelpMessage = 'Filter results to this specific port or instance name.')]
 	[string]$Specification = "*",
-	[Parameter(ParameterSetName = 'Explicit',
-			   HelpMessage = 'If specified, filter explicitly and only on this SPN.  Accepts Wildcards.')]
+	[Parameter(HelpMessage = 'If specified, filter explicitly and only on this SPN.  Accepts Wildcards.')]
 	[string]$SPN,
 	[Parameter(HelpMessage = "If specified, search in this domain. Use a fully qualified domain name, e.g. contoso.org. If not specified, we search the current user's domain.")]
 	[string]$Domain
 )
 function Invoke-GetSPN
 {
-	[cmdletbinding(DefaultParameterSetName = 'Parse')]
-	param (
-		[Parameter(ParameterSetName = 'Parse',
-				   ValueFromPipeline = $true,
+	param
+	(
+		[Parameter(ValueFromPipeline = $true,
 				   ValueFromPipelineByPropertyName = $true,
 				   Position = 0,
 				   HelpMessage = 'One or more hostnames to filter on.  Default is *')]
+		[Alias('Servers')]
 		[string[]]$ComputerName = "*",
-		[Parameter(ParameterSetName = 'Parse',
-				   HelpMessage = 'Service class to filter on.')]
+		[Parameter(HelpMessage = 'Service class to filter on.')]
 		[string]$ServiceClass = "*",
-		[Parameter(ParameterSetName = 'Parse',
-				   HelpMessage = 'Filter results to this specific port or instance name.')]
+		[Parameter(HelpMessage = 'Filter results to this specific port or instance name.')]
 		[string]$Specification = "*",
-		[Parameter(ParameterSetName = 'Explicit',
-				   HelpMessage = 'If specified, filter explicitly and only on this SPN.  Accepts Wildcards.')]
+		[Parameter(HelpMessage = 'If specified, filter explicitly and only on this SPN.  Accepts Wildcards.')]
 		[string]$SPN,
 		[Parameter(HelpMessage = "If specified, search in this domain. Use a fully qualified domain name, e.g. contoso.org. If not specified, we search the current user's domain.")]
 		[string]$Domain
@@ -131,7 +125,7 @@ function Invoke-GetSPN
 		Write-Verbose "Search root: $DomainLDAP"
 		
 		#Filter based on service type and specification.  For regexes, convert * to .*
-		if ($PsCmdlet.ParameterSetName -like "Parse")
+		if (-NOT $SPN)
 		{
 			$ServiceFilter = If ($ServiceClass -eq "*") { ".*" }
 			else { $ServiceClass }
@@ -141,9 +135,9 @@ function Invoke-GetSPN
 		else
 		{
 			#To use same logic as 'parse' parameterset, set these variables up...
-			$ComputerName = @("*")
+			#$ComputerName = @("*")
 			$Specification = "*"
-            $ServiceFilter = $SPN.Replace('/','\/')
+			$ServiceFilter = $SPN.Replace('/', '\/')
 		}
 		
 		#Set up objects for searching
@@ -165,16 +159,33 @@ function Invoke-GetSPN
 			{
 				$endQuery = "$computer$SpecificationFilter"
 			}
-			#Set filter - Parse SPN or use the explicit SPN parameter
-			if ($PsCmdlet.ParameterSetName -like "Parse")
+			#Set filter - Parse SPN
+			if ($SPN)
 			{
-				$filter = "(servicePrincipalName=$ServiceClass/$endQuery)"
+				if (-NOT $computer)
+				{
+					$filter = "(servicePrincipalName=$SPN)"
+				}
+				else
+				{
+					if ($SPN -match "/*")
+					{
+						$filter = "(servicePrincipalName=$($SPN.Replace("/*", "/"))/$computer*)"
+					}
+					else
+					{
+						$filter = "(servicePrincipalName=$SPN/$computer*)"
+					}
+					
+				}
 			}
 			else
 			{
-				$filter = "(servicePrincipalName=$SPN)"
+				$filter = "(servicePrincipalName=$ServiceClass/$endQuery)"
 			}
-			$filter = $filter.Replace("/*/*", "/*")
+			
+			
+			$filter = $filter.Replace("/*/*", "/*").Replace("//", "/").Replace("**", "*")
 			$searcher.Filter = $filter
 			$output = @()
 			Write-Verbose "Searching for SPNs with filter $filter"
@@ -203,6 +214,10 @@ function Invoke-GetSPN
 			}
 			return $output | Select-Object ComputerName, ServiceClass, sAMAccountName, distinguishedName, whenChanged, SPN | Sort-Object ComputerName, ServiceClass, sAMAccountName, whenChanged
 		}
+	}
+	END
+	{
+		$searcher.Dispose()
 	}
 }
 if (($ComputerName -ne '*') -or ($ServiceClass -ne '*') -or ($Specification -ne '*') -or $SPN -or $Domain)
