@@ -225,5 +225,6 @@ if (($ComputerName -ne '*') -or ($ServiceClass -ne '*') -or ($Specification -ne 
 }
 else
 {
+    	# Edit the below line to change what happens when you run this script without any parameters. Or if you run the script from Powershell ISE.
 	Invoke-GetSPN
 }
