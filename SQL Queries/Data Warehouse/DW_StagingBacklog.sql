@@ -4,6 +4,8 @@ SELECT 'HealthServiceOutageStage' AS 'TableName',count(*) AS 'Count' FROM Health
 UNION ALL
 SELECT 'MaintenanceModeStage' AS 'TableName',count(*) AS 'Count' FROM MaintenanceModeStage WITH (NOLOCK)
 UNION ALL
+SELECT 'StateProcessedMaintenanceMode' AS 'TableName', count(*) AS 'Count' FROM StateProcessedMaintenanceMode WITH (NOLOCK)
+UNION ALL
 SELECT 'RelationshipStage' AS 'TableName',count(*) AS 'Count' FROM RelationshipStage WITH (NOLOCK)
 UNION ALL
 SELECT 'TypedManagedEntityStage' AS 'TableName',count(*) AS 'Count' FROM TypedManagedEntityStage WITH (NOLOCK)
