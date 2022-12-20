@@ -2,7 +2,7 @@
 
 **Latest Version:** `1.0.5.5`
 
-![SCOM DW Grooming Tool](https://user-images.githubusercontent.com/17127926/176572296-927c393d-0b34-4c26-b115-9e9dcd1802f1.png)
+![SCOM DW Grooming Tool](https://user-images.githubusercontent.com/63755224/208586913-e8c3c4e3-3c25-46ce-8368-7ebb768d4445.png)
 
 ## Introduction
 
