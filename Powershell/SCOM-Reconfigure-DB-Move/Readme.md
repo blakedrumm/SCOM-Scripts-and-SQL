@@ -2,7 +2,7 @@
 
 **Latest Version:** `2.0.0.0`
 
-![SCOM Reconfigure DB Move Tool](https://user-images.githubusercontent.com/63755224/203679185-d8fe5366-9ef7-4b22-ba9a-fc4560c9b9cf.png)
+![SCOM Reconfigure DB Move Tool](https://user-images.githubusercontent.com/63755224/210493526-88f9e06d-8117-4fdc-9770-602afc751bae.png)
 
 ## :book: Introduction
 
