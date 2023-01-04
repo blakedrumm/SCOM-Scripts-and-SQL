@@ -1,6 +1,6 @@
 > Blog Post: [https://blakedrumm.com/blog/scom-db-move-tool/](https://blakedrumm.com/blog/scom-db-move-tool)
 
-**Latest Version:** `1.0.0.1`
+**Latest Version:** `2.0.0.0`
 
 ![SCOM Reconfigure DB Move Tool](https://user-images.githubusercontent.com/63755224/203679185-d8fe5366-9ef7-4b22-ba9a-fc4560c9b9cf.png)
 
