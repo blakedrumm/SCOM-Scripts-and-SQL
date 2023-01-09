@@ -655,7 +655,7 @@ PROCESS
 	<# Edit line 663 to modify the default command run when this script is executed without any arguments. This is helpful when running from Powershell ISE.
 
 	   Example 1: 
-	   Clear-SCOMCache -Servers Agent1.contoso.com, Agent2.contoso.com, MangementServer1.contoso.com, MangementServer2.contoso.com
+	   Clear-SCOMCache -Servers Agent1.contoso.com, Agent2.contoso.com, ManagementServer1.contoso.com, ManagementServer2.contoso.com
 
 	   Example 2:
 	   Get-SCOMManagementServer | Clear-SCOMCache
