@@ -1,90 +1,67 @@
 <#
-	.SYNOPSIS
-		System Center Operations Manager - Certificate Checker
-	
-	.DESCRIPTION
-		The steps for configuring certificates in System Center Operations Manager are numerous and one can easily get them confused.
-		I see posts to the newsgroups and discussion lists regularly trying to troubleshoot why certificate authentication is not working, perhaps for a workgroup machine or gateway.
-		Sometimes it takes 3 or 4 messages back and forth before I or anyone else can diagnose what the problem actually is but once this is finally done we can suggest how to fix the problem.
-		
-		In an attempt to make this diagnosis stage easier I put together a PowerShell script that automatically checks installed certificates for the needed properties and configuration.
-		If you think everything is set up correctly but the machines just won't communicate, try running this script on each computer and it will hopefully point you to the issue.
-		I have tried to provide useful knowledge for fixing the problems.
-		
-		This script was originally designed for stand-alone PowerShell 1.0 - it does not require the OpsMgr PowerShell snapins.
-		Technet Article: https://gallery.technet.microsoft.com/scriptcenter/Troubleshooting-OpsMgr-27be19d3
-	
-	.PARAMETER Servers
-		Each Server you want to Check SCOM Certificates on.
-	
-	.PARAMETER SerialNumber
-		Check a specific Certificate serial number in the Local Machine Personal Store. Not reversed.
-	
-	.PARAMETER All
-		Check All Certificates in Local Machine Store.
-	
-	.PARAMETER OutputFile
-		Where to Output the File (txt, log, etc) for Script Execution.
-	
-	.EXAMPLE
-		Check All Certificates on 4 Servers and outputting the results to C:\Temp\Output.txt:
-		PS C:\> .\Invoke-CheckSCOMCertificates.ps1 -Servers ManagementServer1, ManagementServer2.contoso.com, Gateway.contoso.com, Agent1.contoso.com -All -OutputFile C:\Temp\Output.txt
-	
-	.EXAMPLE
-		Check for a specific Certificate serialnumber in the Local Machine Personal Certificate store:
-		PS C:\> .\Invoke-CheckSCOMCertificates.ps1 -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
-	
-	.EXAMPLE
-		Check all certificates on the local machine:
-		PS C:\> .\Invoke-CheckSCOMCertificates.ps1 -All
-	
-	.NOTES
-		Update 11/2022 (Blake Drumm, https://github.com/blakedrumm/ )
-		Script will now let you know if your registry key does not match any certificates in the local machine store.
-	
-		Update 09/2022 (Blake Drumm, https://github.com/blakedrumm/ )
-		Fixed bug introduced in last update. Certificates are checked correctly now.
-		
-		Update 09/2022 (Blake Drumm, https://github.com/blakedrumm/ )
-		Added ability to gather issuer. Fixed bug in output.
-		
-		Update 03/2022 (Blake Drumm, https://github.com/blakedrumm/ )
-		Major Update / alot of changes to how this script acts remotely and locally and added remoting abilites that are much superior to previous versions
-		
-		Update 02/2022 (Blake Drumm, https://github.com/blakedrumm/ )
-		Fix some minor bugs and do some restructuring
-		
-		Update 01/2022 (Blake Drumm, https://github.com/blakedrumm/ )
-		The script will now allow an -SerialNumber parameter so you can only gather the certificate you are expecting.
-		
-		Update 06/2021 (Blake Drumm, https://github.com/v-bldrum/ )
-		The Script will now by default only check every Certificate only if you have the -All Switch. Otherwise it will just check the certificate Serial Number (Reversed) that is present in the Registry.
-		
-		Update 11/2020 (Blake Drumm, https://github.com/v-bldrum/ )
-		Shows Subject Name instead of Issuer for each Certificate Checked.
-		
-		Update 08/2020 (Blake Drumm, https://github.com/v-bldrum/ )
-		Fixed formatting in output.
-		
-		Update 06/2020 (Blake Drumm, https://github.com/v-bldrum/ )
-		Added ability to OutputFile script to file.
-		
-		Update 2017.11.17 (Tyson Paul, https://blogs.msdn.microsoft.com/tysonpaul/ )
-		Fixed certificate SerialNumber parsing error.
-		
-		Update 7/2009
-		Fix for workgroup machine subjectname validation
-		
-		Update 2/2009
-		Fixes for subjectname validation
-		Typos
-		Modification for CA chain validation
-		Adds needed check for MachineKeyStore property on the private key
-		
-		Original Publish Date 1/2009
-		(Lincoln Atkinson?, https://blogs.technet.microsoft.com/momteam/author/latkin/ )
-#>
-[CmdletBinding()]
+    .SYNOPSIS
+        System Center Operations Manager - Certificate Checker
+    .DESCRIPTION
+        The steps for configuring certificates in System Center Operations Manager are numerous and one can easily get them confused.
+        I see posts to the newsgroups and discussion lists regularly trying to troubleshoot why certificate authentication is not working, perhaps for a workgroup machine or gateway.
+        Sometimes it takes 3 or 4 messages back and forth before I or anyone else can diagnose what the problem actually is but once this is finally done we can suggest how to fix the problem.
+        In an attempt to make this diagnosis stage easier I put together a PowerShell script that automatically checks installed certificates for the needed properties and configuration.
+        If you think everything is set up correctly but the machines just won't communicate, try running this script on each computer and it will hopefully point you to the issue.
+        I have tried to provide useful knowledge for fixing the problems.
+        This script was originally designed for stand-alone PowerShell 1.0 - it does not require the OpsMgr PowerShell snapins.
+        Technet Article: https://gallery.technet.microsoft.com/scriptcenter/Troubleshooting-OpsMgr-27be19d3
+    .PARAMETER Servers
+        Each Server you want to Check SCOM Certificates on.
+    .PARAMETER SerialNumber
+        Check a specific Certificate serial number in the Local Machine Personal Store. Not reversed.
+    .PARAMETER All
+        Check All Certificates in Local Machine Store.
+    .PARAMETER OutputFile
+        Where to Output the File (txt, log, etc) for Script Execution.
+    .EXAMPLE
+        Check All Certificates on 4 Servers and outputting the results to C:\Temp\Output.txt:
+        PS C:\> .\Invoke-CheckSCOMCertificates.ps1 -Servers ManagementServer1, ManagementServer2.contoso.com, Gateway.contoso.com, Agent1.contoso.com -All -OutputFile C:\Temp\Output.txt
+    .EXAMPLE
+        Check for a specific Certificate serialnumber in the Local Machine Personal Certificate store:
+        PS C:\> .\Invoke-CheckSCOMCertificates.ps1 -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
+    .EXAMPLE
+        Check all certificates on the local machine:
+        PS C:\> .\Invoke-CheckSCOMCertificates.ps1 -All
+    .NOTES
+	Update 01/2023 (Mike Kallhoff)
+	Added the ability to output the certificate chain information.
+        Update 11/2022 (Blake Drumm, https://github.com/blakedrumm/ )
+        Script will now let you know if your registry key does not match any certificates in the local machine store.
+        Update 09/2022 (Blake Drumm, https://github.com/blakedrumm/ )
+        Fixed bug introduced in last update. Certificates are checked correctly now.
+        Update 09/2022 (Blake Drumm, https://github.com/blakedrumm/ )
+        Added ability to gather issuer. Fixed bug in output.
+        Update 03/2022 (Blake Drumm, https://github.com/blakedrumm/ )
+        Major Update / alot of changes to how this script acts remotely and locally and added remoting abilites that are much superior to previous versions
+        Update 02/2022 (Blake Drumm, https://github.com/blakedrumm/ )
+        Fix some minor bugs and do some restructuring
+        Update 01/2022 (Blake Drumm, https://github.com/blakedrumm/ )
+        The script will now allow an -SerialNumber parameter so you can only gather the certificate you are expecting.
+        Update 06/2021 (Blake Drumm, https://github.com/v-bldrum/ )
+        The Script will now by default only check every Certificate only if you have the -All Switch. Otherwise it will just check the certificate Serial Number (Reversed) that is present in the Registry.
+        Update 11/2020 (Blake Drumm, https://github.com/v-bldrum/ )
+        Shows Subject Name instead of Issuer for each Certificate Checked.
+        Update 08/2020 (Blake Drumm, https://github.com/v-bldrum/ )
+        Fixed formatting in output.
+        Update 06/2020 (Blake Drumm, https://github.com/v-bldrum/ )
+        Added ability to OutputFile script to file.
+        Update 2017.11.17 (Tyson Paul, https://blogs.msdn.microsoft.com/tysonpaul/ )
+        Fixed certificate SerialNumber parsing error.
+        Update 7/2009
+        Fix for workgroup machine subjectname validation
+        Update 2/2009
+        Fixes for subjectname validation
+        Typos
+        Modification for CA chain validation
+        Adds needed check for MachineKeyStore property on the private key
+        Original Publish Date 1/2009
+        (Lincoln Atkinson?, https://blogs.technet.microsoft.com/momteam/author/latkin/ )
+#>[CmdletBinding()]
 [OutputType([string])]
 param
 (
@@ -131,7 +108,6 @@ begin
 	#endregion CheckPermission
 	Function Invoke-TimeStamp
 	{
-		
 		$TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
 		return $TimeStamp
 	}
@@ -158,17 +134,14 @@ begin
 					   HelpMessage = 'Where to Output the Text Log for Script.')]
 			[String]$OutputFile
 		)
-		
 		Function Invoke-TimeStamp
 		{
-			
 			$TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
 			return $TimeStamp
 		}
 		$out = @()
 		$out += "`n" + @"
 $(Invoke-TimeStamp) : Starting Script
-
 "@
 		# Consider all certificates in the Local Machine "Personal" store
 		$certs = [Array] (Get-ChildItem cert:\LocalMachine\my\)
@@ -189,7 +162,6 @@ $(Invoke-TimeStamp) : Starting Script
 		}
 		$x = 0
 		$a = 0
-		
 		if ($All)
 		{
 			$FoundCount = "Found: $($certs.Count) certificates"
@@ -203,7 +175,6 @@ $(Invoke-TimeStamp) : Starting Script
 		{
 			$x++
 			$x = $x
-			
 			#If the serialnumber argument is present
 			if ($SerialNumber)
 			{
@@ -267,28 +238,48 @@ $(Invoke-TimeStamp) : Starting Script
 					}
 				}
 			}
-			
 			$certificateReversed = -1 .. - $($cert.SerialNumber.Length) | ForEach-Object { $cert.SerialNumber[2 * $_] + $cert.SerialNumber[2 * $_ + 1] }
+			$SN = $cert.SerialNumber
+			#Create cert chain object
+			$chain = New-Object -TypeName System.Security.Cryptography.X509Certificates.X509Chain
+			#Get Certificate
+			$Certificate = Get-ChildItem Cert:\LocalMachine\My\ -Recurse | where{ $_.SerialNumber -like $SN }
+			$Issuer = $Certificate.Issuer
+			$Subject = $Certificate.Subject
+			#Build chain
+			$chain.Build($Certificate)
+			# List the chain elements
+			# Write-Host $chain.ChainElements.Certificate.IssuerName.Name
+			# List the chain elements verbose
+			$ChainCerts = ($chain.ChainElements).certificate | select Subject, SerialNumber
+			#$ChainCerts
+			$chainCertFormatter = New-Object System.Text.StringBuilder
+			foreach ($C1 IN $ChainCerts)
+			{
+				$chainCertFormatter.Append("`t`t") | Out-Null
+				$chainCertFormatter.Append($C1.subject) | Out-Null
+				$chainCertFormatter.Append(' ') | Out-Null
+				$chainCertFormatter.AppendLine("($($C1.serialnumber))") | Out-Null
+			}
+			$ChainCertsOutput = $chainCertFormatter.ToString()
+			#write-host $ChainCertsOutput
+			#   ^^ needs to be justified. I suspect creating an object array and then exporting that to a string may 
+			#   keep the justification and still aloow it to be displayed.
 			$text4 = @"
 =====================================================================================================================
 $(if (!$SerialNumber -and $All) { "($x`/$($certs.Count)) " })Examining Certificate
-
 `tSubject: "$($cert.Subject)" $(if ($cert.FriendlyName) { "`n`n`tFriendly name: $($cert.FriendlyName)" })
-
 `tIssued by: $(($cert.Issuer -split ',' | Where-Object { $_ -match "CN=|DC=" }).Replace("CN=", '').Replace("DC=", '').Trim() -join '.')
-
 `tSerial Number: $($cert.SerialNumber)
-
 `tSerial Number Reversed: $($certificateReversed)
+`tChain Certs: 
+$($ChainCertsOutput)
 =====================================================================================================================
 "@
 			Write-Host $text4
 			$out += "`n" + "`n" + $text4
-			
 			$pass = $true
-			
 			# Check subjectname
-			
 			$pass = &{
 				$fqdn = $env:ComputerName
 				$fqdn += "." + [DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name
@@ -303,11 +294,10 @@ $(if (!$SerialNumber -and $All) { "($x`/$($certs.Count)) " })Examining Certifica
 					$text5 = "Certificate Subjectname Mismatch"
 					$out += "`n" + $text5
 					Write-Host $text5 -BackgroundColor Red -ForegroundColor Black
-					
 					$text6 = @"
     The Subjectname of this certificate does not match the FQDN of this machine.
-		Actual: $($cert.SubjectName.Name)
-		Expected (case insensitive): CN=$fqdn
+        Actual: $($cert.SubjectName.Name)
+        Expected (case insensitive): CN=$fqdn
 "@
 					$out += "`n" + $text6
 					Write-Host $text6
@@ -315,9 +305,7 @@ $(if (!$SerialNumber -and $All) { "($x`/$($certs.Count)) " })Examining Certifica
 				}
 				else { $true; $text7 = "Certificate Subjectname is Good"; $out += "`n" + $text7; Write-Host $text7 -BackgroundColor Green -ForegroundColor Black }
 			}
-			
 			# Verify private key
-			
 			if (!($cert.HasPrivateKey))
 			{
 				$text8 = "Private Key Missing"
@@ -338,20 +326,18 @@ $(if (!$SerialNumber -and $All) { "($x`/$($certs.Count)) " })Examining Certifica
 				Write-Host $text10 -BackgroundColor Red -ForegroundColor Black
 				$text11 = @"
     This certificate's private key is not issued to a machine account.
-		One possible cause of this is that the certificate
-		was issued to a user account rather than the machine,
-		then copy/pasted from the Current User store to the Local
-		Machine store.  A full export/import is required to switch
-		between these stores.
+        One possible cause of this is that the certificate
+        was issued to a user account rather than the machine,
+        then copy/pasted from the Current User store to the Local
+        Machine store.  A full export/import is required to switch
+        between these stores.
 "@
 				$out += "`n" + $text11
 				Write-Host $text11
 				$pass = $false
 			}
 			else { $text12 = "Private Key is Good"; $out += "`n" + $text12; Write-Host $text12 -BackgroundColor Green -ForegroundColor Black }
-			
 			# Check expiration dates
-			
 			if (($cert.NotBefore -gt [DateTime]::Now) -or ($cert.NotAfter -lt [DateTime]::Now))
 			{
 				$text13 = "Expiration Out-of-Date"
@@ -374,10 +360,7 @@ Expiration
 				$out += "`n" + $text15
 				Write-Host $text15 -BackgroundColor Green -ForegroundColor Black
 			}
-			
-			
 			# Enhanced key usage extension
-			
 			$enhancedKeyUsageExtension = $cert.Extensions | Where-Object { $_.ToString() -match "X509EnhancedKeyUsageExtension" }
 			if ($null -eq $enhancedKeyUsageExtension)
 			{
@@ -434,9 +417,7 @@ Enhanced Key Usage Extension is Good
 					}
 				}
 			}
-			
 			# KeyUsage extension
-			
 			$keyUsageExtension = $cert.Extensions | Where-Object { $_.ToString() -match "X509KeyUsageExtension" }
 			if ($null -eq $keyUsageExtension)
 			{
@@ -490,9 +471,7 @@ Enhanced Key Usage Extension is Good
 					else { $text30 = "Key Usage Extensions are Good"; $out += "`n" + $text30; Write-Host $text30 -BackgroundColor Green -ForegroundColor Black }
 				}
 			}
-			
 			# KeySpec
-			
 			$keySpec = $cert.PrivateKey.CspKeyContainerInfo.KeyNumber
 			if ($null -eq $keySpec)
 			{
@@ -519,14 +498,10 @@ Enhanced Key Usage Extension is Good
 				$pass = $false
 			}
 			else { $text35 = "KeySpec is Good"; $out += "`n" + $text35; Write-Host $text35 -BackgroundColor Green -ForegroundColor Black }
-			
-			
 			# Check that serial is written to proper reg
-			
 			$certSerial = $cert.SerialNumber
 			$certSerialReversed = [System.String]("")
 			-1 .. -19 | ForEach-Object { $certSerialReversed += $certSerial[2 * $_] + $certSerial[2 * $_ + 1] }
-			
 			if (! (Test-Path "HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Machine Settings"))
 			{
 				$text36 = "Serial Number is not written to the registry"
@@ -578,13 +553,11 @@ Enhanced Key Usage Extension is Good
 					else { $text42 = "Serial Number is written to the registry"; $out += "`n" + $text42; Write-Host $text42 -BackgroundColor Green -ForegroundColor Black }
 				}
 			}
-			
 <#
-	Check that the cert's issuing CA is trusted (This is not technically required
-				as it is the remote machine cert's CA that must be trusted.  Most users leverage
-	the same CA for all machines, though, so it's worth checking
-				#>
-			$chain = new-object Security.Cryptography.X509Certificates.X509Chain
+    Check that the cert's issuing CA is trusted (This is not technically required
+                as it is the remote machine cert's CA that must be trusted.  Most users leverage
+    the same CA for all machines, though, so it's worth checking
+                #>			$chain = new-object Security.Cryptography.X509Certificates.X509Chain
 			$chain.ChainPolicy.RevocationMode = 0
 			if ($chain.Build($cert) -eq $false)
 			{
@@ -638,10 +611,7 @@ Enhanced Key Usage Extension is Good
 					$out += "`n" + $text48
 					Write-Host $text48
 				}
-				
 			}
-			
-			
 			if ($pass)
 			{
 				$text49 = "`n*** This certificate is properly configured and imported for System Center Operations Manager ***"; $out += "`n" + $text49; Write-Host $text49 -ForegroundColor Green
@@ -652,14 +622,12 @@ Enhanced Key Usage Extension is Good
 			}
 			$out += "`n" + " " # This is so there is white space between each Cert. Makes it less of a jumbled mess.
 		}
-		
 		if ($certs.Count -eq $NotPresentCount)
 		{
 			$text49 = "    Unable to locate any certificates on this server that match the criteria specified OR the serial number in the registry does not match any certificates present."; $out += "`n" + $text49; Write-Host $text49 -ForegroundColor Red
 			$text50 = "    Data in registry: $certSerialReversed"; $out += "`n" + $text50; Write-Host $text50 -ForegroundColor Gray
 		}
 		$out += "`n" + @"
-
 $(Invoke-TimeStamp) : Script Completed
 "@
 		Write-Verbose "$out"
@@ -703,10 +671,8 @@ PROCESS
 		foreach ($server in $Servers)
 		{
 			$startofline = @" 
-
 ========================================================
 Certificate Checker
-
 "@
 			Write-Host '========================================================'
 			Write-Host @"
@@ -723,7 +689,6 @@ Certificate Checker
 						$VerbosePreference)
 					. ([ScriptBlock]::Create($script))
 					return Invoke-InnerSCOMCertCheck -All:$All -SerialNumber $SerialNumber
-					
 				} -ErrorAction SilentlyContinue
 			}
 			else
@@ -736,7 +701,6 @@ Certificate Checker
 				{
 					$MainScriptOutput += Invoke-InnerSCOMCertCheck -Servers $Servers -All:$All -SerialNumber:$SerialNumber -ErrorAction SilentlyContinue
 				}
-				
 			}
 		}
 		if ($OutputFile)
@@ -755,7 +719,7 @@ Certificate Checker
 	}
 	else
 	{
-		# Modify line 765 if you want to change the default behavior when running this script through Powershell ISE
+		# Modify line 729 if you want to change the default behavior when running this script through Powershell ISE
 		#
 		# Examples: 
 		# Invoke-CheckSCOMCertificate -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
