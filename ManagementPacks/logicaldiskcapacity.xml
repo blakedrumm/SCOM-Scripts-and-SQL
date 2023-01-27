@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?><ManagementPack ContentReadable="true" SchemaVersion="2.0" OriginalSchemaVersion="1.1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <Manifest>
+    <Identity>
+      <ID>logicaldiskcapacity</ID>
+      <Version>1.0.0.1</Version>
+    </Identity>
+    <Name>logical-disk-capacity</Name>
+    <References>
+      <Reference Alias="SCDW">
+        <ID>Microsoft.SystemCenter.DataWarehouse.Library</ID>
+        <Version>10.22.10118.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="MicrosoftWindowsLibrary7585011">
+        <ID>Microsoft.Windows.Library</ID>
+        <Version>7.5.8501.1</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="System">
+        <ID>System.Library</ID>
+        <Version>7.5.8501.1</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="MicrosoftWindowsServer2016Discovery10110">
+        <ID>Microsoft.Windows.Server.2016.Discovery</ID>
+        <Version>10.1.1.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SystemCenter">
+        <ID>Microsoft.SystemCenter.Library</ID>
+        <Version>10.22.10118.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+    </References>
+  </Manifest>
+  <Monitoring>
+    <Rules>
+      <Rule ID="MomUIGeneratedRulebe9b1ddf5230403991b3db3d6fe705d7" Enabled="true" Target="MicrosoftWindowsLibrary7585011!Microsoft.Windows.Computer" ConfirmDelivery="false" Remotable="true" Priority="Normal" DiscardLevel="100">
+        <Category>PerformanceCollection</Category>
+        <DataSources>
+          <DataSource ID="DS" TypeID="MicrosoftWindowsLibrary7585011!Microsoft.Windows.WmiPerfCounterProvider">
+            <NameSpace>root\cimv2</NameSpace>
+            <Query>Select Name, Size from Win32_LogicalDisk</Query>
+            <Frequency>900</Frequency>
+            <ObjectName>LogicalDisk</ObjectName>
+            <CounterName>Size (Bytes)</CounterName>
+            <InstanceName>$Data/Property[@Name='Name']$</InstanceName>
+            <Value>$Data/Property[@Name='Size']$</Value>
+          </DataSource>
+        </DataSources>
+        <WriteActions>
+          <WriteAction ID="WriteToDB" TypeID="SystemCenter!Microsoft.SystemCenter.CollectPerformanceData" />
+          <WriteAction ID="WriteToDW" TypeID="SCDW!Microsoft.SystemCenter.DataWarehouse.PublishPerformanceData" />
+        </WriteActions>
+      </Rule>
+    </Rules>
+  </Monitoring>
+  <Presentation>
+    <Folders>
+      <Folder ID="Folder_9c2c5c9806cb4662920f10b0446a6988" Accessibility="Public" ParentFolder="SystemCenter!Microsoft.SystemCenter.Monitoring.ViewFolder.Root" />
+    </Folders>
+  </Presentation>
+  <LanguagePacks>
+    <LanguagePack ID="ENU" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="logicaldiskcapacity">
+          <Name>logical-disk-capacity</Name>
+        </DisplayString>
+        <DisplayString ElementID="Folder_9c2c5c9806cb4662920f10b0446a6988">
+          <Name>logical-disk-capacity</Name>
+        </DisplayString>
+        <DisplayString ElementID="MomUIGeneratedRulebe9b1ddf5230403991b3db3d6fe705d7">
+          <Name>Disk Capacity</Name>
+          <Description />
+        </DisplayString>
+        <DisplayString ElementID="MomUIGeneratedRulebe9b1ddf5230403991b3db3d6fe705d7" SubElementID="WriteToDW">
+          <Name>Performance data publisher</Name>
+        </DisplayString>
+        <DisplayString ElementID="MomUIGeneratedRulebe9b1ddf5230403991b3db3d6fe705d7" SubElementID="DS">
+          <Name>DS</Name>
+        </DisplayString>
+        <DisplayString ElementID="MomUIGeneratedRulebe9b1ddf5230403991b3db3d6fe705d7" SubElementID="WriteToDB">
+          <Name>Performance Data Collection Write Action</Name>
+        </DisplayString>
+      </DisplayStrings>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPack>
