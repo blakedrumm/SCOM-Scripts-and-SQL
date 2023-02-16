@@ -28,37 +28,39 @@
         Check all certificates on the local machine:
         PS C:\> .\Invoke-CheckSCOMCertificates.ps1 -All
     .NOTES
-	Update 01/2023 (Mike Kallhoff)
-	Added the ability to output the certificate chain information.
+        Update 02/2023 (Blake Drumm, https://github.com/blakedrumm/ )
+        	Added the ability to check for duplicate subject common names.
+        Update 01/2023 (Mike Kallhoff)
+        	Added the ability to output the certificate chain information.
         Update 11/2022 (Blake Drumm, https://github.com/blakedrumm/ )
-        Script will now let you know if your registry key does not match any certificates in the local machine store.
+        	Script will now let you know if your registry key does not match any certificates in the local machine store.
         Update 09/2022 (Blake Drumm, https://github.com/blakedrumm/ )
-        Fixed bug introduced in last update. Certificates are checked correctly now.
+        	Fixed bug introduced in last update. Certificates are checked correctly now.
         Update 09/2022 (Blake Drumm, https://github.com/blakedrumm/ )
-        Added ability to gather issuer. Fixed bug in output.
+        	Added ability to gather issuer. Fixed bug in output.
         Update 03/2022 (Blake Drumm, https://github.com/blakedrumm/ )
-        Major Update / alot of changes to how this script acts remotely and locally and added remoting abilites that are much superior to previous versions
+        	Major Update / alot of changes to how this script acts remotely and locally and added remoting abilites that are much superior to previous versions
         Update 02/2022 (Blake Drumm, https://github.com/blakedrumm/ )
-        Fix some minor bugs and do some restructuring
+        	Fix some minor bugs and do some restructuring
         Update 01/2022 (Blake Drumm, https://github.com/blakedrumm/ )
-        The script will now allow an -SerialNumber parameter so you can only gather the certificate you are expecting.
+        	The script will now allow an -SerialNumber parameter so you can only gather the certificate you are expecting.
         Update 06/2021 (Blake Drumm, https://github.com/v-bldrum/ )
-        The Script will now by default only check every Certificate only if you have the -All Switch. Otherwise it will just check the certificate Serial Number (Reversed) that is present in the Registry.
+        	The Script will now by default only check every Certificate only if you have the -All Switch. Otherwise it will just check the certificate Serial Number (Reversed) that is present in the Registry.
         Update 11/2020 (Blake Drumm, https://github.com/v-bldrum/ )
-        Shows Subject Name instead of Issuer for each Certificate Checked.
+        	Shows Subject Name instead of Issuer for each Certificate Checked.
         Update 08/2020 (Blake Drumm, https://github.com/v-bldrum/ )
-        Fixed formatting in output.
+        	Fixed formatting in output.
         Update 06/2020 (Blake Drumm, https://github.com/v-bldrum/ )
-        Added ability to OutputFile script to file.
+        	Added ability to OutputFile script to file.
         Update 2017.11.17 (Tyson Paul, https://blogs.msdn.microsoft.com/tysonpaul/ )
-        Fixed certificate SerialNumber parsing error.
+        	Fixed certificate SerialNumber parsing error.
         Update 7/2009
-        Fix for workgroup machine subjectname validation
+        	Fix for workgroup machine subjectname validation
         Update 2/2009
-        Fixes for subjectname validation
-        Typos
-        Modification for CA chain validation
-        Adds needed check for MachineKeyStore property on the private key
+        	Fixes for subjectname validation
+        	Typos
+        	Modification for CA chain validation
+        	Adds needed check for MachineKeyStore property on the private key
         Original Publish Date 1/2009
         (Lincoln Atkinson?, https://blogs.technet.microsoft.com/momteam/author/latkin/ )
 #>[CmdletBinding()]
@@ -264,7 +266,7 @@ $(Invoke-TimeStamp) : Starting Script
 			$ChainCertsOutput = $chainCertFormatter.ToString()
 			#write-host $ChainCertsOutput
 			#   ^^ needs to be justified. I suspect creating an object array and then exporting that to a string may 
-			#   keep the justification and still aloow it to be displayed.
+			#   keep the justification and still allow it to be displayed.
 			$text4 = @"
 =====================================================================================================================
 $(if (!$SerialNumber -and $All) { "($x`/$($certs.Count)) " })Examining Certificate
@@ -280,30 +282,50 @@ $($ChainCertsOutput)
 			$out += "`n" + "`n" + $text4
 			$pass = $true
 			# Check subjectname
-			$pass = &{
-				$fqdn = $env:ComputerName
-				$fqdn += "." + [DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name
-				trap [DirectoryServices.ActiveDirectory.ActiveDirectoryObjectNotFoundException]
-				{
-					# Not part of a domain
-					continue;
-				}
-				$fqdnRegexPattern = "CN=" + $fqdn.Replace(".", "\.") + '(,.*)?$'
-				if ((($cert.SubjectName.Name).ToUpper()) -notmatch ($fqdnRegexPattern.ToUpper()))
-				{
-					$text5 = "Certificate Subjectname Mismatch"
-					$out += "`n" + $text5
-					Write-Host $text5 -BackgroundColor Red -ForegroundColor Black
-					$text6 = @"
+			$fqdn = $env:ComputerName
+			$fqdn += "." + [DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name
+			trap [DirectoryServices.ActiveDirectory.ActiveDirectoryObjectNotFoundException]
+			{
+				# Not part of a domain
+				continue;
+			}
+			$subjectProblem = $false
+			$fqdnRegexPattern = "CN=" + $fqdn.Replace(".", "\.") + '(,.*)?$'
+			$CheckForDuplicateSubjectCNs = ((($cert).Subject).Split(",") | %{ $_.Trim() } | Where { $_ -match "CN=" }).Trim("CN=") | % { $_.Split(".") | Select-Object -First 1 } | Group-Object | Where-Object { $_.Count -gt 1 } | Select -ExpandProperty Name
+			if ((($cert.SubjectName.Name).ToUpper()) -notmatch ($fqdnRegexPattern.ToUpper()))
+			{
+				$text5 = "Certificate Subjectname Mismatch"
+				$out += "`n" + $text5
+				Write-Host $text5 -BackgroundColor Red -ForegroundColor Black
+				$text6 = @"
     The Subjectname of this certificate does not match the FQDN of this machine.
         Actual: $($cert.SubjectName.Name)
         Expected (case insensitive): CN=$fqdn
 "@
-					$out += "`n" + $text6
-					Write-Host $text6
-					$pass = $false
-				}
-				else { $true; $text7 = "Certificate Subjectname is Good"; $out += "`n" + $text7; Write-Host $text7 -BackgroundColor Green -ForegroundColor Black }
+				$out += "`n" + $text6
+				Write-Host $text6
+				$pass = $false
+				$subjectProblem = $true
+			}
+			if ($CheckForDuplicateSubjectCNs)
+			{
+				$CertDuplicateCN = "Certificate Subjectname Duplicate Common Names"
+				$out += "`n" + $CertDuplicateCN
+				Write-Host $CertDuplicateCN -BackgroundColor Red -ForegroundColor Black
+				$checkCNtext = @"
+    Found duplicate Subject Common Names (CN=)
+    Operations Manager will only use one of these common names.
+    Do not include the FQDN AND Netbios name in the Subjectname.
+"@
+				$out += "`n" + $checkCNtext
+				Write-Host $checkCNtext -BackgroundColor Red -ForegroundColor Black
+				$pass = $false
+				$subjectProblem = $true
+			}
+			if (-NOT $subjectProblem)
+			{
+				$pass = $true;
+				$text7 = "Certificate Subjectname is Good"; $out += "`n" + $text7; Write-Host $text7 -BackgroundColor Green -ForegroundColor Black
 			}
 			# Verify private key
 			if (!($cert.HasPrivateKey))
@@ -629,7 +651,7 @@ Enhanced Key Usage Extension is Good
 		}
 		$out += "`n" + @"
 $(Invoke-TimeStamp) : Script Completed
-"@
+"@ + "`n"
 		Write-Verbose "$out"
 		return $out
 	}
@@ -705,7 +727,7 @@ Certificate Checker
 		}
 		if ($OutputFile)
 		{
-			$MainScriptOutput | Out-File $OutputFile -Width 4096
+			$MainScriptOutput.Replace('Certificate CheckerTrue', 'Certificate Checker') | Out-File $OutputFile -Width 4096
 			Start-Process C:\Windows\explorer.exe -ArgumentList "/select, $OutputFile"
 		}
 		#return $out
@@ -719,7 +741,7 @@ Certificate Checker
 	}
 	else
 	{
-		# Modify line 729 if you want to change the default behavior when running this script through Powershell ISE
+		# Modify line 751 if you want to change the default behavior when running this script through Powershell ISE
 		#
 		# Examples: 
 		# Invoke-CheckSCOMCertificate -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
