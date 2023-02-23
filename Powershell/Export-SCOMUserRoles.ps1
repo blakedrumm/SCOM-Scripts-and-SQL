@@ -2,6 +2,7 @@
 # -----------------------------------------------
 # Outputs the file to the current users desktop
 # Initial Upload: June 20th, 2022
+# Author: Blake Drumm (blakedrumm@microsoft.com)
 # -----------------------------------------------
 $UserRoles = @()
 $UserRoleList = Get-SCOMUserRole
