@@ -176,7 +176,8 @@ PROCESS
 				if ($Unsealed -and $RemoveUnsealedReferenceAndReimport)
 				{
 					Write-Output "$(Time-Stamp)Attempting to remove related data in the Unsealed Management Pack: $ExportPath\$($ManagementPack.Name).xml"
-					$xmldata = [xml](Get-Content "$ExportPath\$($ManagementPack.Name).xml" -ErrorAction Stop);
+					$xmldata = [xml]::new()
+					$xmldata.Load("$ExportPath\$($ManagementPack.Name).xml")
 					#Save a backup of the MP
 					$xmlData.Save("$ExportPath\$($ManagementPack.Name).backup.xml")
 					#Get the version of the MP
