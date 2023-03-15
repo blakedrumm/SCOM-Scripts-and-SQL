@@ -1,17 +1,17 @@
-> Blog Post: [https://blakedrumm.com/blog/scom-db-move-tool/](https://blakedrumm.com/blog/scom-db-move-tool)
+> :notebook: **Blog Post:** [https://blakedrumm.com/blog/scom-db-move-tool/](https://blakedrumm.com/blog/scom-db-move-tool) \
+> :arrow_down_small: **Quick Download:** [https://aka.ms/SCOM-DB-Move-Tool](https://aka.ms/SCOM-DB-Move-Tool)
 
-**Latest Version:** `2.0.0.2`
+[![Visits Badge](https://badges.strrl.dev/visits/blakedrumm/SCOM-Reconfigure-DB-Move-Tool)](https://badges.strrl.dev) \
+[![Latest Version](https://img.shields.io/github/v/release/blakedrumm/SCOM-Reconfigure-DB-Move-Tool)](https://github.com/blakedrumm/SCOM-Reconfigure-DB-Move-Tool/releases/latest) \
+[![Download Count Releases](https://img.shields.io/github/downloads/blakedrumm/SCOM-Reconfigure-DB-Move-Tool/total.svg?style=for-the-badge&color=brightgreen)](https://github.com/blakedrumm/SCOM-Reconfigure-DB-Move-Tool/releases) \
+[![Download Count Latest](https://img.shields.io/github/downloads/blakedrumm/SCOM-Reconfigure-DB-Move-Tool/latest/SCOM-Reconfigure-DB-Move-Tool-EXE.zip?style=for-the-badge&color=brightgreen)](https://aka.ms/SCOM-DB-Move-Tool)
 
-![SCOM Reconfigure DB Move Tool](https://user-images.githubusercontent.com/63755224/210493526-88f9e06d-8117-4fdc-9770-602afc751bae.png)
+[![SCOM Reconfigure DB Move Tool](https://user-images.githubusercontent.com/63755224/210493526-88f9e06d-8117-4fdc-9770-602afc751bae.png)](https://github.com/blakedrumm/SCOM-Reconfigure-DB-Move-Tool/releases/latest)
+
 
 ## :book: Introduction
 
 This tool allows you to reconfigure System Center Operations Manager's Databases in the configuration file, registry, and SQL Database Tables. This tool utilizes Powershell to provide a GUI for being able to easily navigate and verify the settings.
-
-## :arrow_down_small: Latest Version
-[![Latest Version](https://img.shields.io/github/v/release/blakedrumm/SCOM-Reconfigure-DB-Move-Tool)](https://github.com/blakedrumm/SCOM-Reconfigure-DB-Move-Tool/releases/latest) \
-[![Download Count Latest](https://img.shields.io/github/downloads/blakedrumm/SCOM-Reconfigure-DB-Move-Tool/latest/SCOM-Reconfigure-DB-Move-Tool-EXE.zip?style=for-the-badge&color=brightgreen)](https://aka.ms/SCOM-DB-Move-Tool)
-[![Download Count Releases](https://img.shields.io/github/downloads/blakedrumm/SCOM-Reconfigure-DB-Move-Tool/total.svg?style=for-the-badge&color=brightgreen)](https://github.com/blakedrumm/SCOM-Reconfigure-DB-Move-Tool/releases)
 
 ## :page_with_curl: How to Use
 
