@@ -1,12 +1,28 @@
-> Blog Post: [https://blakedrumm.com/blog/scom-dw-grooming-tool/](https://blakedrumm.com/blog/scom-dw-grooming-tool/)
+> :notebook: **Blog Post:** [https://blakedrumm.com/blog/scom-dw-grooming-tool/](https://blakedrumm.com/blog/scom-dw-grooming-tool/) \
+> :arrow_down_small: **Quick Download:** [https://aka.ms/SCOM-DW-Tool](https://aka.ms/SCOM-DW-Tool)
 
-**Latest Version:** `2.0.0.1`
+[![Visits Badge](https://badges.strrl.dev/visits/blakedrumm/SCOM-DW-Grooming-Tool)](https://badges.strrl.dev) \
+[![Latest Version](https://img.shields.io/github/v/release/blakedrumm/SCOM-DW-Grooming-Tool)](https://github.com/blakedrumm/SCOM-DW-Grooming-Tool/releases/latest) \
+[![Download Count Releases](https://img.shields.io/github/downloads/blakedrumm/SCOM-DW-Grooming-Tool/total.svg?style=for-the-badge&color=brightgreen)](https://github.com/blakedrumm/SCOM-DW-Grooming-Tool/releases) \
+[![Download Count Latest](https://img.shields.io/github/downloads/blakedrumm/SCOM-DW-Grooming-Tool/latest/SCOM-DW-GroomingGUI-EXE-64bit.zip?style=for-the-badge&color=brightgreen)](https://aka.ms/SCOM-DW-Tool)
 
-![SCOM DW Grooming Tool](https://user-images.githubusercontent.com/63755224/208586913-e8c3c4e3-3c25-46ce-8368-7ebb768d4445.png)
+[![SCOM DW Grooming Tool](https://user-images.githubusercontent.com/63755224/208586913-e8c3c4e3-3c25-46ce-8368-7ebb768d4445.png)](https://github.com/blakedrumm/SCOM-DW-Grooming-Tool/releases/latest)
 
-## Introduction
 
-This tool can be used to modify the System Center Operations Manager Data Warehouse Grooming retention days, allows you to see grooming history, you can manually run grooming, and you may also export the current configuration so you can keep a backup of your settings. You have the option of resetting the values to Defaults for the typical data sets in the Data Warehouse.
+## System Center Operations Manager Data Warehouse Grooming Tool
+
+Welcome to the official repository for the System Center Operations Manager Data Warehouse Grooming Tool. This tool is compatible with all versions of Operations Manager and is designed to help you manage and maintain your data warehouse.
+
+### Features
+- Modify retention days for your data warehouse
+- View grooming history
+- Manually run grooming
+- Export current configuration for backup purposes
+- Reset values to default settings for typical data sets in the data warehouse
+
+### Requirements
+- System Center Operations Manager installation
+- Powershell 5
 
 ## How to Use
 
@@ -22,6 +38,9 @@ This script will log some actions to the Application Event Log. Look for the Eve
 
 ## More Information
 
-You will get prompted each time you run the script to accept the license agreement, unless you select do not ask me again, when you select this it will save a file to your ProgramData Directory: `C:\ProgramData\SCOM-DataWarehouseGUI-AgreedToLicense.log`
+You will get prompted each time you run the script to accept the license agreement, unless you select do not ask me again, when you select this it will save a file to your ProgramData Directory:
+```
+C:\ProgramData\SCOM-DataWarehouseGUI-AgreedToLicense.log
+```
 
-![Visits](https://counter.blakedrumm.com/count/tag.svg?url=https://github.com/blakedrumm/SCOM-Scripts-and-SQL/tree/master/Powershell/SCOM-DW-Grooming)
+<!-- ![Visits](https://counter.blakedrumm.com/count/tag.svg?url=https://github.com/blakedrumm/SCOM-DW-Grooming-Tool) -->
