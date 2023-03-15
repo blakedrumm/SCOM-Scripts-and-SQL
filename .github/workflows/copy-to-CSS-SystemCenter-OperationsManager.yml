@@ -1,0 +1,48 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "master" branch
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+
+      - name: Push a directory to another repository
+        # You may pin to the exact commit or the version.
+        # uses: datalbry/copy_folder_to_another_repo_action@f4ceec0eb4df6da5e4fe043dbc38c698a8ff4401
+        uses: datalbry/copy_folder_to_another_repo_action@1.0.1
+        with:
+          # Source folder from the origin directory
+          source_folder: Powershell
+          # Destination repository
+          destination_repo: CSS-SystemCenter-OperationsManager
+          # Directory to push the folder contents to
+          destination_folder: Powershell
+          # Email for the git commit
+          user_email: blakedrumm@microsoft.com
+          # GitHub username for the commit
+          user_name: blakedrumm
+          # branch to push folder to, defaults to master
+          destination_branch: main
+          # The commit message
+          commit_msg: 'Synchronized with `SCOM-Scripts-and-SQL` :fireworks: :star2:'
+          # Destination branch to create for this commit
+          #destination_branch_create: # optional
