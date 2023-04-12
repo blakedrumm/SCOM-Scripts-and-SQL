@@ -790,7 +790,7 @@ exit 0
 		Remove-Item $TempETLTrace`\ETL\* -Confirm:$false | Out-Null
 	}
 	Copy-Item "C:\Windows\Logs\OpsMgrTrace\*" "$TempETLTrace`\ETL" -Force | Out-Null
-    Write-Host "$(Out-TimeStamp)Gathering IP Address Infomration." -ForegroundColor Cyan
+    Write-Host "$(Out-TimeStamp)Gathering IP Address Information." -ForegroundColor Cyan
 	$ip = ([System.Net.Dns]::GetHostAddresses($Env:COMPUTERNAME)).IPAddressToString;
 	[string]$IPList = ""
 	$IPSplit = $IP.Split(",")
