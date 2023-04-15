@@ -1,4 +1,4 @@
-![SCOM 2019 Automated Lab](/media/git-guidance/automated-lab-scom-2019.png)
+![SCOM 2019 Automated Lab](/media/git-guidance/projects/automated-lab-scom-2019.png)
 
 # Prerequisites
  - AutomatedLab : https://github.com/AutomatedLab/AutomatedLab

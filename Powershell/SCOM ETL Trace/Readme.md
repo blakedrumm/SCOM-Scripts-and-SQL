@@ -1,4 +1,4 @@
-![ETL Trace](/media/git-guidance/etl_trace.png)
+![ETL Trace](/media/git-guidance/Projects/etl_trace.png)
 
 # Introduction
 This Tool will assist you in gathering ETL Traces. You have the options of selecting specific Tracing to gather with this script.
