@@ -11,15 +11,15 @@ Import-Module OperationsManager
 #region Script Variables
 
 #We will look for all Agents Managed by this Management Server.
-$movefromManagementServer = Get-SCOMManagementServer -Name "<MoveFrom_MS>"
+$movefromManagementServer = Get-SCOMManagementServer -Name "MS01-2019*"
 
 #Primary Management Server
-$movetoPrimaryMgmtServer = Get-SCOMManagementServer -Name "<MoveToPrimary_MS>"
+$movetoPrimaryMgmtServer = Get-SCOMManagementServer -Name "MS02-2019*"
 
 #Secondary Management Server
 $movetoFailoverMgmtServer = Get-SCOMManagementServer -Name '<MoveToSecondary_MS>'
 
-#Gather the System Center Agent Class so we can get the gray Agents:
+#Gather the System Center Agent Class so we can get the Agents:
 $scomAgent = Get-SCOMClass | Where-Object{ $_.name -eq "Microsoft.SystemCenter.Agent" } | Get-SCOMClassInstance
 
 #endregion Variables
@@ -33,18 +33,22 @@ foreach ($agent in $scomAgent)
 	$i++
 	$i = $i
 	
+	#Check the name of the current
 	$scomAgentDetails = Get-SCOMAgent -ManagementServer $movefromManagementServer | Where { $_.DisplayName -match $agent.DisplayName }
 	if ($scomAgentDetails)
 	{
 		#Remove Failover Management Server
-		Write-Output "($i/$($scomAgent.count)) $($agent.DisplayName) Removing Failover: $($movetoFailoverMgmtServer.DisplayName)`n`n"
+		Write-Output "($i/$($scomAgent.count)) $($agent.DisplayName)`n`t`tRemoving Failover"
 		$scomAgentDetails | Set-SCOMParentManagementServer -FailoverServer $null | Out-Null
 		#Set Primary Management Server
-		Write-Output "             $($agent.DisplayName) Primary: $($movefromManagementServer.DisplayName) -> $($movetoPrimaryMgmtServer.DisplayName)"
+		Write-Output "`t`tCurrent Primary: $($movefromManagementServer.DisplayName)`n`t`tUpdating Primary to: $($movetoPrimaryMgmtServer.DisplayName)"
 		$scomAgentDetails | Set-SCOMParentManagementServer -PrimaryServer $movetoPrimaryMgmtServer | Out-Null
-		#Set Secondary Management Server
-		Write-Output "               $($agent.DisplayName) Failover: $($movetoFailoverMgmtServer.DisplayName)`n`n"
-		$scomAgentDetails | Set-SCOMParentManagementServer -FailoverServer $movetoFailoverMgmtServer | Out-Null
+		if ($movetoFailoverMgmtServer -and $movetoFailoverMgmtServer -ne '<MoveToSecondary_MS>')
+		{
+			#Set Secondary Management Server
+			Write-Output "               $($agent.DisplayName) Failover: $($movetoFailoverMgmtServer.DisplayName)`n`n"
+			$scomAgentDetails | Set-SCOMParentManagementServer -FailoverServer $movetoFailoverMgmtServer | Out-Null
+		}
 	}
 	else
 	{
