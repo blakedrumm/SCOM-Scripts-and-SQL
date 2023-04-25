@@ -11,10 +11,10 @@ Import-Module OperationsManager
 #region Script Variables
 
 #We will look for all Agents Managed by this Management Server.
-$movefromManagementServer = Get-SCOMManagementServer -Name "MS01-2019*"
+$movefromManagementServer = Get-SCOMManagementServer -Name "<MoveFrom_MS>"
 
 #Primary Management Server
-$movetoPrimaryMgmtServer = Get-SCOMManagementServer -Name "MS02-2019*"
+$movetoPrimaryMgmtServer = Get-SCOMManagementServer -Name "<MoveToPrimary_MS>"
 
 #Secondary Management Server
 $movetoFailoverMgmtServer = Get-SCOMManagementServer -Name '<MoveToSecondary_MS>'
