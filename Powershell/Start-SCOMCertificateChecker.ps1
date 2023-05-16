@@ -28,41 +28,43 @@
         Check all certificates on the local machine:
         PS C:\> .\Invoke-CheckSCOMCertificates.ps1 -All
     .NOTES
-        Update 02/2023 (Blake Drumm, https://github.com/blakedrumm/ )
+        Update 05/2023 (Blake Drumm, https://blakedrumm.com/)
+		Added ability to check certificates missing a common name.
+        Update 02/2023 (Blake Drumm, https://github.com/blakedrumm/)
         	Added the ability to check for duplicate subject common names.
         Update 01/2023 (Mike Kallhoff)
         	Added the ability to output the certificate chain information.
-        Update 11/2022 (Blake Drumm, https://github.com/blakedrumm/ )
+        Update 11/2022 (Blake Drumm, https://github.com/blakedrumm/)
         	Script will now let you know if your registry key does not match any certificates in the local machine store.
-        Update 09/2022 (Blake Drumm, https://github.com/blakedrumm/ )
+        Update 09/2022 (Blake Drumm, https://github.com/blakedrumm/)
         	Fixed bug introduced in last update. Certificates are checked correctly now.
-        Update 09/2022 (Blake Drumm, https://github.com/blakedrumm/ )
+        Update 09/2022 (Blake Drumm, https://github.com/blakedrumm/)
         	Added ability to gather issuer. Fixed bug in output.
-        Update 03/2022 (Blake Drumm, https://github.com/blakedrumm/ )
+        Update 03/2022 (Blake Drumm, https://github.com/blakedrumm/)
         	Major Update / alot of changes to how this script acts remotely and locally and added remoting abilites that are much superior to previous versions
-        Update 02/2022 (Blake Drumm, https://github.com/blakedrumm/ )
+        Update 02/2022 (Blake Drumm, https://github.com/blakedrumm/)
         	Fix some minor bugs and do some restructuring
-        Update 01/2022 (Blake Drumm, https://github.com/blakedrumm/ )
+        Update 01/2022 (Blake Drumm, https://github.com/blakedrumm/)
         	The script will now allow an -SerialNumber parameter so you can only gather the certificate you are expecting.
-        Update 06/2021 (Blake Drumm, https://github.com/v-bldrum/ )
+        Update 06/2021 (Blake Drumm, https://github.com/v-bldrum/)
         	The Script will now by default only check every Certificate only if you have the -All Switch. Otherwise it will just check the certificate Serial Number (Reversed) that is present in the Registry.
-        Update 11/2020 (Blake Drumm, https://github.com/v-bldrum/ )
+        Update 11/2020 (Blake Drumm, https://github.com/v-bldrum/)
         	Shows Subject Name instead of Issuer for each Certificate Checked.
-        Update 08/2020 (Blake Drumm, https://github.com/v-bldrum/ )
+        Update 08/2020 (Blake Drumm, https://github.com/v-bldrum/)
         	Fixed formatting in output.
-        Update 06/2020 (Blake Drumm, https://github.com/v-bldrum/ )
+        Update 06/2020 (Blake Drumm, https://github.com/v-bldrum/)
         	Added ability to OutputFile script to file.
-        Update 2017.11.17 (Tyson Paul, https://blogs.msdn.microsoft.com/tysonpaul/ )
+        Update 2017.11.17 (Tyson Paul, https://blogs.msdn.microsoft.com/tysonpaul/)
         	Fixed certificate SerialNumber parsing error.
-        Update 7/2009
+        Update 7/2009 (Lincoln Atkinson?, https://blogs.technet.microsoft.com/momteam/author/latkin/)
         	Fix for workgroup machine subjectname validation
-        Update 2/2009
+        Update 2/2009 (Lincoln Atkinson?, https://blogs.technet.microsoft.com/momteam/author/latkin/)
         	Fixes for subjectname validation
         	Typos
         	Modification for CA chain validation
         	Adds needed check for MachineKeyStore property on the private key
-        Original Publish Date 1/2009
-        (Lincoln Atkinson?, https://blogs.technet.microsoft.com/momteam/author/latkin/ )
+        Original Publish Date 1/2009 (Lincoln Atkinson?, https://blogs.technet.microsoft.com/momteam/author/latkin/)
+        
 #>[CmdletBinding()]
 [OutputType([string])]
 param
@@ -291,10 +293,27 @@ $($ChainCertsOutput)
 			}
 			$subjectProblem = $false
 			$fqdnRegexPattern = "CN=" + $fqdn.Replace(".", "\.") + '(,.*)?$'
-			$CheckForDuplicateSubjectCNs = ((($cert).Subject).Split(",") | %{ $_.Trim() } | Where { $_ -match "CN=" }).Trim("CN=") | % { $_.Split(".") | Select-Object -First 1 } | Group-Object | Where-Object { $_.Count -gt 1 } | Select -ExpandProperty Name
-			if ((($cert.SubjectName.Name).ToUpper()) -notmatch ($fqdnRegexPattern.ToUpper()))
+			try { $CheckForDuplicateSubjectCNs = ((($cert).Subject).Split(",") | %{ $_.Trim() } | Where { $_ -match "CN=" }).Trim("CN=") | % { $_.Split(".") | Select-Object -First 1 } | Group-Object | Where-Object { $_.Count -gt 1 } | Select -ExpandProperty Name }
+			catch { $CheckForDuplicateSubjectCNs = $null }
+			
+			if (-NOT $cert.Subject)
 			{
-				$text5 = "Certificate Subjectname Mismatch"
+				$text5 = "Certificate Subject Common Name Missing"
+				$out += "`n" + $text5
+				Write-Host $text5 -BackgroundColor Red -ForegroundColor Black
+				$text6 = @"
+    The Subject Common Name of this certificate is not present.
+        Actual: ""
+        Expected (case insensitive): CN=$fqdn
+"@
+				$out += "`n" + $text6
+				Write-Host $text6
+				$pass = $false
+				$subjectProblem = $true
+			}
+			elseif ((($cert.SubjectName.Name).ToUpper()) -notmatch ($fqdnRegexPattern.ToUpper()))
+			{
+				$text5 = "Certificate Subject Common Name Mismatch"
 				$out += "`n" + $text5
 				Write-Host $text5 -BackgroundColor Red -ForegroundColor Black
 				$text6 = @"
@@ -307,7 +326,7 @@ $($ChainCertsOutput)
 				$pass = $false
 				$subjectProblem = $true
 			}
-			if ($CheckForDuplicateSubjectCNs)
+			elseif ($CheckForDuplicateSubjectCNs)
 			{
 				$CertDuplicateCN = "Certificate Subjectname Duplicate Common Names"
 				$out += "`n" + $CertDuplicateCN
@@ -741,7 +760,7 @@ Certificate Checker
 	}
 	else
 	{
-		# Modify line 751 if you want to change the default behavior when running this script through Powershell ISE
+		# Modify line 768 if you want to change the default behavior when running this script through Powershell ISE
 		#
 		# Examples: 
 		# Invoke-CheckSCOMCertificate -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
