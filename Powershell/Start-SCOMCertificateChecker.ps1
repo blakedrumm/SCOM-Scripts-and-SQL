@@ -760,7 +760,7 @@ Certificate Checker
 	}
 	else
 	{
-		# Modify line 768 if you want to change the default behavior when running this script through Powershell ISE
+		# Modify line 770 if you want to change the default behavior when running this script through Powershell ISE
 		#
 		# Examples: 
 		# Invoke-CheckSCOMCertificate -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
