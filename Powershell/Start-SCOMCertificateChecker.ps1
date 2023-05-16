@@ -29,7 +29,7 @@
         PS C:\> .\Invoke-CheckSCOMCertificates.ps1 -All
     .NOTES
         Update 05/2023 (Blake Drumm, https://blakedrumm.com/)
-		Added ability to check certificates missing a common name.
+        	Added ability to check certificates missing a common name.
         Update 02/2023 (Blake Drumm, https://github.com/blakedrumm/)
         	Added the ability to check for duplicate subject common names.
         Update 01/2023 (Mike Kallhoff)
