@@ -18,7 +18,7 @@ ___
 [![Download Count Releases](https://img.shields.io/github/downloads/blakedrumm/SCOM-Scripts-and-SQL/total.svg?style=for-the-badge&color=brightgreen)](https://github.com/blakedrumm/SCOM-Scripts-and-SQL/releases) \
 <sup>Started tracking on February 13th, 2021</sup>
 
-Read the blog post here: [System Center Operations Manager - Data Collector | Blake Drumm - Technical Blog](https://blakedrumm.com/blog/scom-data-collector/)
+Read the blog post here: [https://blakedrumm.com/blog/scom-data-collector/](https://blakedrumm.com/blog/scom-data-collector/)
 
 ___
 
