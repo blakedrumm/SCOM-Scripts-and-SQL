@@ -143,9 +143,13 @@ BEGIN
 
     IF (@MaxDop <> @RecommendedMaxDop)
     BEGIN
-        PRINT 'In case you want to change MAXDOP to the recommended value, please use this script:';
+        PRINT 'In case you want to change MAXDOP to the recommended value, you can use this script:';
         PRINT '';
-        PRINT 'EXEC sp_configure ''max degree of parallelism'', ' + CAST(@RecommendedMaxDop AS CHAR);
+        PRINT 'EXEC sp_configure ''show advanced options'', 1;';
+        PRINT 'GO';
+		PRINT 'RECONFIGURE WITH OVERRIDE;';
+		PRINT 'GO';
+        PRINT 'EXEC sp_configure ''max degree of parallelism'', ' + CAST(@RecommendedMaxDop AS CHAR) + ';';
         PRINT 'GO';
         PRINT 'RECONFIGURE WITH OVERRIDE;';
     END;
@@ -165,7 +169,11 @@ BEGIN
     BEGIN
         PRINT 'In case you want to change MAXDOP to the recommended value, please use this script:';
         PRINT '';
-        PRINT 'EXEC sp_configure ''max degree of parallelism'', ' + CAST(@RecommendedMaxDop AS CHAR);
+        PRINT 'EXEC sp_configure ''show advanced options'', 1;';
+        PRINT 'GO';
+		PRINT 'RECONFIGURE WITH OVERRIDE;';
+		PRINT 'GO';
+        PRINT 'EXEC sp_configure ''max degree of parallelism'', ' + CAST(@RecommendedMaxDop AS CHAR) + ';';
         PRINT 'GO';
         PRINT 'RECONFIGURE WITH OVERRIDE;';
     END;
