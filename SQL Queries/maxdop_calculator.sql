@@ -1,6 +1,6 @@
 /*
 -- +----------------------------------------------------------------------------+
--- |                  			Blake Drumm             		|
+-- |                  		Blake Drumm                                     |
 -- |                        blakedrumm@microsoft.com                            |
 -- |                      http://www.blakedrumm.com                             |
 -- |             Original Author: DBA Mastery (http://www.dbamastery.com)       |
