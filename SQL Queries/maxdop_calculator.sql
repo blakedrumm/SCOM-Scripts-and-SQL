@@ -1,6 +1,6 @@
 /*
 -- +----------------------------------------------------------------------------+
--- |                  			Blake Drumm             		                |
+-- |                  			Blake Drumm             		|
 -- |                        blakedrumm@microsoft.com                            |
 -- |                      http://www.blakedrumm.com                             |
 -- |             Original Author: DBA Mastery (http://www.dbamastery.com)       |
@@ -11,7 +11,7 @@
 -- | FILE     : maxdop_calculator.sql                                       	|
 -- | CLASS    : Performance tuning                                              |
 -- | PURPOSE  :	Calculates the optimal value for MAXDOP (> SQL 2016 )	    	|
--- |                                    										|
+-- |                                                                            |
 -- | NOTE     : As with any code, ensure to test this script in a development   |
 -- |            environment before attempting to run it in production.          |
 -- |                                                                            |
