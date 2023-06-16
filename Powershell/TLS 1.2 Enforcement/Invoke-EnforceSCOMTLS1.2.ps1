@@ -36,7 +36,7 @@
 	.PARAMETER SkipDownloadPrerequisites
 		Skip downloading the prerequisite files to current directory:
 		- msoledbsql.msi  (https://learn.microsoft.com/sql/connect/oledb/download-oledb-driver-for-sql-server)
-		- msodbcsql.msi   (https://www.microsoft.com/download/details.aspx?id=50420)
+		- msodbcsql.msi   (https://learn.microsoft.com/sql/connect/odbc/download-odbc-driver-for-sql-server)
 		- sqlncli.msi     (https://www.microsoft.com/download/details.aspx?id=50402)
 	
 	.PARAMETER SkipModifyRegistry
