@@ -8,9 +8,9 @@
 #
 # Original Author: Kevin Holman (https://kevinholman.com/)
 # Author: Blake Drumm (https://blakedrumm.com/)
-# v 2.0
+# v 2.1
 #
-# Last Updated: May 25th, 2023
+# Last Updated: June 19th, 2023
 #
 #=================================================================================
 <#
@@ -36,7 +36,7 @@
 	.PARAMETER SkipDownloadPrerequisites
 		Skip downloading the prerequisite files to current directory:
 		- msoledbsql.msi  (https://learn.microsoft.com/sql/connect/oledb/download-oledb-driver-for-sql-server)
-		- msodbcsql.msi   (https://learn.microsoft.com/sql/connect/odbc/download-odbc-driver-for-sql-server)
+		- msodbcsql.msi   (https://www.microsoft.com/download/details.aspx?id=50420)
 		- sqlncli.msi     (https://www.microsoft.com/download/details.aspx?id=50402)
 	
 	.PARAMETER SkipModifyRegistry
@@ -292,7 +292,7 @@ function Start-SCOMTLSEnforcement
 	}
 	if (-not $SkipDownloadPrerequisites -and $missingPreq -or $ForceDownloadPrerequisites)
 	{
-		if (-NOT $AssumeYes -or $missingPreq)
+		if (-NOT $AssumeYes -and $missingPreq)
 		{
 			do
 			{
