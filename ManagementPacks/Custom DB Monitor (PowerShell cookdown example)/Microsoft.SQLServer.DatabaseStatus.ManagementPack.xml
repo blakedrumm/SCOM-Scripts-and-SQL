@@ -1,0 +1,379 @@
+﻿<?xml version="1.0" encoding="utf-8"?><ManagementPack ContentReadable="true" SchemaVersion="2.0" OriginalSchemaVersion="2.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <Manifest>
+    <Identity>
+      <ID>Microsoft.SQLServer.DatabaseStatus.ManagementPack</ID>
+      <Version>1.0.0.5</Version>
+    </Identity>
+    <Name>Microsoft.SQLServer.DatabaseStatus.ManagementPack</Name>
+    <References>
+      <Reference Alias="Windows">
+        <ID>Microsoft.Windows.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="MSCL">
+        <ID>Microsoft.SQLServer.Core.Library</ID>
+        <Version>7.0.32.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="MSWD">
+        <ID>Microsoft.SQLServer.Windows.Discovery</ID>
+        <Version>7.0.32.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="MicrosoftSystemCenterInstanceGroupLibrary7585010">
+        <ID>Microsoft.SystemCenter.InstanceGroup.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="System">
+        <ID>System.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="MicrosoftSystemCenterLibrary7084436">
+        <ID>Microsoft.SystemCenter.Library</ID>
+        <Version>7.0.8448.6</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SQLServer">
+        <ID>Microsoft.SQLServer.Windows.Monitoring</ID>
+        <Version>7.0.32.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="Health">
+        <ID>System.Health.Library</ID>
+        <Version>7.0.8443.6</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+    </References>
+  </Manifest>
+  <TypeDefinitions>
+    <EntityTypes>
+      <ClassTypes>
+        <ClassType ID="UINameSpace2cfdfeb35e044cecb06c5817df55df86.Group" Accessibility="Public" Abstract="false" Base="MicrosoftSystemCenterInstanceGroupLibrary7585010!Microsoft.SystemCenter.InstanceGroup" Hosted="false" Singleton="true" Extension="false" />
+      </ClassTypes>
+    </EntityTypes>
+    <ModuleTypes>
+      <DataSourceModuleType ID="Custom.SQLServer.DatabaseStatus.Monitor.DS" Accessibility="Internal" RunAs="MSCL!Microsoft.SQLServer.Core.RunAs.Monitoring" Batching="false">
+        <Configuration>
+          <xsd:element minOccurs="1" type="xsd:integer" name="IntervalSeconds" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element minOccurs="0" type="xsd:string" name="SyncTime" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element minOccurs="1" type="xsd:string" name="ComputerName" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element minOccurs="1" type="xsd:string" name="DatabaseName" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element minOccurs="1" type="xsd:string" name="InstanceName" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element minOccurs="1" type="xsd:integer" name="TimeoutSeconds" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+        </Configuration>
+        <OverrideableParameters>
+          <OverrideableParameter ID="IntervalSeconds" Selector="$Config/IntervalSeconds$" ParameterType="int" />
+          <OverrideableParameter ID="SyncTime" Selector="$Config/SyncTime$" ParameterType="string" />
+          <OverrideableParameter ID="ComputerName" Selector="$Config/ComputerName$" ParameterType="string" />
+          <OverrideableParameter ID="TimeoutSeconds" Selector="$Config/TimeoutSeconds$" ParameterType="int" />
+        </OverrideableParameters>
+        <ModuleImplementation Isolation="Any">
+          <Composite>
+            <MemberModules>
+              <DataSource ID="Scheduler" TypeID="System!System.Scheduler">
+                <Scheduler>
+                  <SimpleReccuringSchedule>
+                    <Interval Unit="Seconds">$Config/IntervalSeconds$</Interval>
+                    <SyncTime>$Config/SyncTime$</SyncTime>
+                  </SimpleReccuringSchedule>
+                  <ExcludeDates />
+                </Scheduler>
+              </DataSource>
+              <ProbeAction ID="PA" TypeID="Windows!Microsoft.Windows.PowerShellPropertyBagProbe">
+                <ScriptName>Custom.SQLServer.DatabaseStatus.Monitor.DS.ps1</ScriptName>
+                <ScriptBody><![CDATA[
+param([string]$computerName,[string]$instancename)
+
+#=================================================================================
+#  Describe Script Here
+#
+#  Author:  Sourav Mahato
+#  v1.0
+#=================================================================================
+
+# Constants section - modify stuff here:
+#=================================================================================
+# Assign script name variable for use in event logging.  
+$ScriptName = "Custom.SQLServer.DatabaseStatus.Monitor.DS.ps1"
+$EventID = "7890"
+
+# Gather the start time of the script.
+$StartTime = Get-Date
+# Set variable to be used in logging events.
+$whoami = whoami
+
+Function Get-SQLTable($sqlServer, $databaseName, $strSQLCommand, $intSQLTimeout = 60) {	
+	trap [System.Exception]	{
+		Write-Host "Exception trapped, $($_.Exception.Message)"
+		Write-Host "SQL Command Failed.  Sql Server [$sqlServer], Sql Database [$databaseName], Sql Command [$strSQLCommand]."
+        $momApi.LogScriptEvent($sqlServer,$EventID,2,"`n SQL Command Failed.  Sql Server [$sqlServer], Sql Database [$databaseName], SQL Instance $instancename Sql Command [$strSQLCommand] `n Running as ($whoami).")
+		continue;
+	}
+	
+	# Build SQL Server connect string.
+	$strSQLConnect = "Server=$sqlServer;Database=$databaseName;Integrated Security=True;Connection Timeout=$intSQLTimeout" 
+	
+	# Connect to server and recieve dataset.
+	$objSQLConnection = New-Object System.Data.SQLClient.SQLConnection
+	$objSQLConnection.ConnectionString =  $strSQLConnect
+	$objSQLCmd = New-Object System.Data.SQLClient.SQLCommand
+	$objSQLCmd.CommandTimeout = $intSQLTimeout
+	$objSQLCmd.CommandText = $strSQLCommand
+	$objSQLCmd.Connection = $objSQLConnection
+	$objSQLAdapter = New-Object System.Data.SQLClient.SQLDataAdapter
+	$objSQLAdapter.SelectCommand = $objSQLCmd
+	$objDataSet = New-Object System.Data.DataSet
+	$strRowCount = $objSQLAdapter.Fill($objDataSet)
+
+	if ($?) {
+		#pull out table
+		$objTable = $objDataSet.Tables[0]
+	}
+	
+	# Close the SQL connection.
+	$objSQLConnection.Close()
+	
+	# Return the dataset to caller.
+    return $objTable
+}
+
+$database = 'Master'
+$momApi = New-Object -comObject MOM.ScriptAPI
+
+# Log script event that we are starting task.
+#$momApi.LogScriptEvent($computerName,$EventID,0,"`n $databaseName is starting. `n Running as ($whoami).")
+
+$strSQLCommand = "SELECT name,d.state_desc from  sys.databases d with (nolock)
+LEFT OUTER JOIN sys.database_mirroring dm with (nolock) ON dm.database_id = d.database_id AND dm.mirroring_role = 2
+where (d.state_desc = 'Emergency' or d.state_desc = 'Suspect' or d.state_desc = 'Online' or d.state_desc = 'Recovery_pending' or d.state_desc = 'Recovering' or
+d.state_desc = 'Restoring' or d.state_desc = 'Offline')"
+
+$sqlServer = ''
+if ($instancename -like 'MSSQLSERVER') {
+    $sqlServer = $computerName
+}
+else {
+    $sqlServer = "$computerName" + '\' + "$instancename"
+}
+
+$result = Get-SqlTable $sqlServer $database $strSQLCommand
+
+#$momApi.LogScriptEvent($ScriptName,$EventID,0,"SQL Server $computerName and Instance $instancename having $databaseName status is $status")
+
+for ($i = 0; $i -lt $result.Rows.Count; $i++) {
+
+    $name = $result.name[$i]
+    $status = $result.state_desc[$i]
+
+    $condition = ''
+    if ($status -eq 'Online' -or $status -eq 'Offline') {
+        $condition = 'GoodCondition'
+    }
+    else {
+        $condition = 'BadCondition'
+    }
+
+    $bag = $momApi.CreatePropertyBag()
+    $bag.AddValue('ComputerName',$computerName)
+    $bag.AddValue('InstanceName',$instanceName)
+    $bag.AddValue('Database',$name)
+    $bag.AddValue('Status',$condition)
+    $bag.AddValue('DatabaseState',$status)
+	$bag
+}
+
+# End of script section
+#=================================================================================
+#Log an event for script ending and total execution time.
+$EndTime = Get-Date
+$ScriptTime = ($EndTime - $StartTime).TotalSeconds
+#$momApi.LogScriptEvent($ScriptName,$EventID,0,"`n Script Completed. `n Script Runtime: ($ScriptTime) seconds.")
+#=================================================================================
+                ]]></ScriptBody>
+                <Parameters>
+                  <Parameter>
+                    <Name>ComputerName</Name>
+                    <Value>$Config/ComputerName$</Value>
+                  </Parameter>
+                  <Parameter>
+                    <Name>InstanceName</Name>
+                    <Value>$Config/InstanceName$</Value>
+                  </Parameter>
+                </Parameters>
+                <TimeoutSeconds>$Config/TimeoutSeconds$</TimeoutSeconds>
+              </ProbeAction>
+              <ConditionDetection ID="InstanceFilter" TypeID="System!System.ExpressionFilter">
+                <Expression>
+			      <SimpleExpression>
+				    <ValueExpression>
+				      <XPathQuery Type="String">Property[@Name='Database']</XPathQuery>
+				    </ValueExpression>
+				    <Operator>Equal</Operator>
+				    <ValueExpression>
+				      <Value Type="String">$Config/DatabaseName$</Value>
+				    </ValueExpression>
+			      </SimpleExpression>
+                </Expression>
+              </ConditionDetection>					  
+            </MemberModules>
+            <Composition>
+			  <Node ID="InstanceFilter">
+                <Node ID="PA">
+                  <Node ID="Scheduler" />
+                </Node>			
+			  </Node>
+            </Composition>
+          </Composite>
+        </ModuleImplementation>
+        <OutputType>System!System.PropertyBagData</OutputType>
+      </DataSourceModuleType>
+    </ModuleTypes>
+    <MonitorTypes>
+      <UnitMonitorType ID="Custom.SQLServer.DatabaseStatus.Monitor.MonitorType" Accessibility="Internal">
+        <MonitorTypeStates>
+          <MonitorTypeState ID="GoodCondition" NoDetection="false" />
+          <MonitorTypeState ID="BadCondition" NoDetection="false" />
+        </MonitorTypeStates>
+        <Configuration>
+          <xsd:element minOccurs="1" type="xsd:integer" name="IntervalSeconds" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element minOccurs="0" type="xsd:string" name="SyncTime" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element minOccurs="1" type="xsd:string" name="ComputerName" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element minOccurs="1" type="xsd:string" name="DatabaseName" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element minOccurs="1" type="xsd:string" name="InstanceName" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element minOccurs="1" type="xsd:integer" name="TimeoutSeconds" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element minOccurs="1" type="xsd:integer" name="MatchCount" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+        </Configuration>
+        <OverrideableParameters>
+          <OverrideableParameter ID="IntervalSeconds" Selector="$Config/IntervalSeconds$" ParameterType="int" />
+          <OverrideableParameter ID="SyncTime" Selector="$Config/SyncTime$" ParameterType="string" />
+          <OverrideableParameter ID="ComputerName" Selector="$Config/ComputerName$" ParameterType="string" />
+          <OverrideableParameter ID="TimeoutSeconds" Selector="$Config/TimeoutSeconds$" ParameterType="int" />
+          <OverrideableParameter ID="MatchCount" Selector="$Config/MatchCount$" ParameterType="int" />
+        </OverrideableParameters>
+        <MonitorImplementation>
+          <MemberModules>
+            <DataSource ID="DS" TypeID="Custom.SQLServer.DatabaseStatus.Monitor.DS">
+              <IntervalSeconds>$Config/IntervalSeconds$</IntervalSeconds>
+              <SyncTime>$Config/SyncTime$</SyncTime>
+              <ComputerName>$Config/ComputerName$</ComputerName>
+              <DatabaseName>$Config/DatabaseName$</DatabaseName>
+              <InstanceName>$Config/InstanceName$</InstanceName>
+              <TimeoutSeconds>$Config/TimeoutSeconds$</TimeoutSeconds>
+            </DataSource>
+            <ConditionDetection ID="GoodConditionFilter" TypeID="System!System.ExpressionFilter">
+              <Expression>
+                <SimpleExpression>
+                  <ValueExpression>
+                    <XPathQuery Type="String">Property[@Name='Status']</XPathQuery>
+                  </ValueExpression>
+                  <Operator>Equal</Operator>
+                  <ValueExpression>
+                    <Value Type="String">GoodCondition</Value>
+                  </ValueExpression>
+                </SimpleExpression>
+              </Expression>
+            </ConditionDetection>
+            <ConditionDetection ID="BadConditionFilter" TypeID="System!System.ExpressionFilter">
+              <Expression>
+                <SimpleExpression>
+                  <ValueExpression>
+                    <XPathQuery Type="String">Property[@Name='Status']</XPathQuery>
+                  </ValueExpression>
+                  <Operator>Equal</Operator>
+                  <ValueExpression>
+                    <Value Type="String">BadCondition</Value>
+                  </ValueExpression>
+                </SimpleExpression>
+              </Expression>
+              <SuppressionSettings>
+                <MatchCount>$Config/MatchCount$</MatchCount>
+              </SuppressionSettings>
+            </ConditionDetection>
+          </MemberModules>
+          <RegularDetections>
+            <RegularDetection MonitorTypeStateID="GoodCondition">
+              <Node ID="GoodConditionFilter">
+                <Node ID="DS" />
+              </Node>
+            </RegularDetection>
+            <RegularDetection MonitorTypeStateID="BadCondition">
+              <Node ID="BadConditionFilter">
+                <Node ID="DS" />
+              </Node>
+            </RegularDetection>
+          </RegularDetections>
+          <OnDemandDetections>
+            <OnDemandDetection MonitorTypeStateID="GoodCondition">
+              <Node ID="GoodConditionFilter">
+                <Node ID="DS" />
+              </Node>
+            </OnDemandDetection>
+            <OnDemandDetection MonitorTypeStateID="BadCondition">
+              <Node ID="BadConditionFilter">
+                <Node ID="DS" />
+              </Node>
+            </OnDemandDetection>
+          </OnDemandDetections>
+        </MonitorImplementation>
+      </UnitMonitorType>
+    </MonitorTypes>
+  </TypeDefinitions>
+  <Monitoring>
+    <Monitors>
+      <UnitMonitor ID="Custom.SQLServer.DatabaseStatus.Monitor" Accessibility="Public" Enabled="true" Target="MSWD!Microsoft.SQLServer.Windows.Database" ParentMonitorID="Health!System.Health.AvailabilityState" Remotable="true" Priority="Normal" TypeID="Custom.SQLServer.DatabaseStatus.Monitor.MonitorType" ConfirmDelivery="true">
+        <Category>AvailabilityHealth</Category>
+        <AlertSettings AlertMessage="Custom.SQLServer.DatabaseStatus.Monitor.AlertMessage">
+          <AlertOnState>Error</AlertOnState>
+          <AutoResolve>true</AutoResolve>
+          <AlertPriority>Normal</AlertPriority>
+          <AlertSeverity>Error</AlertSeverity>
+          <AlertParameters>
+            <AlertParameter1>$Target/Host/Property[Type="MSCL!Microsoft.SQLServer.Core.DBEngine"]/MachineName$</AlertParameter1>
+            <AlertParameter2>$Target/Property[Type="MSCL!Microsoft.SQLServer.Core.Database"]/DatabaseName$</AlertParameter2>
+            <AlertParameter3>$Target/Host/Property[Type="MSCL!Microsoft.SQLServer.Core.DBEngine"]/InstanceName$</AlertParameter3>
+          </AlertParameters>
+        </AlertSettings>
+        <OperationalStates>
+          <OperationalState ID="GoodCondition" MonitorTypeStateID="GoodCondition" HealthState="Success" />
+          <OperationalState ID="BadCondition" MonitorTypeStateID="BadCondition" HealthState="Error" />
+        </OperationalStates>
+        <Configuration>
+		  <IntervalSeconds>300</IntervalSeconds>
+          <SyncTime />
+          <ComputerName>$Target/Host/Property[Type="MSCL!Microsoft.SQLServer.Core.DBEngine"]/MachineName$</ComputerName>
+          <DatabaseName>$Target/Property[Type="MSCL!Microsoft.SQLServer.Core.Database"]/DatabaseName$</DatabaseName>
+          <InstanceName>$Target/Host/Property[Type="MSCL!Microsoft.SQLServer.Core.DBEngine"]/InstanceName$</InstanceName>
+          <TimeoutSeconds>120</TimeoutSeconds>
+          <MatchCount>2</MatchCount>
+        </Configuration>
+      </UnitMonitor>
+    </Monitors>
+  </Monitoring>
+  <Presentation>
+    <StringResources>
+      <StringResource ID="Custom.SQLServer.DatabaseStatus.Monitor.AlertMessage" />
+    </StringResources>
+  </Presentation>
+  <LanguagePacks>
+    <LanguagePack ID="ENU" IsDefault="true">
+      <DisplayStrings>
+        <DisplayString ElementID="Custom.SQLServer.DatabaseStatus.Monitor">
+          <Name>Custom SQLServer DatabaseStatus Monitor</Name>
+        </DisplayString>
+        <DisplayString ElementID="Custom.SQLServer.DatabaseStatus.Monitor" SubElementID="GoodCondition">
+          <Name>Good Condition</Name>
+        </DisplayString>
+        <DisplayString ElementID="Custom.SQLServer.DatabaseStatus.Monitor" SubElementID="BadCondition">
+          <Name>Bad Condition</Name>
+        </DisplayString>
+        <DisplayString ElementID="Custom.SQLServer.DatabaseStatus.Monitor.AlertMessage">
+          <Name>SQL Server Database State Failure</Name>
+          <Description>SQL Server {0} having Database called {1} in the Instance {2} is in Suspect/Recovery Mode Or account might not have access.</Description>
+        </DisplayString>
+      </DisplayStrings>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPack>

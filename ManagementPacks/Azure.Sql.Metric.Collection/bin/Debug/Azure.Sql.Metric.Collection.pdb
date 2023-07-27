@@ -1,0 +1,4 @@
+ManagementPack.mpx*Azure.Sql.Metric.Collection.DS*4*5*DataSourceModuleType
+ManagementPack.mpx*Collect.DataSpaceAllocatedPercent.Rule*330*5*Rule
+ManagementPack.mpx*Azure.Sql.Metric.Collection*356*10*DisplayString
+ManagementPack.mpx*Collect.DataSpaceAllocatedPercent.Rule*360*4*DisplayString

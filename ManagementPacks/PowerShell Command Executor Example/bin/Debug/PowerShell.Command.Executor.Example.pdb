@@ -1,0 +1,15 @@
+ManagementPack.mpx*Windows.Computer.With.PowerShellCore*5*10*ClassType
+ManagementPack.mpx*Service.Status.DataSource*12*8*DataSourceModuleType
+ManagementPack.mpx*Service.Status.MonitorType*72*8*UnitMonitorType
+ManagementPack.mpx*PowerShellCore.Installation.Discovery*127*8*Discovery
+ManagementPack.mpx*Spooler.Service.Rule*169*8*Rule
+ManagementPack.mpx*Spooler.Service.Monitor*200*8*UnitMonitor
+ManagementPack.mpx*Spooler.Service.Rule.AlertMessage*215*8*StringResource
+ManagementPack.mpx*PowerShell.Command.Executor.Example*221*10*DisplayString
+ManagementPack.mpx*Windows.Computer.With.PowerShellCore*225*10*DisplayString
+ManagementPack.mpx*Windows.Computer.With.PowerShellCore*229*10*DisplayString*SubElementID*PsVersion
+ManagementPack.mpx*Windows.Computer.With.PowerShellCore*233*10*DisplayString*SubElementID*PsPath
+ManagementPack.mpx*PowerShellCore.Installation.Discovery*237*10*DisplayString
+ManagementPack.mpx*Spooler.Service.Rule*241*10*DisplayString
+ManagementPack.mpx*Spooler.Service.Rule.AlertMessage*245*10*DisplayString
+ManagementPack.mpx*Spooler.Service.Monitor*249*10*DisplayString

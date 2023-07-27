@@ -1,0 +1,627 @@
+﻿<ManagementPackFragment SchemaVersion="2.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<TypeDefinitions>
+		<ModuleTypes>
+			<DataSourceModuleType ID="Azure.Sql.Metric.Collection.DS" Accessibility="Internal">
+				<Configuration>
+					<xsd:element name="IntervalHours" type="xsd:integer" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+					<xsd:element minOccurs="0" maxOccurs="1" name="SyncTime" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+					<xsd:element name="SubscriptionId" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+					<xsd:element name="SqlServerName" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+					<xsd:element name="ResourceGroupName" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+					<xsd:element minOccurs="0" maxOccurs="1" name="ElasticPoolName" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+					<xsd:element minOccurs="0" maxOccurs="1" name="DatabaseName" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+					<xsd:element name="MetricName" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+					<xsd:element name="GetDatabaseMetrics" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />					
+					<xsd:element name="TimeoutSeconds" type="xsd:int" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+					<xsd:element name="PerfObjectName" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+				</Configuration>
+				<OverrideableParameters>
+					<OverrideableParameter ID="IntervalHours" Selector="$Config/IntervalHours$" ParameterType="int" />
+					<OverrideableParameter ID="SyncTime" Selector="$Config/SyncTime$" ParameterType="string" />
+					<OverrideableParameter ID="TimeoutSeconds" Selector="$Config/TimeoutSeconds$" ParameterType="int" />
+					<OverrideableParameter ID="GetDatabaseMetrics" Selector="$Config/GetDatabaseMetrics$" ParameterType="string" />
+				</OverrideableParameters>
+				<ModuleImplementation>
+					<Composite>
+						<MemberModules>
+							<DataSource ID="Scheduler" TypeID="System!System.Scheduler">
+							  <Scheduler>
+								<SimpleReccuringSchedule>
+								  <Interval Unit="Hours">$Config/IntervalHours$</Interval>
+								</SimpleReccuringSchedule>
+								<ExcludeDates />
+							  </Scheduler>
+							</DataSource>
+							<ProbeAction ID="ScriptProbe" TypeID="Windows!Microsoft.Windows.PowerShellPropertyBagProbe">
+								<ScriptName>Azure.Sql.Metric.Collection.ps1</ScriptName>
+								<ScriptBody><![CDATA[
+param($subscriptionId,$clientId,$clientSecret,$sqlServerName,$resourceGroupName,$getDatabaseMetrics)
+
+$api = New-Object -comObject MOM.ScriptAPI
+$api.LogScriptEvent("Azure.Sql.Metric.Collection.ps1", 4297, 0, "Script starting with paramaters: " +
+	"`nSubscriptionId = $subscriptionId" +
+	"`nClientId = $clientId" +
+	"`nSqlServerName = $sqlServerName" + 
+	"`nResourceGroupName = $resourceGroupName" +
+	"`nGetDatabaseMetrics = $getDatabaseMetrics")
+
+$textInfo = (Get-Culture).TextInfo
+
+$tenantId = $clientId.Split('@')[1]
+$authUri = "https://login.windows.net/$tenantId/oauth2/token"
+
+$headers = @{
+    'Content-Type' = 'application/x-www-form-urlencoded'
+}
+
+$body = @{
+    grant_type = 'client_credentials'
+    client_id = $clientId
+    client_secret = $clientSecret
+    resource = 'https://management.azure.com/'
+}
+
+$auth = Invoke-RestMethod -Method Post -Uri $authUri -Headers $headers -Body $body -UseDefaultCredentials
+
+$token = $auth.access_token
+
+$headers = @{
+    'Authorization' = "Bearer $token"
+}
+
+$elasticPoolsUri = "https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName" + `
+    "/providers/Microsoft.Sql/servers/$sqlServerName/elasticPools?api-version=2014-04-01"
+
+# Get the list of elastic pools for the resource group.
+$elasticPools = Invoke-RestMethod -Method Get -Uri $elasticPoolsUri -Headers $headers
+
+# Add more metric names to the comma-separated list as needed. Note that this is a single string value, *not* an array.
+# For the list of available metrics, refer to the table "Microsoft.Sql/servers/elasticPools" at 
+# https://docs.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported
+$elasticPoolMetricNames = 'allocated_data_storage_percent'
+
+# Example of how to add more metrics:
+#$elasticPoolMetricNames = 'allocated_data_storage,allocated_data_storage_percent,storage_used,storage_percent'
+
+# Put the elastic pool name into an array.
+foreach ($elasticPool in $elasticPools) {
+    
+    $elasticPoolName = $elasticPool.value.name
+
+    $metricsUri = "https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName" + `
+        "/providers/Microsoft.Sql/servers/$sqlServerName/elasticPools/$elasticPoolName/providers/Microsoft.Insights/metrics?api-version=2018-01-01" + `
+        "&interval=PT1M&metricnames=$elasticPoolMetricNames"
+
+    # Get the list of metrics for the elastic pool.
+    $elasticPoolMetricsResults = Invoke-RestMethod -Method Get -Uri $metricsUri -Headers $headers
+
+    foreach ($metric in $elasticPoolMetricsResults.value) {
+
+        $metricName = $metric.displayDescription.Split('.')[0]
+
+        $data = $metric.timeseries.data      
+
+        $count = $data.Count      
+
+        # The three possible aggregation types for these metrcis are Average, Maximum and Total.
+        # Note that I'm only getting the most recent value in the time series array i.e. [$count - 1].
+        if ($data.average -ne $null) {
+
+            $value = $data[$count - 1].average
+        }
+        elseif ($data.maximum -ne $null) {
+
+            $value = $data[$count - 1].maximum
+        }
+        elseif ($data.total -ne $null) {
+
+            $value = $data[$count - 1].total
+        }
+
+        $bag = $api.CreatePropertyBag()
+        $bag.AddValue('ElasticPoolName', $elasticPoolName)
+		$bag.AddValue('DatabaseName', '')
+        $bag.AddValue('MetricName', $textInfo.ToTitleCase($metricName))
+        $bag.AddValue('Value', $value)
+        $bag
+    }
+}
+
+if ($getDatabaseMetrics -eq "true") {
+
+    $databasesUri = "https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName" + `
+        "/providers/Microsoft.Sql/servers/$sqlServerName/databases?api-version=2014-04-01"
+
+    # Get the list of datbases for the resource group.
+    $databases = Invoke-RestMethod -Method Get -Uri $databasesUri -Headers $headers
+
+    # Add more metric names to the comma-separated list as needed. Note that this is a single string value, *not* an array.
+    # For the list of available metrics, refer to the table "Microsoft.Sql/servers/databases" at 
+    # https://docs.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported
+    $databaseMetricNames = 'allocated_data_storage,storage,storage_percent'
+
+    foreach ($database in $databases.value) {
+
+        $databaseName = $database.name
+
+        if ($databaseName -eq 'master') {
+            
+            Continue
+        }
+
+        $metricsUri = "https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName" + `
+            "/providers/Microsoft.Sql/servers/$sqlServerName/databases/$databaseName/providers/Microsoft.Insights/metrics?api-version=2018-01-01" + `
+            "&interval=PT1M&metricnames=$databaseMetricNames"
+
+        # Get the list of metrics for the database.
+        $databaseMetricsResults = Invoke-RestMethod -Method Get -Uri $metricsUri -Headers $headers
+
+        foreach ($metric in $databaseMetricsResults.value) {
+
+            $metricName = $metric.displayDescription.Split('.')[0]            
+
+            $data = $metric.timeseries.data    
+
+            $count = $data.Count      
+
+            # The three possible aggregation types for these metrcis are Average, Maximum and Total.
+            # Note that I'm only getting the most recent value in the time series array i.e. [$count - 1].
+            if ($data.average -ne $null) {
+                
+                $value = $data[$count - 1].average
+            }
+            elseif ($data.maximum -ne $null) {
+
+                $value = $data[$count - 1].maximum
+            }
+            elseif ($data.total -ne $null) {
+
+                $value = $data[$count - 1].total
+            }
+
+            $bag = $api.CreatePropertyBag()
+			$bag.AddValue('ElasticPoolName', '')
+            $bag.AddValue('DatabaseName', $databaseName)
+            $bag.AddValue('MetricName', $textInfo.ToTitleCase($metricName))
+            $bag.AddValue('Value', $value)
+            $bag
+        }
+    }
+}							
+							 ]]></ScriptBody>
+								<Parameters>
+									<Parameter>
+										<Name>SubscriptionId</Name>
+										<Value>$Config/SubscriptionId$</Value>
+									</Parameter>									
+									<Parameter>
+										<Name>ClientId</Name>
+										<Value>$RunAs[Name="AzureSQL!Microsoft.SqlServer.Azure.Profile.Sql"]/UserName$</Value>
+									</Parameter>
+									<Parameter>
+										<Name>ClientSecret</Name>
+										<Value>$RunAs[Name="AzureSQL!Microsoft.SqlServer.Azure.Profile.Sql"]/Password$</Value>
+									</Parameter>							
+									<Parameter>
+										<Name>SqlServerName</Name>
+										<Value>$Config/SqlServerName$</Value>
+									</Parameter>
+									<Parameter>
+										<Name>ResourceGroupName</Name>
+										<Value>$Config/ResourceGroupName$</Value>
+									</Parameter>
+									<Parameter>
+										<Name>GetDatabaseMetrics</Name>
+										<Value>$Config/GetDatabaseMetrics$</Value>
+									</Parameter>								
+								</Parameters>
+							<TimeoutSeconds>$Config/TimeoutSeconds$</TimeoutSeconds>
+							</ProbeAction>							
+							<ConditionDetection ID="InstanceFilter" TypeID="System!System.ExpressionFilter">
+								<Expression>
+									<Or>
+										<Expression>
+											<And>
+                                                <Expression>
+			                                      <SimpleExpression>
+				                                    <ValueExpression>
+				                                      <XPathQuery Type="String">Property[@Name='ElasticPoolName']</XPathQuery>
+				                                    </ValueExpression>
+				                                    <Operator>Equal</Operator>
+				                                    <ValueExpression>
+				                                      <Value Type="String">$Config/ElasticPoolName$</Value>
+				                                    </ValueExpression>
+			                                      </SimpleExpression>
+                                                </Expression>
+                                               <Expression>
+			                                      <SimpleExpression>
+				                                    <ValueExpression>
+				                                      <XPathQuery Type="String">Property[@Name='MetricName']</XPathQuery>
+				                                    </ValueExpression>
+				                                    <Operator>Equal</Operator>
+				                                    <ValueExpression>
+				                                      <Value Type="String">$Config/MetricName$</Value>
+				                                    </ValueExpression>
+			                                      </SimpleExpression>
+                                                </Expression>												
+											</And>										
+										</Expression>
+										<Expression>
+											<And>
+                                                <Expression>
+			                                      <SimpleExpression>
+				                                    <ValueExpression>
+				                                      <XPathQuery Type="String">Property[@Name='DatabaseName']</XPathQuery>
+				                                    </ValueExpression>
+				                                    <Operator>Equal</Operator>
+				                                    <ValueExpression>
+				                                      <Value Type="String">$Config/DatabaseName$</Value>
+				                                    </ValueExpression>
+			                                      </SimpleExpression>
+                                                </Expression>
+                                                <Expression>
+			                                      <SimpleExpression>
+				                                    <ValueExpression>
+				                                      <XPathQuery Type="String">Property[@Name='MetricName']</XPathQuery>
+				                                    </ValueExpression>
+				                                    <Operator>Equal</Operator>
+				                                    <ValueExpression>
+				                                      <Value Type="String">$Config/MetricName$</Value>
+				                                    </ValueExpression>
+			                                      </SimpleExpression>
+                                                </Expression>												
+											</And>										
+										</Expression>											
+									</Or>
+								</Expression>					
+							</ConditionDetection>
+							<ConditionDetection ID="PerfMapper" TypeID="Perf!System.Performance.DataGenericMapper">
+								<ObjectName>$Config/PerfObjectName$</ObjectName>
+								<CounterName>$Data/Property[@Name='MetricName']$</CounterName>
+								<InstanceName></InstanceName>
+								<Value>$Data/Property[@Name='Value']$</Value>
+							</ConditionDetection>						
+						</MemberModules>
+						<Composition>
+							<Node ID="PerfMapper">
+							  <Node ID="InstanceFilter">
+								<Node ID="ScriptProbe">
+								  <Node ID="Scheduler" />
+								</Node>
+							</Node>							  
+						  </Node>							
+						</Composition>
+					</Composite>
+				</ModuleImplementation>
+				<OutputType>Perf!System.Performance.Data</OutputType>
+			</DataSourceModuleType>	
+		</ModuleTypes>
+		<MonitorTypes>
+			<UnitMonitorType ID="Azure.Sql.Metric.MonitorType" Accessibility="Internal">
+				<MonitorTypeStates>
+					<MonitorTypeState ID="AboveThreshold"/>
+					<MonitorTypeState ID="BelowThreshold"/>				
+				</MonitorTypeStates>
+			<Configuration>
+				<xsd:element name="IntervalHours" type="xsd:integer" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+				<xsd:element minOccurs="0" maxOccurs="1" name="SyncTime" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+				<xsd:element name="SubscriptionId" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+				<xsd:element name="SqlServerName" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+				<xsd:element name="ResourceGroupName" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+				<xsd:element minOccurs="0" maxOccurs="1" name="ElasticPoolName" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+				<xsd:element minOccurs="0" maxOccurs="1" name="DatabaseName" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+				<xsd:element name="MetricName" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+				<xsd:element name="GetDatabaseMetrics" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />					
+				<xsd:element name="TimeoutSeconds" type="xsd:int" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+				<xsd:element name="PerfObjectName" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+				<xsd:element name="Threshold" type="xsd:int" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+			</Configuration>
+			<OverrideableParameters>
+				<OverrideableParameter ID="IntervalHours" Selector="$Config/IntervalHours$" ParameterType="int" />
+				<OverrideableParameter ID="SyncTime" Selector="$Config/SyncTime$" ParameterType="string" />
+				<OverrideableParameter ID="TimeoutSeconds" Selector="$Config/TimeoutSeconds$" ParameterType="int" />
+				<OverrideableParameter ID="GetDatabaseMetrics" Selector="$Config/GetDatabaseMetrics$" ParameterType="string" />
+				<OverrideableParameter ID="Threshold" Selector="$Config/Threshold$" ParameterType="int" />
+			</OverrideableParameters>
+			<MonitorImplementation>
+				<MemberModules>
+					<DataSource ID="DS" TypeID="Azure.Sql.Metric.Collection.DS">
+						<IntervalHours>$Config/IntervalHours$</IntervalHours>
+						<SyncTime />
+						<SubscriptionId>$Config/SubscriptionId$</SubscriptionId>
+						<SqlServerName>$Config/SqlServerName$</SqlServerName>
+						<ResourceGroupName>$Config/ResourceGroupName$</ResourceGroupName>
+						<ElasticPoolName>$Config/ElasticPoolName$</ElasticPoolName>
+						<DatabaseName>$Config/DatabaseName$</DatabaseName>
+						<MetricName>$Config/MetricName$</MetricName>
+						<GetDatabaseMetrics>$Config/GetDatabaseMetrics$</GetDatabaseMetrics>					  
+						<TimeoutSeconds>$Config/TimeoutSeconds$</TimeoutSeconds>
+						<PerfObjectName>$Config/PerfObjectName$</PerfObjectName>					
+					</DataSource>
+					<ConditionDetection ID="AboveThresholdCD" TypeID="System!System.ExpressionFilter">
+					  <Expression>
+						<SimpleExpression>
+						  <ValueExpression>
+							<XPathQuery Type="Integer">/DataItem/Value</XPathQuery>
+						  </ValueExpression>
+						  <Operator>GreaterEqual</Operator>
+						  <ValueExpression>
+							<Value Type="Integer">$Config/Threshold$</Value>
+						  </ValueExpression>
+						</SimpleExpression>
+					  </Expression>		
+					</ConditionDetection>
+					<ConditionDetection ID="BelowThresholdCD" TypeID="System!System.ExpressionFilter">
+					  <Expression>
+						<SimpleExpression>
+						  <ValueExpression>
+							<XPathQuery Type="Integer">/DataItem/Value</XPathQuery>
+						  </ValueExpression>
+						  <Operator>Less</Operator>
+						  <ValueExpression>
+							<Value Type="Integer">$Config/Threshold$</Value>
+						  </ValueExpression>
+						</SimpleExpression>
+					  </Expression>		
+					</ConditionDetection>				
+				</MemberModules>
+				<RegularDetections>
+					<RegularDetection MonitorTypeStateID="AboveThreshold">
+					  <Node ID="AboveThresholdCD">
+						<Node ID="DS" />
+					  </Node>						
+					</RegularDetection>
+					<RegularDetection MonitorTypeStateID="BelowThreshold">
+					  <Node ID="BelowThresholdCD">
+						<Node ID="DS" />
+					  </Node>						
+					</RegularDetection>				
+				</RegularDetections>
+			</MonitorImplementation>
+			</UnitMonitorType>
+		</MonitorTypes>
+	</TypeDefinitions>
+	<Monitoring>
+		<Rules>
+			<Rule ID="Collect.ElasticPool.DataSpaceAllocated.Rule" Enabled="false" Target="AzureSQL!Microsoft.SqlServer.Azure.ElasticPool">
+				<Category>PerformanceCollection</Category>
+				<DataSources>
+				  <DataSource ID="DS" TypeID="Azure.Sql.Metric.Collection.DS">
+					<IntervalHours>4</IntervalHours>
+					<SyncTime />
+					<SubscriptionId>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/Subscription$</SubscriptionId>
+					<SqlServerName>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/Name$</SqlServerName>
+					<ResourceGroupName>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/ResourceGroupName$</ResourceGroupName>
+					<ElasticPoolName>$Target/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.ElasticPool"]/ElasticPoolName$</ElasticPoolName>
+					<DatabaseName />
+					<MetricName>Data Space Allocated</MetricName>
+					<GetDatabaseMetrics>false</GetDatabaseMetrics>					  
+					<TimeoutSeconds>300</TimeoutSeconds>
+					<PerfObjectName>SQL Azure Elastic Pool</PerfObjectName>
+				  </DataSource>
+				</DataSources>
+				<WriteActions>
+				  <WriteAction ID="WriteToDB" TypeID="SC!Microsoft.SystemCenter.CollectPerformanceData" />
+				  <WriteAction ID="WriteToDW" TypeID="SCDW!Microsoft.SystemCenter.DataWarehouse.PublishPerformanceData" />
+				</WriteActions>				
+			</Rule>			
+			<Rule ID="Collect.ElasticPool.DataSpaceAllocatedPercent.Rule" Enabled="true" Target="AzureSQL!Microsoft.SqlServer.Azure.ElasticPool">
+				<Category>PerformanceCollection</Category>
+				<DataSources>
+				  <DataSource ID="DS" TypeID="Azure.Sql.Metric.Collection.DS">
+					<IntervalHours>4</IntervalHours>
+					<SyncTime />
+					<SubscriptionId>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/Subscription$</SubscriptionId>
+					<SqlServerName>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/Name$</SqlServerName>
+					<ResourceGroupName>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/ResourceGroupName$</ResourceGroupName>
+					<ElasticPoolName>$Target/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.ElasticPool"]/ElasticPoolName$</ElasticPoolName>
+					<DatabaseName />
+					<MetricName>Data Space Allocated Percent</MetricName>
+					<GetDatabaseMetrics>false</GetDatabaseMetrics>					  
+					<TimeoutSeconds>300</TimeoutSeconds>
+					<PerfObjectName>SQL Azure Elastic Pool</PerfObjectName>
+				  </DataSource>
+				</DataSources>
+				<WriteActions>
+				  <WriteAction ID="WriteToDB" TypeID="SC!Microsoft.SystemCenter.CollectPerformanceData" />
+				  <WriteAction ID="WriteToDW" TypeID="SCDW!Microsoft.SystemCenter.DataWarehouse.PublishPerformanceData" />
+				</WriteActions>				
+			</Rule>
+			<Rule ID="Collect.ElasticPool.DataSpaceUsed.Rule" Enabled="false" Target="AzureSQL!Microsoft.SqlServer.Azure.ElasticPool">
+				<Category>PerformanceCollection</Category>
+				<DataSources>
+				  <DataSource ID="DS" TypeID="Azure.Sql.Metric.Collection.DS">
+					<IntervalHours>4</IntervalHours>
+					<SyncTime />
+					<SubscriptionId>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/Subscription$</SubscriptionId>
+					<SqlServerName>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/Name$</SqlServerName>
+					<ResourceGroupName>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/ResourceGroupName$</ResourceGroupName>
+					<ElasticPoolName>$Target/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.ElasticPool"]/ElasticPoolName$</ElasticPoolName>
+					<DatabaseName />
+					<MetricName>Data Space Used</MetricName>
+					<GetDatabaseMetrics>false</GetDatabaseMetrics>					  
+					<TimeoutSeconds>300</TimeoutSeconds>
+					<PerfObjectName>SQL Azure Elastic Pool</PerfObjectName>
+				  </DataSource>
+				</DataSources>
+				<WriteActions>
+				  <WriteAction ID="WriteToDB" TypeID="SC!Microsoft.SystemCenter.CollectPerformanceData" />
+				  <WriteAction ID="WriteToDW" TypeID="SCDW!Microsoft.SystemCenter.DataWarehouse.PublishPerformanceData" />
+				</WriteActions>				
+			</Rule>
+			<Rule ID="Collect.ElasticPool.DataSpaceUsedPercent.Rule" Enabled="false" Target="AzureSQL!Microsoft.SqlServer.Azure.ElasticPool">
+				<Category>PerformanceCollection</Category>
+				<DataSources>
+				  <DataSource ID="DS" TypeID="Azure.Sql.Metric.Collection.DS">
+					<IntervalHours>4</IntervalHours>
+					<SyncTime />
+					<SubscriptionId>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/Subscription$</SubscriptionId>
+					<SqlServerName>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/Name$</SqlServerName>
+					<ResourceGroupName>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/ResourceGroupName$</ResourceGroupName>
+					<ElasticPoolName>$Target/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.ElasticPool"]/ElasticPoolName$</ElasticPoolName>
+					<DatabaseName />
+					<MetricName>Data Space Used Percent</MetricName>
+					<GetDatabaseMetrics>false</GetDatabaseMetrics>					  
+					<TimeoutSeconds>300</TimeoutSeconds>
+					<PerfObjectName>SQL Azure Elastic Pool</PerfObjectName>
+				  </DataSource>
+				</DataSources>
+				<WriteActions>
+				  <WriteAction ID="WriteToDB" TypeID="SC!Microsoft.SystemCenter.CollectPerformanceData" />
+				  <WriteAction ID="WriteToDW" TypeID="SCDW!Microsoft.SystemCenter.DataWarehouse.PublishPerformanceData" />
+				</WriteActions>				
+			</Rule>			
+			<Rule ID="Collect.Database.AllocatedDataStorage.Rule" Enabled="false" Target="AzureSQL!Microsoft.SqlServer.Azure.UserDatabase">
+				<Category>PerformanceCollection</Category>
+				<DataSources>
+				  <DataSource ID="DS" TypeID="Azure.Sql.Metric.Collection.DS">
+					<IntervalHours>4</IntervalHours>
+					<SyncTime />
+					<SubscriptionId>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/Subscription$</SubscriptionId>
+					<SqlServerName>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/Name$</SqlServerName>
+					<ResourceGroupName>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/ResourceGroupName$</ResourceGroupName>
+					<ElasticPoolName />
+					<DatabaseName>$Target/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Database"]/DatabaseName$</DatabaseName>
+					<MetricName>Allocated Data Storage</MetricName>
+					<GetDatabaseMetrics>true</GetDatabaseMetrics>					  
+					<TimeoutSeconds>300</TimeoutSeconds>
+					<PerfObjectName>SQL Azure Database</PerfObjectName>
+				  </DataSource>
+				</DataSources>
+				<WriteActions>
+				  <WriteAction ID="WriteToDB" TypeID="SC!Microsoft.SystemCenter.CollectPerformanceData" />
+				  <WriteAction ID="WriteToDW" TypeID="SCDW!Microsoft.SystemCenter.DataWarehouse.PublishPerformanceData" />
+				</WriteActions>				
+			</Rule>
+			<Rule ID="Collect.Database.DataSpacedUsed.Rule" Enabled="false" Target="AzureSQL!Microsoft.SqlServer.Azure.UserDatabase">
+				<Category>PerformanceCollection</Category>
+				<DataSources>
+				  <DataSource ID="DS" TypeID="Azure.Sql.Metric.Collection.DS">
+					<IntervalHours>4</IntervalHours>
+					<SyncTime />
+					<SubscriptionId>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/Subscription$</SubscriptionId>
+					<SqlServerName>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/Name$</SqlServerName>
+					<ResourceGroupName>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/ResourceGroupName$</ResourceGroupName>
+					<ElasticPoolName />
+					<DatabaseName>$Target/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Database"]/DatabaseName$</DatabaseName>
+					<MetricName>Data Space Used</MetricName>
+					<GetDatabaseMetrics>true</GetDatabaseMetrics>					  
+					<TimeoutSeconds>300</TimeoutSeconds>
+					<PerfObjectName>SQL Azure Database</PerfObjectName>
+				  </DataSource>
+				</DataSources>
+				<WriteActions>
+				  <WriteAction ID="WriteToDB" TypeID="SC!Microsoft.SystemCenter.CollectPerformanceData" />
+				  <WriteAction ID="WriteToDW" TypeID="SCDW!Microsoft.SystemCenter.DataWarehouse.PublishPerformanceData" />
+				</WriteActions>				
+			</Rule>
+			<Rule ID="Collect.Database.DataSpacedUsedPercent.Rule" Enabled="false" Target="AzureSQL!Microsoft.SqlServer.Azure.UserDatabase">
+				<Category>PerformanceCollection</Category>
+				<DataSources>
+				  <DataSource ID="DS" TypeID="Azure.Sql.Metric.Collection.DS">
+					<IntervalHours>4</IntervalHours>
+					<SyncTime />
+					<SubscriptionId>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/Subscription$</SubscriptionId>
+					<SqlServerName>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/Name$</SqlServerName>
+					<ResourceGroupName>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/ResourceGroupName$</ResourceGroupName>
+					<ElasticPoolName />
+					<DatabaseName>$Target/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Database"]/DatabaseName$</DatabaseName>
+					<MetricName>Data Space Used Percent</MetricName>
+					<GetDatabaseMetrics>true</GetDatabaseMetrics>					  
+					<TimeoutSeconds>300</TimeoutSeconds>
+					<PerfObjectName>SQL Azure Database</PerfObjectName>
+				  </DataSource>
+				</DataSources>
+				<WriteActions>
+				  <WriteAction ID="WriteToDB" TypeID="SC!Microsoft.SystemCenter.CollectPerformanceData" />
+				  <WriteAction ID="WriteToDW" TypeID="SCDW!Microsoft.SystemCenter.DataWarehouse.PublishPerformanceData" />
+				</WriteActions>				
+			</Rule>		
+		</Rules>
+		<Monitors>
+			<UnitMonitor ID="ElasticPool.DataSpaceAllocatedPercent.Monitor" Enabled="true" Target="AzureSQL!Microsoft.SqlServer.Azure.ElasticPool" ParentMonitorID="Health!System.Health.PerformanceState" Accessibility="Internal" TypeID="Azure.Sql.Metric.MonitorType">
+				<Category>PerformanceHealth</Category>
+				<AlertSettings AlertMessage="ElasticPool.DataSpaceAllocated.Monitor.AlertMessage">
+				  <AlertOnState>Error</AlertOnState>
+				  <AutoResolve>true</AutoResolve>
+				  <AlertPriority>Normal</AlertPriority>
+				  <AlertSeverity>MatchMonitorHealth</AlertSeverity>
+				  <AlertParameters>
+					<AlertParameter1>$Target/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.ElasticPool"]/ElasticPoolName$</AlertParameter1>					  
+					<AlertParameter2>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/Name$</AlertParameter2>
+					<AlertParameter3>$Data/Context/Value$</AlertParameter3>
+				  </AlertParameters>
+				</AlertSettings>
+				<OperationalStates>
+				  <OperationalState ID="Critical" MonitorTypeStateID="AboveThreshold" HealthState="Error" />
+				  <OperationalState ID="Healthy" MonitorTypeStateID="BelowThreshold" HealthState="Success" />
+				</OperationalStates>
+				<Configuration>
+					<IntervalHours>4</IntervalHours>
+					<SyncTime />
+					<SubscriptionId>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/Subscription$</SubscriptionId>
+					<SqlServerName>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/Name$</SqlServerName>
+					<ResourceGroupName>$Target/Host/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.Server"]/ResourceGroupName$</ResourceGroupName>
+					<ElasticPoolName>$Target/Property[Type="AzureSQL!Microsoft.SqlServer.Azure.ElasticPool"]/ElasticPoolName$</ElasticPoolName>
+					<DatabaseName />
+					<MetricName>Data Space Allocated Percent</MetricName>
+					<GetDatabaseMetrics>false</GetDatabaseMetrics>					  
+					<TimeoutSeconds>300</TimeoutSeconds>
+					<PerfObjectName>SQL Azure Elastic Pool</PerfObjectName>
+					<Threshold>80</Threshold>
+				</Configuration>
+			</UnitMonitor>
+		</Monitors>	
+	</Monitoring>
+	<Presentation>
+		<StringResources>
+			<StringResource ID="ElasticPool.DataSpaceAllocated.Monitor.AlertMessage" />			
+		</StringResources>
+	</Presentation>
+  <LanguagePacks>
+    <LanguagePack ID="ENU" IsDefault="true">
+      <DisplayStrings>
+        <DisplayString ElementID="Azure.Sql.Metric.Collection">
+          <Name>Azure SQL Metric Collection</Name>
+          <Description>Collects additional Azure SQL metrics</Description>
+        </DisplayString>
+		<DisplayString ElementID="Collect.ElasticPool.DataSpaceAllocated.Rule">
+			<Name>Azure SQL DB: Elastic Pool Data Space Allocated</Name>
+		    <Description>Rule to collect the Data Space Allocated metric for the Elastic Pool class</Description>
+		</DisplayString>		  
+		<DisplayString ElementID="Collect.ElasticPool.DataSpaceAllocatedPercent.Rule">
+			<Name>Azure SQL DB: Elastic Pool Data Space Allocated Percent</Name>
+		    <Description>Rule to collect the Data Space Allocated Percent metric for the Elastic Pool class</Description>
+		</DisplayString>
+		<DisplayString ElementID="Collect.ElasticPool.DataSpaceUsed.Rule">
+			<Name>Azure SQL DB: Elastic Pool Data Space Used</Name>
+		    <Description>Rule to collect the Data Space Allocated Percent metric for the Elastic Pool class</Description>
+		</DisplayString>
+		<DisplayString ElementID="Collect.ElasticPool.DataSpaceUsedPercent.Rule">
+			<Name>Azure SQL DB: Elastic Pool Data Space Used Percent</Name>
+		    <Description>Rule to collect the Data Space Allocated Percent metric for the Elastic Pool class</Description>
+		</DisplayString>		  
+		<DisplayString ElementID="Collect.Database.AllocatedDataStorage.Rule">
+			<Name>Azure SQL DB: DB Allocated Data Storage</Name>
+		    <Description>Rule to collect the Allocated Data Storage metric for the Database class</Description>
+		</DisplayString>
+		<DisplayString ElementID="Collect.Database.DataSpacedUsed.Rule">
+			<Name>Azure SQL DB: DB Data Space Used</Name>
+		    <Description>Rule to collect the Data Space Used metric for the Database class</Description>
+		</DisplayString>
+		<DisplayString ElementID="Collect.Database.DataSpacedUsedPercent.Rule">
+			<Name>Azure SQL DB: DB Data Spaced Used Percent</Name>
+		    <Description>Rule to collect the Data Space Used Percent metric for the Database class</Description>
+		</DisplayString>
+		<DisplayString ElementID="ElasticPool.DataSpaceAllocatedPercent.Monitor">
+			<Name>Data Space Allocated Percent</Name>
+		    <Description>Monitor the Data Space Allocated Percent metric for the Elastic Pool class</Description>
+		</DisplayString>		  
+        <DisplayString ElementID="ElasticPool.DataSpaceAllocated.Monitor.AlertMessage">
+          <Name>Elastic Pool Data Space Allocated Percent exceeds the configured limit</Name>
+          <Description>Data Space Allocated Percent for elastic pool "{0}" on server "{1}" is {2}%.</Description>
+        </DisplayString>	  
+      </DisplayStrings>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPackFragment>

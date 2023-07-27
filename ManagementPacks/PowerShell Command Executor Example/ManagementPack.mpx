@@ -1,0 +1,256 @@
+﻿<ManagementPackFragment SchemaVersion="2.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <TypeDefinitions>
+    <EntityTypes>
+      <ClassTypes>
+        <ClassType ID="Windows.Computer.With.PowerShellCore" Base="Windows!Microsoft.Windows.Computer" Abstract="false" Accessibility="Public" Hosted="false">
+          <Property ID="PsVersion" Type="string"/>
+          <Property ID="PsPath" Type="string"/>
+        </ClassType>
+      </ClassTypes>
+    </EntityTypes>
+    <ModuleTypes>
+      <DataSourceModuleType ID="Service.Status.DataSource" Accessibility="Public">
+        <Configuration>
+          <xsd:element name="PsPath" type="xsd:string" />
+        </Configuration>
+        <ModuleImplementation>
+          <Composite>
+            <MemberModules>
+              <DataSource ID="Scheduler" TypeID="System!System.Scheduler">
+                <Scheduler>
+                  <SimpleReccuringSchedule>
+                    <Interval Unit="Minutes">2</Interval>
+                  </SimpleReccuringSchedule>
+                  <ExcludeDates/>
+                </Scheduler>
+              </DataSource>
+            <ProbeAction ID="Probe" TypeID="System!System.CommandExecuterProbe">
+              <ApplicationName>$config/PsPath$pwsh.exe</ApplicationName>
+              <WorkingDirectory />
+              <CommandLine>-Command .\GetServiceStatuses.ps1</CommandLine>
+              <TimeoutSeconds>20</TimeoutSeconds>
+              <RequireOutput>true</RequireOutput>
+              <Files>
+                <File>
+                  <Name>GetServiceStatuses.ps1</Name>
+                  <Contents>
+<![CDATA[
+$api = New-Object -comObject 'MOM.ScriptAPI'
+$api.LogScriptEvent('GetServiceStatuses.ps1', 909, 0, 'script started')
+
+Get-Service | Select-Object Name,Status | foreach {
+    switch ($_.Status.value__) {
+        1 { $status = 'Stopped'; break }
+        2 { $status = 'StartPending'; break }
+        3 { $status = 'StopPending'; break }
+        4 { $status = 'Running'; break }
+        5 { $status = 'ContinuePending'; break }
+        6 { $status = 'PausePending'; break }
+        7 { $status = 'Paused'; break }
+    }
+
+    Write-Host $_.Name $status
+}
+]]>
+                  </Contents>
+                  <Unicode>false</Unicode>
+                </File>
+              </Files>              
+            </ProbeAction>              
+            </MemberModules>
+            <Composition>
+              <Node ID="Probe">
+                <Node ID="Scheduler" />
+              </Node>              
+            </Composition>
+          </Composite>
+        </ModuleImplementation>
+        <OutputType>System!System.CommandOutput</OutputType>
+      </DataSourceModuleType>
+    </ModuleTypes>
+    <MonitorTypes>
+      <UnitMonitorType ID="Service.Status.MonitorType" Accessibility="Public">
+        <MonitorTypeStates>
+          <MonitorTypeState ID="ServiceHealthy"/>
+          <MonitorTypeState ID="ServiceUnhealthy"/>
+        </MonitorTypeStates>
+        <Configuration>
+          <xsd:element name="PsPath" type="xsd:string" />
+          <xsd:element name="ServiceName" type="xsd:string" />      
+        </Configuration>
+        <MonitorImplementation>
+          <MemberModules>
+          <DataSource ID="DS" TypeID="Service.Status.DataSource">
+            <PsPath>$Config/PsPath$</PsPath>  
+          </DataSource>                   
+            <ConditionDetection ID="ServiceRunningCD" TypeID="System!System.ExpressionFilter">
+              <Expression>
+                  <RegExExpression>
+                    <ValueExpression>
+                      <XPathQuery>StdOut</XPathQuery>
+                    </ValueExpression>
+                    <Operator>ContainsSubstring</Operator>
+                    <Pattern>$Config/ServiceName$ Running</Pattern>
+                  </RegExExpression>              
+              </Expression>
+            </ConditionDetection>
+            <ConditionDetection ID="ServiceNotRunningCD" TypeID="System!System.ExpressionFilter">
+              <Expression>
+                <RegExExpression>
+                  <ValueExpression>
+                    <XPathQuery>StdOut</XPathQuery>
+                  </ValueExpression>
+                  <Operator>DoesNotContainSubstring</Operator>
+                  <Pattern>$Config/ServiceName$ Running</Pattern>
+                </RegExExpression>                
+              </Expression>
+            </ConditionDetection>      
+          </MemberModules>
+          <RegularDetections>
+            <RegularDetection MonitorTypeStateID="ServiceHealthy">
+              <Node ID="ServiceRunningCD">
+                <Node ID="DS" />
+              </Node>
+            </RegularDetection>
+            <RegularDetection MonitorTypeStateID="ServiceUnhealthy">
+              <Node ID="ServiceNotRunningCD">
+                <Node ID="DS" />
+              </Node>
+            </RegularDetection>
+          </RegularDetections>          
+        </MonitorImplementation>
+      </UnitMonitorType>
+    </MonitorTypes>
+  </TypeDefinitions>
+  <Monitoring> 
+    <Discoveries>
+      <Discovery ID="PowerShellCore.Installation.Discovery" Enabled="true" Target="Windows!Microsoft.Windows.Computer">
+        <Category>Discovery</Category>
+        <DiscoveryTypes>
+          <DiscoveryClass TypeID="Windows.Computer.With.PowerShellCore">
+            <Property PropertyID="PsVersion"/>
+            <Property PropertyID="PsPath"/>
+          </DiscoveryClass>
+        </DiscoveryTypes>
+        <DataSource ID="ScriptDS" TypeID="Windows!Microsoft.Windows.TimedPowerShell.DiscoveryProvider">
+          <IntervalSeconds>86400</IntervalSeconds>
+          <SyncTime />
+          <ScriptName>PowerShellCore.Installation.Discovery.ps1</ScriptName>
+          <ScriptBody>
+<![CDATA[            
+$api = New-Object -comObject 'MOM.ScriptAPI'
+$discoveryData = $api.CreateDiscoveryData(0, "$MPElement$", "$Target/Id$")
+
+$principalName = '$Target/Property[Type="Windows!Microsoft.Windows.Computer"]/PrincipalName$'
+
+$version = (Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\PowerShellCore\InstalledVersions\*" -Name "SemanticVersion" | Measure-Object -Maximum).Maximum
+
+Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\PowerShellCore\InstalledVersions | foreach {    
+    if ((Get-ItemPropertyValue -Path Registry::$_ -Name SemanticVersion) -eq $version) {
+        $path = Get-ItemPropertyValue -Path Registry::$_ -Name InstallDir
+
+        $instance = $discoveryData.CreateClassInstance("$MPElement[Name='Windows.Computer.With.PowerShellCore']$")
+        $instance.AddProperty("$MPElement[Name='Windows!Microsoft.Windows.Computer']/PrincipalName$", $principalName)
+        $instance.AddProperty("$MPElement[Name='System!System.Entity']/DisplayName$", "PowerShell $version on " + $principalName)
+        $instance.AddProperty("$MPElement[Name='Windows.Computer.With.PowerShellCore']/PsVersion$", $version)
+        $instance.AddProperty("$MPElement[Name='Windows.Computer.With.PowerShellCore']/PsPath$", $path)
+        $discoveryData.AddInstance($instance)
+    }
+}
+
+$discoveryData
+]]>
+          </ScriptBody>
+          <TimeoutSeconds>60</TimeoutSeconds>
+        </DataSource>
+      </Discovery>
+    </Discoveries>
+    <Rules>
+      <Rule ID="Spooler.Service.Rule" Enabled="true" Target="Windows.Computer.With.PowerShellCore">
+        <Category>Alert</Category>
+        <DataSources>
+          <DataSource ID="DS" TypeID="Service.Status.DataSource">
+            <PsPath>$Target/Property[Type="Windows.Computer.With.PowerShellCore"]/PsPath$</PsPath>  
+          </DataSource>
+        </DataSources>
+        <ConditionDetection ID="CD" TypeID="System!System.ExpressionFilter">
+          <Expression>
+            <RegExExpression>
+              <ValueExpression>
+                <XPathQuery>StdOut</XPathQuery>
+              </ValueExpression>
+              <Operator>DoesNotContainSubstring</Operator>
+              <Pattern>Spooler Running</Pattern>
+            </RegExExpression>
+          </Expression>
+        </ConditionDetection>
+        <WriteActions>
+          <WriteAction ID="GenerateAlert" TypeID="Health!System.Health.GenerateAlert">
+            <Priority>1</Priority>
+            <Severity>2</Severity>
+            <AlertMessageId>$MPElement[Name="Spooler.Service.Rule.AlertMessage"]$</AlertMessageId>           
+            <Suppression>
+              <SuppressionValue />
+            </Suppression>
+          </WriteAction>          
+        </WriteActions>
+      </Rule>
+    </Rules>    
+    <Monitors>
+      <UnitMonitor ID="Spooler.Service.Monitor" Enabled="true" Target="Windows.Computer.With.PowerShellCore" ParentMonitorID="Health!System.Health.AvailabilityState" Accessibility="Public" TypeID="Service.Status.MonitorType">
+        <Category>AvailabilityHealth</Category>
+        <OperationalStates>
+          <OperationalState ID="Healthy" MonitorTypeStateID="ServiceHealthy" HealthState="Success"/>
+          <OperationalState ID="Unhealthy" MonitorTypeStateID="ServiceUnhealthy" HealthState="Error"/>
+        </OperationalStates>
+        <Configuration>
+          <PsPath>$Target/Property[Type="Windows.Computer.With.PowerShellCore"]/PsPath$</PsPath>
+          <ServiceName>Spooler</ServiceName>
+        </Configuration>
+      </UnitMonitor>
+    </Monitors>
+  </Monitoring>
+  <Presentation>
+    <StringResources>
+      <StringResource ID="Spooler.Service.Rule.AlertMessage"/>
+    </StringResources>
+  </Presentation>
+  <LanguagePacks>
+    <LanguagePack ID="ENU" IsDefault="true">
+      <DisplayStrings>
+        <DisplayString ElementID="PowerShell.Command.Executor.Example">
+          <Name>PowerShell.Command.Executor.Example</Name>
+          <Description />
+        </DisplayString>
+        <DisplayString ElementID="Windows.Computer.With.PowerShellCore">
+          <Name>Windows Computer with PowerShell Core</Name>
+          <Description />
+        </DisplayString>
+        <DisplayString ElementID="Windows.Computer.With.PowerShellCore" SubElementID="PsVersion">
+          <Name>PowerShell Core Version</Name>
+          <Description />
+        </DisplayString>
+        <DisplayString ElementID="Windows.Computer.With.PowerShellCore" SubElementID="PsPath">
+          <Name>PowerShell Core Path</Name>
+          <Description />
+        </DisplayString>
+        <DisplayString ElementID="PowerShellCore.Installation.Discovery">
+          <Name>PowerShell Core Installation Discovery</Name>
+          <Description />
+        </DisplayString>
+        <DisplayString ElementID="Spooler.Service.Rule">
+          <Name>Spooler Service Alert Rule</Name>
+          <Description></Description>
+        </DisplayString>        
+        <DisplayString ElementID="Spooler.Service.Rule.AlertMessage">
+          <Name>Spooler Service Alert</Name>
+          <Description>Spooler service isn't running</Description>
+        </DisplayString>        
+        <DisplayString ElementID="Spooler.Service.Monitor">
+          <Name>Spooler Service Monitor</Name>
+          <Description />
+        </DisplayString>      
+      </DisplayStrings>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPackFragment>

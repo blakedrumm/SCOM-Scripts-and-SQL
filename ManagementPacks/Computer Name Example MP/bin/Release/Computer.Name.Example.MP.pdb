@@ -1,0 +1,10 @@
+ManagementPack.mpx*SQL.Server.Computer*5*6*ClassType
+ManagementPack.mpx*AD.Server.Computer*7*6*ClassType
+ManagementPack.mpx*Computer.Name.RegEx.Discovery.DS*12*5*DataSourceModuleType
+ManagementPack.mpx*SQL.Server.Computer.Discovery*72*5*Discovery
+ManagementPack.mpx*AD.Server.Computer.Discovery*84*5*Discovery
+ManagementPack.mpx*Computer.Name.Example.MP*101*10*DisplayString
+ManagementPack.mpx*SQL.Server.Computer*105*4*DisplayString
+ManagementPack.mpx*SQL.Server.Computer.Discovery*109*4*DisplayString
+ManagementPack.mpx*AD.Server.Computer*113*6*DisplayString
+ManagementPack.mpx*AD.Server.Computer.Discovery*117*6*DisplayString

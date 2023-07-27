@@ -1,0 +1,351 @@
+﻿<ManagementPackFragment SchemaVersion="2.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <TypeDefinitions>    
+    <EntityTypes>
+      <ClassTypes>
+        <ClassType ID="Windows.Server.LogicalDisk.Extended" Comment="Extended Windows Server LogicalDisk" Accessibility="Public" Abstract="false" Base="WindowsServerDisc!Microsoft.Windows.Server.10.0.LogicalDisk" Hosted="true" Singleton="false">
+          <Property ID="IsSystem" Type="bool" />
+          <Property ID="AdminGroup" Type="string" />
+          <Property ID="SerialNumber" Type="string" />
+        </ClassType>
+      </ClassTypes>
+    </EntityTypes>
+    <ModuleTypes>
+      <DataSourceModuleType ID="SystemDrive.LogicalDisk.DataSource" Accessibility="Public">
+        <Configuration>
+          <xsd:element name="IntervalSeconds" type="xsd:integer" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="PrincipalName" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="DeviceID" type="xsd:string" minOccurs="0" maxOccurs="1" />
+        </Configuration>
+        <OverrideableParameters>
+          <OverrideableParameter ID="IntervalSeconds" Selector="$Config/IntervalSeconds$" ParameterType="int"/>
+        </OverrideableParameters>
+        <ModuleImplementation>
+          <Composite>
+            <MemberModules>
+              <DataSource ID="Scheduler" TypeID="System!System.Discovery.Scheduler">
+                <Scheduler>
+                  <SimpleReccuringSchedule>
+                    <Interval Unit="Seconds">$Config/IntervalSeconds$</Interval>
+                    <SpreadInitializationOverInterval Unit="Seconds">$Config/IntervalSeconds$</SpreadInitializationOverInterval>
+                  </SimpleReccuringSchedule>
+                  <ExcludeDates />
+                </Scheduler>
+              </DataSource>
+              <ProbeAction ID="Probe" TypeID="Windows!Microsoft.Windows.WmiProbe">
+                <NameSpace>\\$Config/PrincipalName$\root\cimv2</NameSpace>
+                <Query>Select SystemDrive From Win32_OperatingSystem</Query>
+              </ProbeAction>
+              <ConditionDetection ID="CD" TypeID="System!System.ExpressionFilter">
+                <Expression>
+                  <SimpleExpression>
+                    <ValueExpression>
+                      <XPathQuery>Property[@Name='SystemDrive']</XPathQuery>
+                    </ValueExpression>
+                    <Operator>Equal</Operator>
+                    <ValueExpression>
+                      <Value>$Config/DeviceID$</Value>
+                    </ValueExpression>
+                  </SimpleExpression>                  
+                </Expression>
+              </ConditionDetection>
+              <ConditionDetection ID="Mapper" TypeID="System!System.Discovery.ClassSnapshotDataMapper">
+                <ClassId>$MPElement[Name="Windows.Server.LogicalDisk.Extended"]$</ClassId>
+                <InstanceSettings>
+                  <Settings>
+                    <Setting>
+                      <Name>$MPElement[Name="Windows!Microsoft.Windows.Computer"]/PrincipalName$</Name>
+                      <Value>$Config/PrincipalName$</Value>                      
+                    </Setting>
+                    <Setting>
+                      <Name>$MPElement[Name="Windows!Microsoft.Windows.LogicalDevice"]/DeviceID$</Name>
+                      <Value>$Config/DeviceID$</Value>
+                    </Setting>
+                    <Setting>
+                      <Name>$MPElement[Name="Windows.Server.LogicalDisk.Extended"]/IsSystem$</Name>
+                      <Value>true</Value>
+                    </Setting>                
+                  </Settings>
+                </InstanceSettings>
+              </ConditionDetection>
+            </MemberModules>
+            <Composition>
+              <Node ID="Mapper">
+                <Node ID="CD">
+                  <Node ID="Probe">
+                    <Node ID="Scheduler" />
+                  </Node>
+                </Node>
+              </Node>
+            </Composition>            
+          </Composite>
+        </ModuleImplementation>
+        <OutputType>System!System.Discovery.Data</OutputType>
+      </DataSourceModuleType>
+      <DataSourceModuleType ID="NonSystemDrive.LogicalDisk.DataSource" Accessibility="Public">
+        <Configuration>
+          <xsd:element name="IntervalSeconds" type="xsd:integer" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="PrincipalName" type="xsd:string" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="DeviceID" type="xsd:string" minOccurs="0" maxOccurs="1" />
+        </Configuration>
+        <OverrideableParameters>
+          <OverrideableParameter ID="IntervalSeconds" Selector="$Config/IntervalSeconds$" ParameterType="int"/>
+        </OverrideableParameters>
+        <ModuleImplementation>
+          <Composite>
+            <MemberModules>
+              <DataSource ID="Scheduler" TypeID="System!System.Discovery.Scheduler">
+                <Scheduler>
+                  <SimpleReccuringSchedule>
+                    <Interval Unit="Seconds">$Config/IntervalSeconds$</Interval>
+                    <SpreadInitializationOverInterval Unit="Seconds">$Config/IntervalSeconds$</SpreadInitializationOverInterval>
+                  </SimpleReccuringSchedule>
+                  <ExcludeDates />
+                </Scheduler>
+              </DataSource>
+              <ProbeAction ID="Probe" TypeID="Windows!Microsoft.Windows.WmiProbe">
+                <NameSpace>\\$Config/PrincipalName$\root\cimv2</NameSpace>
+                <Query>Select SystemDrive From Win32_OperatingSystem</Query>
+              </ProbeAction>
+              <ConditionDetection ID="CD" TypeID="System!System.ExpressionFilter">
+                <Expression>
+                  <SimpleExpression>
+                    <ValueExpression>
+                      <XPathQuery>Property[@Name='SystemDrive']</XPathQuery>
+                    </ValueExpression>
+                    <Operator>NotEqual</Operator>
+                    <ValueExpression>
+                      <Value>$Config/DeviceID$</Value>
+                    </ValueExpression>
+                  </SimpleExpression>
+                </Expression>
+              </ConditionDetection>
+              <ConditionDetection ID="Mapper" TypeID="System!System.Discovery.ClassSnapshotDataMapper">
+                <ClassId>$MPElement[Name="Windows.Server.LogicalDisk.Extended"]$</ClassId>
+                <InstanceSettings>
+                  <Settings>
+                    <Setting>
+                      <Name>$MPElement[Name="Windows!Microsoft.Windows.Computer"]/PrincipalName$</Name>
+                      <Value>$Config/PrincipalName$</Value>
+                    </Setting>
+                    <Setting>
+                      <Name>$MPElement[Name="Windows!Microsoft.Windows.LogicalDevice"]/DeviceID$</Name>
+                      <Value>$Config/DeviceID$</Value>
+                    </Setting>
+                    <Setting>
+                      <Name>$MPElement[Name="Windows.Server.LogicalDisk.Extended"]/IsSystem$</Name>
+                      <Value>false</Value>
+                    </Setting>
+                  </Settings>
+                </InstanceSettings>
+              </ConditionDetection>
+            </MemberModules>
+            <Composition>
+              <Node ID="Mapper">
+                <Node ID="CD">
+                  <Node ID="Probe">
+                    <Node ID="Scheduler" />
+                  </Node>
+                </Node>
+              </Node>
+            </Composition>
+          </Composite>
+        </ModuleImplementation>
+        <OutputType>System!System.Discovery.Data</OutputType>
+      </DataSourceModuleType>
+    </ModuleTypes>
+  </TypeDefinitions>
+  <Monitoring>
+    <Discoveries>
+      <Discovery ID="SystemDrive.LogicalDisk.Discovery" Enabled="true" Target="WindowsServerDisc!Microsoft.Windows.Server.10.0.LogicalDisk">
+        <Category>Discovery</Category>
+        <DiscoveryTypes>
+          <DiscoveryClass TypeID="Windows.Server.LogicalDisk.Extended">
+            <Property PropertyID="IsSystem"/>
+          </DiscoveryClass>
+        </DiscoveryTypes>
+        <DataSource ID="DS" TypeID="SystemDrive.LogicalDisk.DataSource">
+          <!-- For testing.-->
+          <IntervalSeconds>180</IntervalSeconds>
+          <!--<IntervalSeconds>86400</IntervalSeconds>-->
+          <PrincipalName>$Target/Host/Property[Type="Windows!Microsoft.Windows.Computer"]/PrincipalName$</PrincipalName>
+          <DeviceID>$Target/Property[Type="Windows!Microsoft.Windows.LogicalDevice"]/DeviceID$</DeviceID>
+        </DataSource>
+      </Discovery>
+      <Discovery ID="NonSystemDrive.LogicalDisk.Discovery" Enabled="true" Target="WindowsServerDisc!Microsoft.Windows.Server.10.0.LogicalDisk">
+        <Category>Discovery</Category>
+        <DiscoveryTypes>
+          <DiscoveryClass TypeID="Windows.Server.LogicalDisk.Extended">
+            <Property PropertyID="IsSystem"/>
+          </DiscoveryClass>
+        </DiscoveryTypes>
+        <DataSource ID="DS" TypeID="NonSystemDrive.LogicalDisk.DataSource">
+          <!-- For testing.-->
+          <IntervalSeconds>180</IntervalSeconds>
+          <!--<IntervalSeconds>86400</IntervalSeconds>-->
+          <PrincipalName>$Target/Host/Property[Type="Windows!Microsoft.Windows.Computer"]/PrincipalName$</PrincipalName>
+          <DeviceID>$Target/Property[Type="Windows!Microsoft.Windows.LogicalDevice"]/DeviceID$</DeviceID>
+        </DataSource>
+      </Discovery>
+      <Discovery ID="LogicalDisk.AdminGroup.Registry.Discovery" Enabled="true" Target="WindowsServerDisc!Microsoft.Windows.Server.10.0.LogicalDisk">
+        <Category>Discovery</Category>
+        <DiscoveryTypes>
+          <DiscoveryClass TypeID="Windows.Server.LogicalDisk.Extended">
+            <Property PropertyID="AdminGroup"/>
+          </DiscoveryClass>
+        </DiscoveryTypes>
+        <DataSource ID="DS" TypeID="Windows!Microsoft.Windows.FilteredRegistryDiscoveryProvider">
+          <ComputerName>$Target/Host/Property[Type="Windows!Microsoft.Windows.Computer"]/NetworkName$</ComputerName>
+          <RegistryAttributeDefinitions>
+            <RegistryAttributeDefinition>
+              <AttributeName>AdminGroupExists</AttributeName>
+              <Path>SYSTEM\AdminGroup</Path>
+              <PathType>0</PathType>
+              <AttributeType>0</AttributeType>
+            </RegistryAttributeDefinition>
+            <RegistryAttributeDefinition>
+              <AttributeName>AdminGroupName</AttributeName>
+              <Path>SYSTEM\AdminGroup\$Target/Property[Type="Windows!Microsoft.Windows.LogicalDevice"]/DeviceID$</Path>
+              <PathType>1</PathType>
+              <AttributeType>1</AttributeType>
+            </RegistryAttributeDefinition>            
+          </RegistryAttributeDefinitions>
+          <Frequency>86400</Frequency>
+          <ClassId>$MPElement[Name="Windows.Server.LogicalDisk.Extended"]$</ClassId>
+          <InstanceSettings>
+            <Settings>
+              <Setting>
+                <Name>$MPElement[Name="Windows!Microsoft.Windows.Computer"]/PrincipalName$</Name>
+                <Value>$Target/Host/Property[Type="Windows!Microsoft.Windows.Computer"]/PrincipalName$</Value>
+              </Setting>
+              <Setting>
+                <Name>$MPElement[Name="Windows!Microsoft.Windows.LogicalDevice"]/DeviceID$</Name>
+                <Value>$Target/Property[Type="Windows!Microsoft.Windows.LogicalDevice"]/DeviceID$</Value>
+              </Setting>
+              <Setting>
+                <Name>$MPElement[Name="Windows.Server.LogicalDisk.Extended"]/AdminGroup$</Name>
+                <Value>$Data/Values/AdminGroupName$</Value>
+              </Setting>
+            </Settings>
+          </InstanceSettings>
+          <Expression>
+            <SimpleExpression>
+              <ValueExpression>
+                <XPathQuery Type="Boolean">Values/AdminGroupExists</XPathQuery>
+              </ValueExpression>
+              <Operator>Equal</Operator>
+              <ValueExpression>
+                <Value Type="Boolean">true</Value>
+              </ValueExpression>
+            </SimpleExpression>
+          </Expression>        
+        </DataSource>
+      </Discovery>
+      <Discovery ID="LogicalDisk.Script.Discovery" Enabled="true" Target="Windows!Microsoft.Windows.Server.Computer">
+        <Category>Discovery</Category>
+        <DiscoveryTypes>
+          <DiscoveryClass TypeID="Windows.Server.LogicalDisk.Extended">
+            <Property PropertyID="SerialNumber"/>
+          </DiscoveryClass>
+        </DiscoveryTypes>
+        <DataSource ID="ScriptDS" TypeID="Windows!Microsoft.Windows.TimedPowerShell.DiscoveryProvider" RunAs="System!System.PrivilegedMonitoringAccount">
+          <!-- For testing.-->
+          <IntervalSeconds>120</IntervalSeconds>          
+          <!--<IntervalSeconds>86400</IntervalSeconds>-->
+          <SyncTime/>
+          <ScriptName>LogicalDiskExtendedScriptDiscovery.ps1</ScriptName>
+          <ScriptBody>
+            <![CDATA[
+$api = New-Object -comObject 'MOM.ScriptAPI'
+$discoveryData = $api.CreateDiscoveryData(0, "$MPElement$", "$Target/Id$")
+
+if ('$Target/Property[Type="Windows!Microsoft.Windows.Server.Computer"]/IsVirtualNode$' -eq 'True') {    
+    return $discoveryData
+}
+
+$winMajorVersion = [System.Convert]::ToInt16((Get-WmiObject -Class Win32_OperatingSystem -Property Version).Version.Split('.')[0])
+if ($winMajorVersion -lt 10) {
+    return $discoveryData
+}
+
+$principalName = '$Target/Property[Type="Windows!Microsoft.Windows.Computer"]/PrincipalName$'
+
+$isCluster = $false
+
+if (Get-WmiObject -Class Win32_ServerFeature -Filter "Name = 'Failover Clustering'") {    
+    $isCluster = $true
+}
+
+$clusterDiskPartitions = New-Object System.Collections.Generic.List[string]
+
+if ($isCluster) {
+    Get-WmiObject -Namespace root\MSCluster -Class 'MSCluster_DiskPartition' -Property SerialNumber | foreach {
+        $hexSerialNumber = "{0:X}" -f $_.SerialNumber
+
+		    if ([string]::IsNullOrEmpty($hexSerialNumber)) {
+			    continue
+		    }
+
+        $clusterDiskPartitions.Add($hexSerialNumber)
+    }
+}
+
+Get-WmiObject -Class 'Win32_LogicalDisk' -Filter "(DriveType=3 or DriveType=6) and FileSystem!=null" | foreach {
+
+    $isClusterDisk = $false
+
+    if ($clusterDiskPartitions.Contains($_.VolumeSerialNumber)) {        
+        $isClusterDisk = $true
+    }
+
+    if ($isClusterDisk -eq $false) {
+        $instance = $discoveryData.CreateClassInstance("$MPElement[Name='Windows.Server.LogicalDisk.Extended']$")
+        $instance.AddProperty("$MPElement[Name='Windows!Microsoft.Windows.Computer']/PrincipalName$", $principalName)
+        $instance.AddProperty("$MPElement[Name='Windows!Microsoft.Windows.LogicalDevice']/DeviceID$", $_.DeviceID)
+        $instance.AddProperty("$MPElement[Name='Windows.Server.LogicalDisk.Extended']/SerialNumber$", $_.VolumeSerialNumber)
+        $discoveryData.AddInstance($instance)
+    }
+}
+
+$discoveryData           
+              ]]>            
+          </ScriptBody>
+          <TimeoutSeconds>60</TimeoutSeconds>
+        </DataSource>
+      </Discovery>
+    </Discoveries>
+  </Monitoring>
+  <LanguagePacks>
+    <LanguagePack ID="ENU" IsDefault="true">
+      <DisplayStrings>
+        <DisplayString ElementID="Extend.LogicalDisk">
+          <Name>Extend LogicalDisk</Name>
+          <Description>Extends the Windows Server LogicalDisk class to include additional properties</Description>
+        </DisplayString>
+        <DisplayString ElementID="Windows.Server.LogicalDisk.Extended">
+          <Name>Windows Server Logical Disk (Extended)</Name>
+        </DisplayString>
+        <DisplayString ElementID="Windows.Server.LogicalDisk.Extended" SubElementID="IsSystem">
+          <Name>Is System Drive</Name>
+        </DisplayString>
+        <DisplayString ElementID="Windows.Server.LogicalDisk.Extended" SubElementID="AdminGroup">
+          <Name>Admin Group</Name>
+        </DisplayString>
+        <DisplayString ElementID="Windows.Server.LogicalDisk.Extended" SubElementID="SerialNumber">
+          <Name>Serial Number</Name>
+        </DisplayString>        
+        <DisplayString ElementID="SystemDrive.LogicalDisk.Discovery">
+          <Name>Windows Server Logical Disk (Extended) System Drive Discovery</Name>
+        </DisplayString>
+        <DisplayString ElementID="NonSystemDrive.LogicalDisk.Discovery">
+          <Name>Windows Server Logical Disk (Extended) Non System Drive Discovery</Name>
+        </DisplayString>
+        <DisplayString ElementID="LogicalDisk.AdminGroup.Registry.Discovery">
+          <Name>Windows Server Logical Disk (Extended) Admin Group Discovery</Name>
+        </DisplayString>
+        <DisplayString ElementID="LogicalDisk.Script.Discovery">
+          <Name>Windows Server Logical Disk (Extended) Script Discovery</Name>
+        </DisplayString>      
+      </DisplayStrings>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPackFragment>

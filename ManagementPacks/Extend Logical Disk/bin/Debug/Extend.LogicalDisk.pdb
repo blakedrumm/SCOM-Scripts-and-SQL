@@ -1,0 +1,16 @@
+ManagementPack.mpx*Windows.Server.LogicalDisk.Extended*5*10*ClassType
+ManagementPack.mpx*SystemDrive.LogicalDisk.DataSource*13*8*DataSourceModuleType
+ManagementPack.mpx*NonSystemDrive.LogicalDisk.DataSource*84*8*DataSourceModuleType
+ManagementPack.mpx*SystemDrive.LogicalDisk.Discovery*159*8*Discovery
+ManagementPack.mpx*NonSystemDrive.LogicalDisk.Discovery*174*8*Discovery
+ManagementPack.mpx*LogicalDisk.AdminGroup.Registry.Discovery*189*8*Discovery
+ManagementPack.mpx*LogicalDisk.Script.Discovery*243*8*Discovery
+ManagementPack.mpx*Extend.LogicalDisk*320*10*DisplayString
+ManagementPack.mpx*Windows.Server.LogicalDisk.Extended*324*10*DisplayString
+ManagementPack.mpx*Windows.Server.LogicalDisk.Extended*327*10*DisplayString*SubElementID*IsSystem
+ManagementPack.mpx*Windows.Server.LogicalDisk.Extended*330*10*DisplayString*SubElementID*AdminGroup
+ManagementPack.mpx*Windows.Server.LogicalDisk.Extended*333*10*DisplayString*SubElementID*SerialNumber
+ManagementPack.mpx*SystemDrive.LogicalDisk.Discovery*336*10*DisplayString
+ManagementPack.mpx*NonSystemDrive.LogicalDisk.Discovery*339*10*DisplayString
+ManagementPack.mpx*LogicalDisk.AdminGroup.Registry.Discovery*342*10*DisplayString
+ManagementPack.mpx*LogicalDisk.Script.Discovery*345*10*DisplayString
