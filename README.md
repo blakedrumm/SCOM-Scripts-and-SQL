@@ -23,7 +23,7 @@ Read the blog post here: [https://blakedrumm.com/blog/scom-data-collector/](http
 ___
 
 ### SCOM DW Grooming Tool
-[![SCOM DW Grooming Tool](https://user-images.githubusercontent.com/63755224/208586913-e8c3c4e3-3c25-46ce-8368-7ebb768d4445.png)](https://github.com/blakedrumm/SCOM-DW-Grooming-Tool) \
+[![SCOM DW Grooming Tool](https://github.com/blakedrumm/SCOM-DW-Grooming-Tool/assets/63755224/129b983f-c9ba-4f8a-a47e-daba9daa3fa3)](https://github.com/blakedrumm/SCOM-DW-Grooming-Tool) \
 This tool can be used to modify the System Center Operations Manager Data Warehouse Grooming retention days, allows you to see grooming history, you can manually run grooming, and you may also export the current configuration so you can keep a backup of your settings.
 
 **Go to script location:** [Click Here](https://github.com/blakedrumm/SCOM-DW-Grooming-Tool)
