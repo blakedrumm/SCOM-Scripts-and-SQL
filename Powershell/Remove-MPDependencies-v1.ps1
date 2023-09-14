@@ -219,7 +219,7 @@ PROCESS
 						
 						foreach ($node in $nodes)
 						{
-							$aliasFound = $node.ChildNodes.Where{ $_.Context -match "$($reference.Alias)!" }
+							$aliasFound = $node.ChildNodes.Where{ $_.Context -match "$($reference.Alias)!" -or $_.Rule -match "$($reference.Alias)!" -or $_.Monitor -match "$($reference.Alias)!" -or $_.SecureReference -match "$($reference.Alias)!" }
 							
 							foreach ($context in $aliasFound)
 							{
@@ -366,7 +366,7 @@ END
 	}
 	else
 	{
-		#Edit line 377 to change what happens when this script is run from Powershell ISE.
+		#Edit line 382 to change what happens when this script is run from Powershell ISE.
 		# Example 1:
 		# Get-SCOMManagementPack -Name Microsoft.SQLServer.Windows.Discovery | Remove-SCOMManagementPackDependencies
 		#
