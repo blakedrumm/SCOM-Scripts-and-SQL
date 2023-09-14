@@ -15,7 +15,7 @@
 		ex: Microsoft.Azure.ManagedInstance.Discovery
 	
 	.PARAMETER RemoveUnsealedReferenceAndReimport
-		This allows you to remove and references from unsealed Management Packs.
+		This allows you to remove references from unsealed Management Packs.
 	
 	.EXAMPLE
 		Remove Microsoft.SQLServer.Windows.Discovery MP piped from Get-SCOMManagementPack:
@@ -26,6 +26,11 @@
 		
 		Remove 'Microsoft SQL Server on Windows*':
 		PS C:\> .\Remove-MPDependencies.ps1 -Name 'Microsoft SQL Server on Windows*'
+
+      .NOTES
+	        Author: Blake Drumm (blakedrumm@microsoft.com)
+	        Modified: September 14th, 2023
+	        Hosted here: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Remove-MPDependencies-v1.ps1
 #>
 param
 (
@@ -214,7 +219,7 @@ PROCESS
 						
 						foreach ($node in $nodes)
 						{
-							$aliasFound = $node.ChildNodes.Where{ $_.Context -match "$($reference.Alias)" }
+							$aliasFound = $node.ChildNodes.Where{ $_.Context -match "$($reference.Alias)!" }
 							
 							foreach ($context in $aliasFound)
 							{
@@ -241,10 +246,10 @@ PROCESS
 				{
 					Write-Output "$(Time-Stamp)Removing the Unsealed Management Pack: $($ManagementPack.DisplayName)"
 					Remove-SCManagementPack -ManagementPack $ManagementPack -Confirm:$false -ErrorAction Stop
-					if ($ManagementPack.Name -in $sealedMPs)
+					if ($ManagementPack.Name -in $unsealedMPs)
 					{
 						#Remove from master list (not working yet)
-						$sealedMPs.Remove($ManagementPack.Name)
+						$unsealedMPs.Remove($ManagementPack.Name)
 					}
 				}
 				if ($Sealed)
@@ -258,6 +263,7 @@ PROCESS
 						$sealedMPs.Remove($ManagementPack.Name)
 					}
 				}
+				# this is required to give SCOM time to process that the MP reference has been removed.
 				sleep 10
 			}
 			
@@ -360,7 +366,7 @@ END
 	}
 	else
 	{
-		#Edit line 375 to change what happens when this script is run from Powershell ISE.
+		#Edit line 377 to change what happens when this script is run from Powershell ISE.
 		# Example 1:
 		# Get-SCOMManagementPack -Name Microsoft.SQLServer.Windows.Discovery | Remove-SCOMManagementPackDependencies
 		#
