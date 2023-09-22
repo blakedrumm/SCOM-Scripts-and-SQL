@@ -64,13 +64,19 @@
 	.PARAMETER SleepSeconds
 		How often to wait between checks for Event Ids. Or how long to wait until Automatic stop.
 	
+	.PARAMETER FormatTrace
+		Format the trace.
+	
+	.PARAMETER SleepAfterEventDetection
+		Sleep for a period of time (in seconds) after an Event Detection.
+	
 	.EXAMPLE
 		Gather Verbose ETL Trace while detecting for Event ID 1210, Start-Sleep 60 seconds between each check for the Event ID.
 		PS C:\> .\Start-ScomETLTrace.ps1 -VerboseTrace -DetectOpsMgrEventID 1210 -SleepSeconds 60
 		
 		Gather ETL Trace with all the traces gathered by default, wait 300 seconds (5 minutes) and then automatically stop the ETL Trace and zip up the output folder:
 		PS C:\> .\Start-ScomETLTrace.ps1 -SleepSeconds 300
-
+		
 		Gather logs for Operations Manager Module Logging, good for troubleshooting linux discovery issues:
 		PS C:\> .\Start-ScomETLTrace.ps1 -OpsMgrModuleLogging
 	
@@ -82,7 +88,14 @@
 		September 3rd 2020
 		
 		.MODIFIED
-		September 7th, 2022
+		September 22nd, 2023
+
+		.NOTE
+		Originally hosted on my github:
+		https://github.com/blakedrumm/SCOM-Scripts-and-SQL/tree/master/Powershell/SCOM%20ETL%20Trace
+		
+		Blog Post: https://blakedrumm.com/blog/scom-etl-trace/
+
 #>
 [CmdletBinding()]
 [OutputType([string])]
@@ -144,7 +157,13 @@ param
 	[Parameter(Mandatory = $false,
 			   Position = 19)]
 	[Alias('Start-Sleep')]
-	[int64]$SleepSeconds
+	[int64]$SleepSeconds,
+	[Parameter(Position = 20,
+			   HelpMessage = 'Format the trace.')]
+	[switch]$FormatTrace,
+	[Parameter(Position = 21,
+			   HelpMessage = 'Sleep for a period of time (in seconds) after an Event Detection.')]
+	[int64]$SleepAfterEventDetection
 )
 trap
 {
@@ -217,7 +236,13 @@ Function Start-ETLTrace
 		[Parameter(Mandatory = $false,
 				   Position = 19)]
 		[Alias('Start-Sleep')]
-		[int64]$SleepSeconds
+		[int64]$SleepSeconds,
+		[Parameter(Position = 20,
+				   HelpMessage = 'Format the trace.')]
+		[switch]$FormatTrace,
+		[Parameter(Position = 21,
+				   HelpMessage = 'Sleep for a period of time (in seconds) after an Event Detection.')]
+		[int64]$SleepAfterEventDetection
 	)
 	$Loc = $env:COMPUTERNAME
 	$date = Get-Date -Format "MM.dd.yyyy-hh.mmtt"
@@ -357,7 +382,7 @@ Function Start-ETLTrace
 	
 	#The Following makes a copy of the formattracing.cmd file but working when run as a service with no interactive desktop
 	#Do not edit this!
-	$formatTrace = @("
+	$formatTraceScript = @("
 param(
 [string] `$ServerToolsPath
 )
@@ -681,6 +706,11 @@ exit 0
 				Write-Host $DetectOpsMgrEventID -NoNewline -ForegroundColor Cyan
 				Write-Host "!" -ForegroundColor Green
 				$foundEventID = $true
+				if ($SleepAfterEventDetection)
+				{
+					Write-Host "$(Out-TimeStamp)Sleeping for $SleepAfterEventDetection seconds and then continuing automatically." -ForegroundColor DarkCyan
+					Start-Sleep $SleepAfterEventDetection
+				}
 			}
 			else
 			{
@@ -759,18 +789,20 @@ exit 0
 		until (Netsh trace stop)
 		Write-Host " "
 	}
-	Write-Host "$(Out-TimeStamp)Formatting ETL Trace" -ForegroundColor Cyan
-	#& $installdir`\FormatTracing.cmd
-	#[string]$formatTraceFile = '$TempETLTrace`\FormatTrace.ps1'
-	#$formatTrace | out-file -FilePath $formatTraceFile -Encoding ascii
-	#FormatTracing using the non-interactive FormatTracing file
-	#$command = $formatTraceFile + " `"'" + $installdir + "'`""
-	#start-process powershell.exe -ArgumentList $command -WorkingDirectory $installdir -Wait -WorkingDirectory $installdir -NoNewWindow -Wait
-	
-	#Start-Process -FilePath cmd.exe -ArgumentList '/c', "`"$installdir`\FormatTracing.cmd`"" -WorkingDirectory $installdir -Wait -WorkingDirectory $installdir -NoNewWindow -Wait
-	
-	Start-Process "$env:SystemRoot\SYSWOW64\cmd.exe" "/c `"$installdir`\FormatTracing.cmd`"" -WorkingDirectory $installdir -Wait | out-null
-	
+	if ($FormatTrace)
+	{
+		Write-Host "$(Out-TimeStamp)Formatting ETL Trace" -ForegroundColor Cyan
+		#& $installdir`\FormatTracing.cmd
+		#[string]$formatTraceFile = '$TempETLTrace`\FormatTrace.ps1'
+		#$formatTraceScript | out-file -FilePath $formatTraceFile -Encoding ascii
+		#FormatTracing using the non-interactive FormatTracing file
+		#$command = $formatTraceFile + " `"'" + $installdir + "'`""
+		#start-process powershell.exe -ArgumentList $command -WorkingDirectory $installdir -Wait -WorkingDirectory $installdir -NoNewWindow -Wait
+		
+		#Start-Process -FilePath cmd.exe -ArgumentList '/c', "`"$installdir`\FormatTracing.cmd`"" -WorkingDirectory $installdir -Wait -WorkingDirectory $installdir -NoNewWindow -Wait
+		
+		Start-Process "$env:SystemRoot\SYSWOW64\cmd.exe" "/c `"$installdir`\FormatTracing.cmd`"" -WorkingDirectory $installdir -Wait | out-null
+	}
 	#Move Files
 	Write-Host "$(Out-TimeStamp)Moving/Copying Files around" -ForegroundColor Gray
 	$directorycontents = Get-ChildItem $TempDirectory\*.txt
@@ -790,7 +822,7 @@ exit 0
 		Remove-Item $TempETLTrace`\ETL\* -Confirm:$false | Out-Null
 	}
 	Copy-Item "C:\Windows\Logs\OpsMgrTrace\*" "$TempETLTrace`\ETL" -Force | Out-Null
-    Write-Host "$(Out-TimeStamp)Gathering IP Address Information." -ForegroundColor Cyan
+	Write-Host "$(Out-TimeStamp)Gathering IP Address Information." -ForegroundColor Cyan
 	$ip = ([System.Net.Dns]::GetHostAddresses($Env:COMPUTERNAME)).IPAddressToString;
 	[string]$IPList = ""
 	$IPSplit = $IP.Split(",")
@@ -840,12 +872,12 @@ exit 0
 	
 	C:\Windows\explorer.exe "/select,$destfile"
 }
-if ($GetAdvisor -or $GetAPM -or $GetApmConnector -or $GetBID -or $GetConfigService -or $GetDAS -or $GetFailover -or $GetManaged -or $GetNASM -or $GetNative -or $GetScript -or $GetUI -or $DebugTrace -or $VerboseTrace -or $NetworkTrace -or $RestartSCOMServices -or $DetectOpsMgrEventID -or $SleepSeconds -or $OpsMgrModuleLogging)
+if ($GetAdvisor -or $GetAPM -or $GetApmConnector -or $GetBID -or $GetConfigService -or $GetDAS -or $GetFailover -or $GetManaged -or $GetNASM -or $GetNative -or $GetScript -or $GetUI -or $DebugTrace -or $VerboseTrace -or $NetworkTrace -or $RestartSCOMServices -or $DetectOpsMgrEventID -or $SleepSeconds -or $OpsMgrModuleLogging -or $FormatTrace -or $SleepAfterEventDetection)
 {
-	Start-ETLTrace -GetAdvisor:$GetAdvisor -GetApmConnector:$GetApmConnector -GetBID:$GetBID -GetConfigService:$GetConfigService -GetDAS:$GetDAS -GetFailover:$GetFailover -GetManaged:$GetManaged -GetNASM:$GetNASM -GetNative:$GetNative -GetScript:$GetScript -GetUI:$GetUI -DebugTrace:$DebugTrace -VerboseTrace:$VerboseTrace -NetworkTrace:$NetworkTrace -OpsMgrModuleLogging:$OpsMgrModuleLogging -RestartSCOMServices:$RestartSCOMServices -DetectOpsMgrEventID $DetectOpsMgrEventID -SleepSeconds $SleepSeconds
+	Start-ETLTrace -GetAdvisor:$GetAdvisor -GetApmConnector:$GetApmConnector -GetBID:$GetBID -GetConfigService:$GetConfigService -GetDAS:$GetDAS -GetFailover:$GetFailover -GetManaged:$GetManaged -GetNASM:$GetNASM -GetNative:$GetNative -GetScript:$GetScript -GetUI:$GetUI -DebugTrace:$DebugTrace -VerboseTrace:$VerboseTrace -NetworkTrace:$NetworkTrace -OpsMgrModuleLogging:$OpsMgrModuleLogging -RestartSCOMServices:$RestartSCOMServices -DetectOpsMgrEventID $DetectOpsMgrEventID -SleepSeconds $SleepSeconds -SleepAfterEventDetection $SleepAfterEventDetection -FormatTrace:$FormatTrace
 }
 else
 {
-	# Enter Switches here that you want to run if no switches are specified during runtime.
+	# Enter Switches here that you want to run if no switches are specified during runtime, good to use if you are running from PowerShell ISE.
 	Start-ETLTrace
 }
