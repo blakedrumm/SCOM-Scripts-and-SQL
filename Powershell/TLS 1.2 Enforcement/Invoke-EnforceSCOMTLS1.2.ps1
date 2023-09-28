@@ -1,21 +1,6 @@
-#=================================================================================
-#
-# SCOM TLS 1.2 Configuration Script
-#
-# This script supports: SCOM 2012R2, 2016, 1801, 1807, 2019, and 2022
-#                       SQL 2008R2 through 2022
-#                       .NET 4.5 through 4.8.1
-#
-# Original Author: Kevin Holman (https://kevinholman.com/)
-# Author: Blake Drumm (https://blakedrumm.com/)
-# v 2.1
-#
-# Last Updated: June 19th, 2023
-#
-#=================================================================================
 <#
 	.SYNOPSIS
-		This script allows you to enforce TLS 1.2 on SCOM environments.
+		This script allows you to enforce TLS 1.2 on System Center Operation Manager environments.
 	
 	.DESCRIPTION
 		Use this script when you need to want to automate the steps listed here:
@@ -64,7 +49,23 @@
             PS C:\> .\Invoke-EnforceSCOMTLS1.2.ps1 -DirectoryForPrerequisites "C:\Temp"
 	
 	.NOTES
-		Additional information about the file.
+		=================================================================================
+		
+				 SCOM TLS 1.2 Configuration Script
+					     v 2.2
+	  
+		 This script supports: SCOM 2012R2, 2016, 1801, 1807, 2019, and 2022
+		                       SQL 2008R2 through 2022
+		                       .NET 4.5 through 4.8.1
+		
+		 Original Author: Kevin Holman (https://kevinholman.com/)
+		 Author: Blake Drumm (https://blakedrumm.com/)
+		
+		 Last Updated: September 28th, 2023
+	
+	  	 Blog Post: https://blakedrumm.com/blog/enforce-tls-1-2-scom/
+		
+		=================================================================================
 #>
 param
 (
@@ -320,20 +321,20 @@ function Start-SCOMTLSEnforcement
 			#>
 			try
 			{
-				# MSOLEDB 18.6.5
-				$releaseDownloadLink = 'https://go.microsoft.com/fwlink/?linkid=2218891'
-				$filename = 'msoledbsql_18.6.5'
-				Write-ScriptLog -Step Prerequisites -LogString "Downloading MSOLEDB 18.6.5 automatically from: '$releaseDownloadLink'" -ForegroundColor Cyan
+				# MSOLEDB 18.6.6
+				$releaseDownloadLink = 'https://go.microsoft.com/fwlink/?linkid=2238605'
+				$filename = 'msoledbsql_18.6.6'
+				Write-ScriptLog -Step Prerequisites -LogString "Downloading MSOLEDB 18.6.6 automatically from: '$releaseDownloadLink'" -ForegroundColor Cyan
 				Start-BitsTransfer -Source $releaseDownloadLink -Destination "$DirectoryForPrerequisites\$filename.msi" -ErrorAction Stop
-				Out-File -FilePath "$DirectoryForPrerequisites\$filename-Released-December 15 2022"
+				Out-File -FilePath "$DirectoryForPrerequisites\$filename-Released-June 15 2023"
 			}
 			catch
 			{
-				Write-ScriptLog -Step Prerequisites -LogString "Unable to download MSOLEDB 18.6.5 automatically from: 'https://go.microsoft.com/fwlink/?linkid=2218891'" -ForegroundColor Red -Status Error
+				Write-ScriptLog -Step Prerequisites -LogString "Unable to download MSOLEDB 18.6.6 automatically from: 'https://learn.microsoft.com/sql/connect/oledb/download-oledb-driver-for-sql-server'" -ForegroundColor Red -Status Error
 			}
 			
 			#ODBC
-			<# Download Latest ODBC (As of writing: 18.2)
+			<# Download Latest ODBC (As of writing: 18.3.1.1)
 			$releasePage = ((Invoke-WebRequest -UseBasicParsing -Uri 'https://learn.microsoft.com/sql/connect/odbc/download-odbc-driver-for-sql-server').RawContent).Split("`r`n")
 			$releaseDate = ($releasePage | Where { $_ -match "Released: (.*)" }).Replace("<li>Released: ", '').Replace("</li>", '').Replace(",", "").Replace("/", "-") | Select-Object -Index 0
 			$releaseVersion = ($releasePage | Where { $_ -match "Release number: (.*)" }).Replace("<li>Release number: ", '').Replace("</li>", '') | Select-Object -Index 0
@@ -344,16 +345,16 @@ function Start-SCOMTLSEnforcement
 			#>
 			try
 			{
-				# ODBC 17.10.3
-				$releaseDownloadLink = 'https://go.microsoft.com/fwlink/?linkid=2223304'
-				$filename = 'msodbcsql_17.10.3'
-				Write-ScriptLog -Step Prerequisites -LogString "Downloading ODBC 17.10.3 automatically from: '$releaseDownloadLink'" -ForegroundColor Cyan
+				# ODBC 17.10.4.1
+				$releaseDownloadLink = 'https://go.microsoft.com/fwlink/?linkid=2239168'
+				$filename = 'msodbcsql_17.10.4.1'
+				Write-ScriptLog -Step Prerequisites -LogString "Downloading ODBC 17.10.4.1 automatically from: '$releaseDownloadLink'" -ForegroundColor Cyan
 				Start-BitsTransfer -Source $releaseDownloadLink -Destination "$DirectoryForPrerequisites\$filename.msi" -ErrorAction Stop
-				Out-File -FilePath "$DirectoryForPrerequisites\$filename-Released-January 26 2023"
+				Out-File -FilePath "$DirectoryForPrerequisites\$filename-Released-June 15 2023"
 			}
 			catch
 			{
-				Write-ScriptLog -Step Prerequisites -LogString "Unable to download ODBC 17.10.3 automatically from: 'https://learn.microsoft.com/sql/connect/odbc/download-odbc-driver-for-sql-server'" -ForegroundColor Red -Status Error
+				Write-ScriptLog -Step Prerequisites -LogString "Unable to download ODBC 17.10.4.1 automatically from: 'https://learn.microsoft.com/sql/connect/odbc/download-odbc-driver-for-sql-server'" -ForegroundColor Red -Status Error
 			}
 			
 			# SQL Server 2012 Native Client
@@ -492,7 +493,7 @@ Logging will be written to C:\ProgramData
 	
 	Script-Failed -step 'SCOM Role Check' -failed $failed
 	###################################################
-	# Ensure SCOM 1801, 1807, 2019, 2022, SCOM 2016 UR4 (or later) or SCOM 2012 UR14 (or later) is installed
+	# Ensure SCOM 2012 UR14 (or later), 1801, 1807, 2019, 2022, or 2016 UR4 (or later) is installed
 	
 	$SCOM2012 = $false
 	$SCOM2016 = $false
