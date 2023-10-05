@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ManagementPack SchemaVersion="2.0" ContentReadable="true" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Manifest>
+    <Identity>
+      <ID>SCOM.UNIX.Linux.Certificate.Check</ID>
+      <Version>10.0.0.1</Version>
+    </Identity>
+    <Name>SCOM UNIX/Linux Certificate Check</Name>
+    <References>
+      <Reference Alias="SC">
+        <ID>Microsoft.SystemCenter.Library</ID>
+        <Version>7.0.8437.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="Unix">
+        <ID>Microsoft.Unix.Library</ID>
+        <Version>7.6.1105.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="System">
+        <ID>System.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+    </References>
+  </Manifest>
+  <Monitoring>
+	<Tasks>
+		<Task ID="SCOM.UNIX.Linux.Certificate.Check.Task" Accessibility="Public" Target="Unix!Microsoft.Unix.Computer" Enabled="true" Timeout="300" Remotable="true">
+			<Category>Maintenance</Category>
+			<WriteAction ID="SSHCommand" TypeID="Unix!Microsoft.Unix.SSHCommand.WriteAction">
+			  <Host>$Target/Property[Type="Unix!Microsoft.Unix.Computer"]/PrincipalName$</Host>
+			  <Port>$Target/Property[Type="Unix!Microsoft.Unix.Computer"]/SSHPort$</Port>
+			  <UserName>$RunAs[Name="Unix!Microsoft.Unix.ActionAccount"]/UserName$</UserName>
+			  <Password>$RunAs[Name="Unix!Microsoft.Unix.ActionAccount"]/Password$</Password>
+			  <Command>openssl x509 -noout -in /etc/opt/microsoft/scx/ssl/scx.pem -subject -issuer -dates</Command>
+			  <TimeoutSeconds>40</TimeoutSeconds>
+			</WriteAction>
+      </Task>
+	</Tasks>
+  </Monitoring>
+  <LanguagePacks>
+	<LanguagePack ID="ENU" IsDefault="true">
+		<DisplayStrings>
+			<DisplayString ElementID="SCOM.UNIX.Linux.Certificate.Check">
+			  <Name>SCOM UNIX/Linux Certificate Check</Name>
+			  <Description>This is a Management Pack to fetch certificate information - Udish Mudiar</Description>
+			</DisplayString>
+			<DisplayString ElementID="SCOM.UNIX.Linux.Certificate.Check.Task">
+			  <Name>SCOM UNIX/Linux Certificate Check Task</Name>
+			  <Description></Description>
+			</DisplayString>
+		</DisplayStrings>
+	</LanguagePack>
+  </LanguagePacks>
+ </ManagementPack>
