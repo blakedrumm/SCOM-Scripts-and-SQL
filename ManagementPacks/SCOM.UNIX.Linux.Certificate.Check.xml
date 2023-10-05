@@ -3,7 +3,7 @@
   <Manifest>
     <Identity>
       <ID>SCOM.UNIX.Linux.Certificate.Check</ID>
-      <Version>10.0.0.1</Version>
+      <Version>10.0.0.2</Version>
     </Identity>
     <Name>SCOM UNIX/Linux Certificate Check</Name>
     <References>
