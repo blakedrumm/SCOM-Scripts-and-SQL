@@ -48,7 +48,7 @@ param
 	$ManagementPackName,
 	[Parameter(Position = 4,
 			   HelpMessage = 'This allows you to remove and references from unsealed Management Packs.')]
-	$RemoveUnsealedReferenceAndReimport
+	[switch]$RemoveUnsealedReferenceAndReimport
 )
 begin
 {
