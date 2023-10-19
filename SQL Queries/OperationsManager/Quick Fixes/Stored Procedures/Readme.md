@@ -1,2 +1,2 @@
-# :spiral_notepad: Update!
-These 2 SQL Queries are now included with SCOM 2019 UR4.
+# :spiral_notepad: Information
+Use these queries to cleanup inconsistent relationships in the Operations Manager Database!
