@@ -20,8 +20,8 @@
 	
 	.PARAMETER SkipDownloadPrerequisites
 		Skip downloading the prerequisite files to current directory:
-		- msoledbsql.msi  (https://learn.microsoft.com/sql/connect/oledb/download-oledb-driver-for-sql-server)
-		- msodbcsql.msi   (https://www.microsoft.com/download/details.aspx?id=50420)
+		- msoledbsql.msi  (https://learn.microsoft.com/sql/connect/oledb/release-notes-for-oledb-driver-for-sql-server?branch=main&branchFallbackFrom=pr-en-us-5180&view=sql-server-ver16#1867)
+		- msodbcsql.msi   (https://learn.microsoft.com/sql/connect/odbc/windows/release-notes-odbc-sql-server-windows?branch=main&branchFallbackFrom=pr-en-us-5180&view=sql-server-ver16#17105)
 		- sqlncli.msi     (https://www.microsoft.com/download/details.aspx?id=50402)
 	
 	.PARAMETER SkipModifyRegistry
@@ -52,7 +52,7 @@
 		=================================================================================
 		
 				 SCOM TLS 1.2 Configuration Script
-					     v 2.2
+					     v 2.3
 	  
 		 This script supports: SCOM 2012R2, 2016, 1801, 1807, 2019, and 2022
 		                       SQL 2008R2 through 2022
@@ -61,7 +61,7 @@
 		 Original Author: Kevin Holman (https://kevinholman.com/)
 		 Author: Blake Drumm (https://blakedrumm.com/)
 		
-		 Last Updated: September 28th, 2023
+		 Last Updated: October 23rd, 2023
 	
 	  	 Blog Post: https://blakedrumm.com/blog/enforce-tls-1-2-scom/
 		
@@ -321,16 +321,16 @@ function Start-SCOMTLSEnforcement
 			#>
 			try
 			{
-				# MSOLEDB 18.6.6
-				$releaseDownloadLink = 'https://go.microsoft.com/fwlink/?linkid=2238605'
-				$filename = 'msoledbsql_18.6.6'
-				Write-ScriptLog -Step Prerequisites -LogString "Downloading MSOLEDB 18.6.6 automatically from: '$releaseDownloadLink'" -ForegroundColor Cyan
+				# MSOLEDB 18.6.7
+				$releaseDownloadLink = 'https://go.microsoft.com/fwlink/?linkid=2242656'
+				$filename = 'msoledbsql_18.6.7'
+				Write-ScriptLog -Step Prerequisites -LogString "Downloading MSOLEDB 18.6.7 automatically from: '$releaseDownloadLink'" -ForegroundColor Cyan
 				Start-BitsTransfer -Source $releaseDownloadLink -Destination "$DirectoryForPrerequisites\$filename.msi" -ErrorAction Stop
-				Out-File -FilePath "$DirectoryForPrerequisites\$filename-Released-June 15 2023"
+				Out-File -FilePath "$DirectoryForPrerequisites\$filename-Released-October 10 2023"
 			}
 			catch
 			{
-				Write-ScriptLog -Step Prerequisites -LogString "Unable to download MSOLEDB 18.6.6 automatically from: 'https://learn.microsoft.com/sql/connect/oledb/download-oledb-driver-for-sql-server'" -ForegroundColor Red -Status Error
+				Write-ScriptLog -Step Prerequisites -LogString "Unable to download MSOLEDB 18.6.7 automatically from: 'https://learn.microsoft.com/sql/connect/oledb/download-oledb-driver-for-sql-server'" -ForegroundColor Red -Status Error
 			}
 			
 			#ODBC
@@ -345,16 +345,16 @@ function Start-SCOMTLSEnforcement
 			#>
 			try
 			{
-				# ODBC 17.10.4.1
-				$releaseDownloadLink = 'https://go.microsoft.com/fwlink/?linkid=2239168'
-				$filename = 'msodbcsql_17.10.4.1'
-				Write-ScriptLog -Step Prerequisites -LogString "Downloading ODBC 17.10.4.1 automatically from: '$releaseDownloadLink'" -ForegroundColor Cyan
+				# ODBC 17.10.5
+				$releaseDownloadLink = 'https://go.microsoft.com/fwlink/?linkid=2249004'
+				$filename = 'msodbcsql_17.10.5'
+				Write-ScriptLog -Step Prerequisites -LogString "Downloading ODBC 17.10.5 automatically from: '$releaseDownloadLink'" -ForegroundColor Cyan
 				Start-BitsTransfer -Source $releaseDownloadLink -Destination "$DirectoryForPrerequisites\$filename.msi" -ErrorAction Stop
-				Out-File -FilePath "$DirectoryForPrerequisites\$filename-Released-June 15 2023"
+				Out-File -FilePath "$DirectoryForPrerequisites\$filename-Released-October 10 2023"
 			}
 			catch
 			{
-				Write-ScriptLog -Step Prerequisites -LogString "Unable to download ODBC 17.10.4.1 automatically from: 'https://learn.microsoft.com/sql/connect/odbc/download-odbc-driver-for-sql-server'" -ForegroundColor Red -Status Error
+				Write-ScriptLog -Step Prerequisites -LogString "Unable to download ODBC 17.10.5 automatically from: 'https://learn.microsoft.com/sql/connect/odbc/windows/release-notes-odbc-sql-server-windows?branch=main&branchFallbackFrom=pr-en-us-5180&view=sql-server-ver16#17105'" -ForegroundColor Red -Status Error
 			}
 			
 			# SQL Server 2012 Native Client
