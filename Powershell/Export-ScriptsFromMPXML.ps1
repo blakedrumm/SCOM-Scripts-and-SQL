@@ -57,6 +57,24 @@ function Export-ScriptsFromMPXML
 	
 	[xml]$xmlcontent = Get-Content $SourceXML
 	
+	$ExportFullPath = "$ExportLocation\$($SourceXML | Split-Path -Leaf)"
+	if (Test-Path $ExportFullPath -ErrorAction SilentlyContinue)
+	{
+		Write-Host "Found Path"
+		$ExportLocation = $ExportFullPath
+	}
+	else
+	{
+		Write-Host "Not found Path"
+		if (New-Item -ItemType Directory -Path $ExportFullPath -ErrorAction SilentlyContinue)
+		{
+			$ExportLocation = $ExportFullPath
+		}
+	}
+	
+	
+	Write-Host "Exporting to folder: $ExportLocation\" -ForegroundColor Cyan
+	
 	#region Dump-DS-ProbeAction
 	#This will dump only the scripts which are defined inside Data Source ProbeAction
 	$probeactions = $xmlcontent.selectnodes('//ManagementPack/TypeDefinitions/ModuleTypes/DataSourceModuleType/ModuleImplementation/Composite/MemberModules/ProbeAction')
@@ -94,6 +112,44 @@ function Export-ScriptsFromMPXML
 		}
 	}
 	#endregion Dump-DS-ProbeAction
+	
+	#region Dump-DS-ProbeAction2
+	#This will dump only the scripts which are defined inside Data Source ProbeAction
+	$probeactions = $xmlcontent.selectnodes('//ManagementPack/TypeDefinitions/MonitorTypes/UnitMonitorType/MonitorImplementation/MemberModules/ProbeAction')
+	if ($probeactions)
+	{
+		foreach ($probeaction in $probeactions)
+		{
+			
+			if ($probeaction.TypeID -match "PowerShell")
+			{
+				$scriptname = $probeaction.ScriptName
+				Write-Host "Script found. Dumping Script....    " $scriptname -ForegroundColor Green
+				#write this condition because in some case the developers has added the script extension in the script name itself
+				
+				if ($scriptname -match ".ps1")
+				{
+					
+					$probeaction.scriptbody | Out-File $ExportLocation\$scriptname
+				}
+				elseif ($scriptname -match ".vbs")
+				{
+					$probeaction.scriptbody | Out-File $ExportLocation\$scriptname
+				}
+				elseif ($scriptname -match ".js")
+				{
+					$probeaction.scriptbody | Out-File $ExportLocation\$scriptname
+				}
+				else
+				{
+					$scripttype = $probeaction.ID + "1"
+					$probeaction.scriptbody | Out-File $ExportLocation\$scriptname.$scripttype
+				}
+			}
+			
+		}
+	}
+	#endregion Dump-DS-ProbeAction2
 	
 	#region Dump-DS-Files
 	#This script will dump only the scripts which are defined inside Data Source Files/File
