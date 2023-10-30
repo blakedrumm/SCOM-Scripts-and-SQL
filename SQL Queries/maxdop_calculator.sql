@@ -96,7 +96,7 @@ BEGIN TRY
     UNION ALL
     SELECT 'Cost Threshold Configured Value', CAST(@CostThreshold AS VARCHAR)
     UNION ALL
-    SELECT 'Recommended Cost Threshold', @RecommendedCostThreshold;
+    SELECT 'Generally Recommended Cost Threshold', @RecommendedCostThreshold;
 
     -- Insert the "Change Script" row only if it's not just 'show advanced options', 1
     IF LEN(@ChangeScript) > LEN('EXEC sp_configure ''show advanced options'', 1; RECONFIGURE WITH OVERRIDE; ')
