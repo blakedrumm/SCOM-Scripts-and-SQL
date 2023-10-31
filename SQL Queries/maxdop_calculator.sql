@@ -28,11 +28,9 @@ DECLARE @NumaNodes INT,
         @NumCPUs INT,
         @MaxDop INT,
         @RecommendedMaxDop INT,
-		@RecommendedCostThreshold VARCHAR(5) = '40-50',
         @CostThreshold INT,
         @ChangeScript NVARCHAR(MAX) = '',
-        @ShowAdvancedOptions INT,
-        @TempDBFileCount INT;
+        @ShowAdvancedOptions INT;
 
 -- Initialize variables
 SELECT @NumaNodes = COUNT(DISTINCT parent_node_id) FROM sys.dm_os_schedulers WHERE status = 'VISIBLE ONLINE';
@@ -40,7 +38,6 @@ SELECT @NumCPUs = cpu_count FROM sys.dm_os_sys_info;
 SELECT @MaxDop = CAST(value_in_use AS INT) FROM sys.configurations WHERE name = 'max degree of parallelism';
 SELECT @CostThreshold = CAST(value_in_use AS INT) FROM sys.configurations WHERE name = 'cost threshold for parallelism';
 SELECT @ShowAdvancedOptions = CAST(value_in_use AS INT) FROM sys.configurations WHERE name = 'show advanced options';
-SELECT @TempDBFileCount = COUNT(*) FROM sys.master_files WHERE database_id = DB_ID('TempDB') AND type = 0;
 
 -- MAXDOP Calculation
 IF @NumaNodes = 1
@@ -68,19 +65,17 @@ INSERT INTO @Results (Description, Value)
 VALUES ('MAXDOP Configured Value', CAST(@MaxDop AS VARCHAR)),
        ('MAXDOP Recommended Value', CAST(@RecommendedMaxDop AS VARCHAR)),
        ('Cost Threshold Configured Value', CAST(@CostThreshold AS VARCHAR)),
-	   ('Generally Recommended Cost Threshold', @RecommendedCostThreshold),
-       ('Current TempDB Data Files Count', CAST(@TempDBFileCount AS VARCHAR)),
-       ('TempDB Data Files Recommended Count', CAST(@RecommendedMaxDop AS VARCHAR));
+       ('Generally Recommended Cost Threshold', '40-50');
 
 -- Check and build ChangeScript for other settings
-IF @ShowAdvancedOptions <> 1
-    SET @ChangeScript += 'EXEC sp_configure ''show advanced options'', 1; RECONFIGURE WITH OVERRIDE; ';
-
 IF @MaxDop <> @RecommendedMaxDop
     SET @ChangeScript += 'EXEC sp_configure ''max degree of parallelism'', ' + CAST(@RecommendedMaxDop AS VARCHAR) + '; RECONFIGURE WITH OVERRIDE; ';
 
 IF @CostThreshold < 40 OR @CostThreshold > 50
     SET @ChangeScript += 'EXEC sp_configure ''cost threshold for parallelism'', 45; RECONFIGURE WITH OVERRIDE; ';
+
+IF LEN(@ChangeScript) > 0 AND @ShowAdvancedOptions <> 1
+    SET @ChangeScript = 'EXEC sp_configure ''show advanced options'', 1; RECONFIGURE WITH OVERRIDE; ' + @ChangeScript;
 
 -- Insert the "Change Script" row only if there are changes to be made
 IF LEN(@ChangeScript) > 0
