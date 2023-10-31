@@ -2,7 +2,7 @@
 ==================================================================================================
 Script Title: Configuration Script for MaxDOP and Cost Threshold for Parallelism
 Author: Blake Drumm
-Date: 2023-10-30
+Date: 2023-10-31
 Description: 
     This script is designed to review and recommend settings for MaxDOP and Cost Threshold for
     Parallelism for SQL Server in a System Center Operations Manager (SCOM) environment.
@@ -16,7 +16,7 @@ Usage:
     3. Review the results and execute the generated script if the recommended settings are acceptable.
 
 Revision History:
-    2023-10-31: Script modified by Blake Drumm
+    2023-10-31: Fixed the MaxDOP Calculation - Blake Drumm
     2023-10-30: Script created by Blake Drumm
 ==================================================================================================
 */
@@ -63,10 +63,11 @@ BEGIN
 END
 ELSE
 BEGIN
-    IF (@NumCPUs / @NumaNodes) < 8
-        SET @RecommendedMaxDop = (@NumCPUs / @NumaNodes);
+    DECLARE @LogicalCPUsPerNumaNode INT = @NumCPUs / @NumaNodes;
+    IF @LogicalCPUsPerNumaNode <= 16
+        SET @RecommendedMaxDop = @LogicalCPUsPerNumaNode;
     ELSE
-        SET @RecommendedMaxDop = 8;
+        SET @RecommendedMaxDop = @LogicalCPUsPerNumaNode / 2;
 END
 
 -- Define a table variable to store the results
