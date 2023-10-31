@@ -64,13 +64,12 @@ END
 ELSE
 BEGIN
     DECLARE @LogicalCPUsPerNumaNode INT = @NumCPUs / @NumaNodes;
+    
     IF @LogicalCPUsPerNumaNode <= 16
         SET @RecommendedMaxDop = @LogicalCPUsPerNumaNode;
+    ELSE IF (@LogicalCPUsPerNumaNode / 2) >= 16
+        SET @RecommendedMaxDop = 16;
     ELSE
-        SET @RecommendedMaxDop = @LogicalCPUsPerNumaNode / 2;
-    
-    -- Ensure the MAXDOP does not exceed half the number of logical CPUs per NUMA node
-    IF @RecommendedMaxDop > @LogicalCPUsPerNumaNode / 2
         SET @RecommendedMaxDop = @LogicalCPUsPerNumaNode / 2;
 END
 
