@@ -16,6 +16,7 @@ Usage:
     3. Review the results and execute the generated script if the recommended settings are acceptable.
 
 Revision History:
+    2023-10-31: Script modified by Blake Drumm
     2023-10-30: Script created by Blake Drumm
 ==================================================================================================
 */
@@ -24,20 +25,15 @@ SET NOCOUNT ON;
 USE MASTER;
 
 -- Declare variables
--- Commenting out the line that captures SQL Server version
--- DECLARE @SQLVersion INT,
 DECLARE @NumaNodes INT,
         @NumCPUs INT,
         @MaxDop INT,
         @RecommendedMaxDop INT,
         @CostThreshold INT,
-        @RecommendedCostThreshold VARCHAR(5) = '40-50', -- Default range, can be changed
-        @ChangeScript NVARCHAR(MAX),
-        @ShowAdvancedOptions INT;
-
--- Getting SQL Server version
--- Commenting out the line that captures SQL Server version
--- SELECT @SQLVersion = CAST(SUBSTRING(CONVERT(VARCHAR, SERVERPROPERTY('ProductVersion')), 1, 2) AS INT);
+        @RecommendedCostThreshold VARCHAR(5) = '40-50',
+        @ChangeScript NVARCHAR(MAX) = '',
+        @ShowAdvancedOptions INT,
+        @TempDBFileCount INT;
 
 -- Getting number of NUMA nodes
 SELECT @NumaNodes = COUNT(DISTINCT parent_node_id) FROM sys.dm_os_schedulers WHERE status = 'VISIBLE ONLINE';
@@ -53,6 +49,9 @@ SELECT @CostThreshold = CAST(value_in_use AS INT) FROM sys.configurations WHERE 
 
 -- Check 'show advanced options' setting
 SELECT @ShowAdvancedOptions = CAST(value_in_use AS INT) FROM sys.configurations WHERE name = 'show advanced options';
+
+-- Get the number of TempDB data files
+SELECT @TempDBFileCount = COUNT(*) FROM sys.master_files WHERE database_id = DB_ID('TempDB') AND type = 0;
 
 -- MAXDOP Calculation
 IF @NumaNodes = 1
@@ -70,44 +69,44 @@ BEGIN
         SET @RecommendedMaxDop = 8;
 END
 
--- Initialize ChangeScript
-SET @ChangeScript = '';
+-- Define a table variable to store the results
+DECLARE @Results TABLE (Description NVARCHAR(255), Value NVARCHAR(255));
 
--- Error handling using TRY...CATCH block
-BEGIN TRY
-    -- Check and build ChangeScript
-    IF @ShowAdvancedOptions <> 1
-        SET @ChangeScript = 'EXEC sp_configure ''show advanced options'', 1; RECONFIGURE WITH OVERRIDE; ';
+-- Insert existing settings and recommendations into @Results
+INSERT INTO @Results (Description, Value)
+VALUES ('MAXDOP Configured Value', CAST(@MaxDop AS VARCHAR)),
+       ('MAXDOP Recommended Value', CAST(@RecommendedMaxDop AS VARCHAR)),
+       ('Cost Threshold Configured Value', CAST(@CostThreshold AS VARCHAR)),
+       ('Generally Recommended Cost Threshold', @RecommendedCostThreshold),
+       ('Current TempDB Data Files Count', CAST(@TempDBFileCount AS VARCHAR)),
+       ('TempDB Data Files Recommended Count', CAST(@RecommendedMaxDop AS VARCHAR));
 
-    IF @MaxDop <> @RecommendedMaxDop
-        SET @ChangeScript = @ChangeScript + 'EXEC sp_configure ''max degree of parallelism'', ' + CAST(@RecommendedMaxDop AS VARCHAR) + '; RECONFIGURE WITH OVERRIDE; ';
-
-    IF @CostThreshold < 40 OR @CostThreshold > 50
-        SET @ChangeScript = @ChangeScript + 'EXEC sp_configure ''cost threshold for parallelism'', 45; RECONFIGURE WITH OVERRIDE; '; -- Setting to mid-range value
-
-    -- Define a table variable to store the results
-    DECLARE @Results TABLE (Description NVARCHAR(255), Value NVARCHAR(255));
-
-    -- Insert results into the table variable
+-- TempDB data files recommendation
+IF @TempDBFileCount != @RecommendedMaxDop
+BEGIN
     INSERT INTO @Results (Description, Value)
-    SELECT 'MAXDOP Configured Value' AS Description, CAST(@MaxDop AS VARCHAR) AS Value
-    UNION ALL
-    SELECT 'MAXDOP Recommended Value', CAST(@RecommendedMaxDop AS VARCHAR)
-    UNION ALL
-    SELECT 'Cost Threshold Configured Value', CAST(@CostThreshold AS VARCHAR)
-    UNION ALL
-    SELECT 'Generally Recommended Cost Threshold', @RecommendedCostThreshold;
+    VALUES ('TempDB Data Files Recommendation', 'The number of TempDB data files does not match the recommended MAXDOP setting. Consider changing it.');
+    
+    SET @ChangeScript = @ChangeScript + 'ALTER DATABASE TempDB MODIFY FILE (NAME = ' + (SELECT name FROM sys.master_files WHERE database_id = DB_ID('TempDB') AND type = 0) + ', FILEGROWTH = 512MB);';
+    
+    INSERT INTO @Results (Description, Value)
+    VALUES ('TempDB File Adjustment Script', @ChangeScript);
+END
 
-    -- Insert the "Change Script" row only if it's not just 'show advanced options', 1
-    IF LEN(@ChangeScript) > LEN('EXEC sp_configure ''show advanced options'', 1; RECONFIGURE WITH OVERRIDE; ')
-        INSERT INTO @Results (Description, Value)
-        VALUES ('Change Script', @ChangeScript);
+-- Check and build ChangeScript for other settings
+IF @ShowAdvancedOptions <> 1
+    SET @ChangeScript = @ChangeScript + 'EXEC sp_configure ''show advanced options'', 1; RECONFIGURE WITH OVERRIDE; ';
 
-    -- Display the results
-    SELECT * FROM @Results;
+IF @MaxDop <> @RecommendedMaxDop
+    SET @ChangeScript = @ChangeScript + 'EXEC sp_configure ''max degree of parallelism'', ' + CAST(@RecommendedMaxDop AS VARCHAR) + '; RECONFIGURE WITH OVERRIDE; ';
 
-END TRY
-BEGIN CATCH
-    -- Error handling code
-    PRINT 'An error occurred: ' + ERROR_MESSAGE();
-END CATCH
+IF @CostThreshold < 40 OR @CostThreshold > 50
+    SET @ChangeScript = @ChangeScript + 'EXEC sp_configure ''cost threshold for parallelism'', 45; RECONFIGURE WITH OVERRIDE; ';
+
+-- Insert the "Change Script" row only if there are changes to be made
+IF LEN(@ChangeScript) > 0
+    INSERT INTO @Results (Description, Value)
+    VALUES ('Change Script', @ChangeScript);
+
+-- Display the results
+SELECT * FROM @Results;
