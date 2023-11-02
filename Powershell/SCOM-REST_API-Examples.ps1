@@ -1,9 +1,11 @@
 # SCOM API PowerShell Script
 # This script includes functions to interact with SCOM's REST API
 # Author: Blake Drumm (blakedrumm@microsoft.com)
+# Date Created: November 1st, 2023
+# Blog: https://blakedrumm.com/
 
 # Initialize SCOM API Base URL
-$URIBase = 'http://<WebConsoleURL>/OperationsManager'
+$URIBase = 'http://MS02-2019/OperationsManager'
 
 # Function to initialize HTTP headers and CSRF token for SCOM API
 function Initialize-SCOMHeaders {
@@ -79,6 +81,9 @@ function Get-WindowsServers {
 # ------------------------------------------------------------------------------------------
 # Main Execution
 
+# ------------------------------------------------------------------------------------------
+#region Authentication
+
 # Uncomment the below lines if you want to authenticate using specific credentials
 # $cred = Get-Credential
 # Authenticate-SCOM -Credential $cred
@@ -86,7 +91,21 @@ function Get-WindowsServers {
 # Uncomment the below line if you want to authenticate using the current user's credentials
 # Authenticate-SCOM
 
-Write-Output "--------------------------------"
+#endregion
+# ------------------------------------------------------------------------------------------
+
+#Write-Output "-----------------------------------------"
+
+# Replace 'your-guid-here' with the actual GUID of the monitoring object
+#$MonitoringObjectGUID = 'your-guid-here'
+
+# Fetch the effective monitoring configuration for the given GUID
+#$EffectiveConfig = Get-EffectiveMonitoringConfiguration -guid $MonitoringObjectGUID
+
+# Output the effective monitoring configuration in JSON format
+#Write-Output "Effective Monitoring Configuration:`n$($EffectiveConfig | ConvertTo-Json)"
+
+Write-Output "-----------------------------------------"
 
 # Fetch all Windows Servers
 $WindowsServers = Get-WindowsServers
@@ -98,10 +117,10 @@ Write-Output "-----------------------------------------"
 $unsealedMPs = Get-UnsealedManagementPacks
 Write-Output "Unsealed MPs:`n$($unsealedMPs | ConvertTo-Json)"
 
-Write-Output "--------------------------------"
+Write-Output "-----------------------------------------"
 
 # Get Management Group Health Status
 $state = Get-ManagementGroupState
 Write-Output "Monitored Computer State:`n$($state | ConvertTo-Json)"
 
-Write-Output "--------------------------------"
+Write-Output "-----------------------------------------"
