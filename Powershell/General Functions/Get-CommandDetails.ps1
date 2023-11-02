@@ -1,7 +1,7 @@
 # -------------------------------------------------------------------------------
 # Author: Blake Drumm (blakedrumm@microsoft.com)
 # Date Created: November 1st, 2023
-# Edit line 3 if you want to change the module or command to get information on.
+# Edit line 7 if you want to change the module or command to get information on.
 # -------------------------------------------------------------------------------
 # Get details of commands in a specific module
 $commandDetailsList = foreach ($function in (Get-Command -Module OperationsManager)) {
