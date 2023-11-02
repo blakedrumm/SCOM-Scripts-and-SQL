@@ -1,105 +1,107 @@
-# Jeremy D Pavleck <jpavleck@microsoft.com>
-# Working with the SCOM REST API through PowerShell Examples
+# SCOM API PowerShell Script
+# This script includes functions to interact with SCOM's REST API
+# Author: Blake Drumm (blakedrumm@microsoft.com)
 
+# Initialize SCOM API Base URL
+$URIBase = 'http://<WebConsoleURL>/OperationsManager'
 
+# Function to initialize HTTP headers and CSRF token for SCOM API
+function Initialize-SCOMHeaders {
+    $SCOMHeaders = @{
+        'Content-Type' = 'application/json; charset=utf-8'
+    }
 
-# The most important part is the construct used to initially authenticate. After that, everything else is fairly easy and uses SQL-like queries
-# --- BEGIN AUTHENTICATION ENVELOPE
-# We'll need to authenticate once per session
-#       Set the Header and the Body
-$SCOMHeaders = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
-$SCOMHeaders.Add('Content-Type', 'application/json; charset=utf-8')
-$BodyRaw = "Windows"
-$Bytes = [System.Text.Encoding]::UTF8.GetBytes($BodyRaw)
-$EncodedText = [Convert]::ToBase64String($Bytes)
-$JSONBody = $EncodedText | ConvertTo-Json
+    $CSRFtoken = $WebSession.Cookies.GetCookies($URIBase) | Where-Object { $_.Name -eq 'SCOM-CSRF-TOKEN' }
+    $SCOMHeaders['SCOM-CSRF-TOKEN'] = [System.Web.HttpUtility]::UrlDecode($CSRFtoken.Value)
+    return $SCOMHeaders
+}
 
+# Function to authenticate with the SCOM API
+function Authenticate-SCOM {
+    param (
+        [PSCredential]$Credential = $null
+    )
 
-#       The SCOM REST API authentication URL
-$URIBase = 'http://<Your SCOM MS>/OperationsManager/authenticate'
+    $bodyRaw = "Windows"
+    $encodedText = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($bodyRaw))
+    $JSONBody = $encodedText | ConvertTo-Json
 
-#       Initiate the Cross-Site Request Forgery (CSRF) token, this is to prevent CSRF attacks
-$CSRFtoken = $WebSession.Cookies.GetCookies($UriBase) | ? { $_.Name -eq 'SCOM-CSRF-TOKEN' }
-$SCOMHeaders.Add('SCOM-CSRF-TOKEN', [System.Web.HttpUtility]::UrlDecode($CSRFtoken.Value))
+    $SCOMHeaders = Initialize-SCOMHeaders
 
+    if ($Credential -ne $null) {
+        Invoke-RestMethod -Method Post -Uri "$URIBase/authenticate" -Headers $SCOMHeaders -Body $JSONBody -Credential $Credential -SessionVariable WebSession
+    } else {
+        Invoke-RestMethod -Method Post -Uri "$URIBase/authenticate" -Headers $SCOMHeaders -Body $JSONBody -UseDefaultCredentials -SessionVariable WebSession
+    }
+}
 
-# --- END AUTHENTICATION ENVELOPE
+# Function to fetch Effective Monitoring Configuration by GUID
+function Get-EffectiveMonitoringConfiguration {
+    param (
+        [string]$guid
+    )
 
+    $uri = "$URIBase/effectiveMonitoringConfiguration/$guid`?isRecursive=True"
+    $response = Invoke-WebRequest -Uri $uri -Method GET -WebSession $WebSession
+    return $response.Content | ConvertFrom-Json
+}
 
-# Request authentication and get the session variable we'll need to refer to with each call.
-$Authentication = Invoke-RestMethod -Method Post -Uri $URIBase -Headers $SCOMHeaders -body $JSONBody -UseDefaultCredentials -SessionVariable WebSession
+# Function to fetch Unsealed Management Packs
+function Get-UnsealedManagementPacks {
+    $uri = "$URIBase/data/UnsealedManagementPacks"
+    $response = Invoke-WebRequest -Uri $uri -Method GET -WebSession $WebSession
+    return $response.Content | ConvertFrom-Json
+}
 
+# Function to fetch the state of the Management Group
+function Get-ManagementGroupState {
+    $query = @(@{
+        "classId"         = ""
+        "criteria"        = "DisplayName = 'Operations Manager Management Group'"
+        "displayColumns"  = "displayname", "healthstate", "name", "path"
+    })
 
-# Now we ask for the information we want
+    $JSONQuery = $query | ConvertTo-Json
+    $response = Invoke-RestMethod -Uri "$URIBase/data/state" -Method Post -Body $JSONQuery -ContentType "application/json" -WebSession $WebSession
+    return $response.Rows
+}
 
+# Function to fetch all Windows Servers
+function Get-WindowsServers {
+    $criteria = "DisplayName LIKE 'Microsoft Windows Server%'"
+    $JSONBody = $criteria | ConvertTo-Json
 
-####################################
-# To retrieve the effective monitoring configuration for an object, we need to perform this GET
-$Response = Invoke-WebRequest -Uri 'http://<Your SCOM MS>/OperationsManager/effectiveMonitoringConfiguration/<MONITORING OBJECT GUID>?isRecursive=True' -Method GET -WebSession $WebSession
-# If we have a server that has a GUID of dea8caf0-67bc-4fd2-ace8-39121499ddbf this how the request would look:
-$Response = Invoke-WebRequest -Uri 'http://<Your SCOM MS>/OperationsManager/effectiveMonitoringConfiguration/dea8caf0-67bc-4fd2-ace8-39121499ddbf?isRecursive=True' -Method GET -WebSession $WebSession
+    $uri = "$URIBase/data/scomObjects"
+    $response = Invoke-WebRequest -Uri $uri -Method Post -Body $JSONBody -WebSession $WebSession
+    return ($response.Content | ConvertFrom-Json).scopeDatas
+}
 
+# ------------------------------------------------------------------------------------------
+# Main Execution
 
-# $Response will be a JSON/XML data table with the results of the query. To work with it more easily in PowerShell you can conver it into a hash table with
-# $EffectiveMonitoring = ConvertFrom-JSON -InputObject $Response.Content - then you treat it like any other hash table in a script
-# See https://learn.microsoft.com/en-us/rest/api/operationsmanager/effective-monitoring-configuration/effective-monitoring-configuration-data?tabs=HTTP for more information on this method as well as to
-# view sample data
+# Uncomment the below lines if you want to authenticate using specific credentials
+# $cred = Get-Credential
+# Authenticate-SCOM -Credential $cred
 
+# Uncomment the below line if you want to authenticate using the current user's credentials
+# Authenticate-SCOM
 
-## A few more examples
+Write-Output "--------------------------------"
 
+# Fetch all Windows Servers
+$WindowsServers = Get-WindowsServers
+Write-Output "Windows Servers:`n$($WindowsServers | ConvertTo-Json)"
 
-# To return all Unsealed MPs:
-$Response = Invoke-WebRequest -Uri 'http://<Your SCOM MS>/OperationsManager/data/UnsealedManagementPacks' -Method Get -WebSession $WebSession
-# Then $UnsealedMPs = ConvertFrom-JSON -InputObject $Response.Content
+Write-Output "-----------------------------------------"
 
+# Get Unsealed Management Packs
+$unsealedMPs = Get-UnsealedManagementPacks
+Write-Output "Unsealed MPs:`n$($unsealedMPs | ConvertTo-Json)"
 
-######################
-# Return the health state of a monitored computer in SCOM
-# This uses a POST method.
+Write-Output "--------------------------------"
 
+# Get Management Group Health Status
+$state = Get-ManagementGroupState
+Write-Output "Monitored Computer State:`n$($state | ConvertTo-Json)"
 
-# Construct our criteria
-$Query = @(@{ "classId" = ""  
-    # Criteria: Enter the name of the monitored computer (do not use the FQDN)
-    "criteria" = "DisplayName = 'Operations Manager Management Group'"
-    "displayColumns"    = "displayname", "healthstate", "name", "path"})
-
-
-# Now convert it to JSON
-$JSONQuery = $Query | ConvertTo-JSON
-
-
-# Make the request
-$Response = Invoke-RestMethod -Uri 'http://<Your SCOM MS>/OperationsManager/data/state' -Method Post -Body $JSONQuery -ContentType "application/json" -WebSession $WebSession
-
-
-# Print it our
-$State = $Response.Rows
-$State
-
-
-
-
-##############
-# Return all of the SCOM consoles installed
-
-
-# Criteria: Enter the displayname of the SCOM object
-$Criteria = "DisplayName LIKE '%System Center Operations Manager Console%'"
-
-
-# Convert our criteria to JSON format
-$JSONBody = $Criteria | ConvertTo-Json
-
-
-# Make the request
-$Response = Invoke-WebRequest -Uri 'http://<Your SCOM MS>/OperationsManager/data/scomObjects' -Method Post -Body $JSONBody -WebSession $WebSession
-
-
-# Convert our response from JSON format to a custom object or hash table
-$Object = ConvertFrom-Json -InputObject $Response.Content
-
-
-# Print out the object results
-$Object.scopeDatas
+Write-Output "--------------------------------"
