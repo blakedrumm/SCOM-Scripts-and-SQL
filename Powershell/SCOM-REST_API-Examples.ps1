@@ -5,7 +5,7 @@
 # Blog: https://blakedrumm.com/
 
 # Initialize SCOM API Base URL
-$URIBase = 'http://MS02-2019/OperationsManager'
+$URIBase = 'http://<WebConsoleURL>/OperationsManager'
 
 # Function to initialize HTTP headers and CSRF token for SCOM API
 function Initialize-SCOMHeaders {
