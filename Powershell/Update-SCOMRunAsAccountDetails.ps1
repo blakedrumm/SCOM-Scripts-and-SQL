@@ -77,11 +77,20 @@ function Update-SCOMRunAsAccountDetails
 		$SDKBinariesDirectory = (Resolve-Path "C:\Program Files\Microsoft System Center\Operations Manager\Server\SDK Binaries").Path
 	}
 	
-	Get-ChildItem $SDKBinariesDirectory -Filter "*.dll" | ForEach-Object { Add-Type -Path $_.FullName }
+	$error.Clear()
+	try
+	{
+		Get-ChildItem $SDKBinariesDirectory -Filter "*.dll" -ErrorAction Stop | ForEach-Object { Add-Type -Path $_.FullName -ErrorAction Stop }
+	}
+	catch
+	{
+		Write-Warning "Unable to utilize the SCOM SDK DLLs.`n$error"
+		break
+	}
 	if ($ManagementServer)
 	{
-	# Connect to the Management Group
-	$managementGroup = New-Object Microsoft.EnterpriseManagement.ManagementGroup($ManagementServer)
+		# Connect to the Management Group
+		$managementGroup = New-Object Microsoft.EnterpriseManagement.ManagementGroup($ManagementServer)
 	}
 	else
 	{
