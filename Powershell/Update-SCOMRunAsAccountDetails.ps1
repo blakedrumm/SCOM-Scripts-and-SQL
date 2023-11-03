@@ -143,6 +143,7 @@ function Update-SCOMRunAsAccountDetails
 		{
 			foreach ($account in $Accounts)
 			{
+				Write-Host "`n-------------------------------------------------------------------------" -ForegroundColor Gray
 				Write-Host "Account (Before Update):"
 				# -----------------------------------------------------
 				# Was Display Name Updated?
@@ -289,7 +290,7 @@ else
 	#$securePassword = ConvertTo-SecureString 'Password1' -AsPlainText -Force
 	
 	# Usage example:
-	#Update-SCOMRunAsAccountDetails -ManagementServer 'MS01-2019.contoso-2019.com' -UserName 'CONTOSO-2019\test' -NewUserName 'CONTOSO-2019\test2'
+	#Update-SCOMRunAsAccountDetails -ManagementServer 'MS01-2019.contoso-2019.com' -UserName 'CONTOSO-2019\test' -NewPassword $securePassword
 	
 	Update-SCOMRunAsAccountDetails
 }
