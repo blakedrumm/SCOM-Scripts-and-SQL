@@ -32,7 +32,7 @@
 
 .EXAMPLE
     $securePassword = ConvertTo-SecureString 'MyNewPassword!' -AsPlainText -Force
-    Update-SCOMRunAsAccountDetails -ManagementServer 'SCOMServer01' -UserName 'olduser' -NewUserName 'newuser' -NewPassword $securePassword -NewDisplayName 'New Display Name'
+    Update-SCOMRunAsAccountDetails -ManagementServer 'SCOMServer01' -UserName 'olduser' -NewUserName 'newuser' -NewPassword $securePassword
 
     This example updates the Run As account with the username 'olduser' to have a new username 'newuser',
     a new password 'MyNewPassword!', and a new display name 'New Display Name'.
