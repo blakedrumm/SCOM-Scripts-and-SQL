@@ -286,7 +286,7 @@ if ($ManagementServer -or $UserName -or $DisplayName -or $NewUserName -or $NewPa
 }
 else
 {
-	#The password we can to start using is Password1
+	#We will update the password to: Password1
 	#$securePassword = ConvertTo-SecureString 'Password1' -AsPlainText -Force
 	
 	# Usage example:
