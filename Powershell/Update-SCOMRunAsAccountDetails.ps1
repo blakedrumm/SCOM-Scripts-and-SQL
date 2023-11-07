@@ -1,61 +1,64 @@
 <#
-.SYNOPSIS
-    This script updates SCOM Run As accounts with new credentials.
-
-.DESCRIPTION
-    The Update-SCOMRunAsAccountDetails script connects to a SCOM Management Server,
-    locates Run As accounts by UserName or DisplayName, and updates the credentials
-    with the provided new username and/or password.
-
-.PARAMETER ManagementServer
-    The name of the SCOM Management Server to connect to.
-
-.PARAMETER UserName
-    The UserName of the Run As account to be updated.
-    This is the existing username that the account is currently using.
-
-.PARAMETER DisplayName
-    The DisplayName of the Run As account to be updated.
-    This is the friendly name for the account as seen in SCOM.
-
-.PARAMETER NewUserName
-    The new UserName for the Run As account.
-    This will replace the current username in the account.
-
-.PARAMETER NewPassword
-    The new Password for the Run As account as a SecureString.
-    If provided, it will update the account's password.
-
-.PARAMETER NewDisplayName
-    The new DisplayName for the Run As account.
-    If provided, it will replace the current display name of the account.
-
-.EXAMPLE
-    $securePassword = ConvertTo-SecureString 'MyNewPassword!' -AsPlainText -Force
-    Update-SCOMRunAsAccountDetails -ManagementServer 'SCOMServer01' -UserName 'olduser' -NewUserName 'newuser' -NewPassword $securePassword
-
-    This example updates the Run As account with the username 'olduser' to have a new username 'newuser',
-    and a new password 'MyNewPassword!'.
-
-.NOTES
-    Author: Blake Drumm (blakedrumm@microsoft.com)
-    Last Updated: November 3rd, 2023
-    Version: 1.0
-
-    Make sure to run this script as a user with enough permissions to update Run As accounts in SCOM.
-
-.LINK
-    My personal SCOM Blog: https://blakedrumm.com/
+	.SYNOPSIS
+		This script updates SCOM Run As accounts with new credentials.
+	
+	.DESCRIPTION
+		The Update-SCOMRunAsAccountDetails script connects to a SCOM Management Server,
+		locates Run As accounts by UserName or DisplayName, and updates the credentials
+		with the provided new username and/or password.
+	
+	.PARAMETER ManagementServer
+		The name of the SCOM Management Server to connect to.
+	
+	.PARAMETER UserName
+		The UserName of the Run As account to be updated.
+		This is the existing username that the account is currently using.
+	
+	.PARAMETER DisplayName
+		The DisplayName of the Run As account to be updated.
+		This is the friendly name for the account as seen in SCOM.
+	
+	.PARAMETER NewUserName
+		The new UserName for the Run As account.
+		This will replace the current username in the account.
+	
+	.PARAMETER NewPassword
+		The new Password for the Run As account as a SecureString.
+		If provided, it will update the account's password.
+	
+	.PARAMETER NewDisplayName
+		The new DisplayName for the Run As account.
+		If provided, it will replace the current display name of the account.
+	
+	.PARAMETER SDKBinariesDirectory
+		The location of the SDK Binaries (DLL files).
+	
+	.EXAMPLE
+		$securePassword = ConvertTo-SecureString 'MyNewPassword!' -AsPlainText -Force
+		Update-SCOMRunAsAccountDetails -ManagementServer 'SCOMServer01' -UserName 'olduser' -NewUserName 'newuser' -NewPassword $securePassword
+		
+		This example updates the Run As account with the username 'olduser' to have a new username 'newuser',
+		and a new password 'MyNewPassword!'.
+	
+	.NOTES
+		Author: Blake Drumm (blakedrumm@microsoft.com)
+		Last Updated: November 6th, 2023
+		Version: 1.0
+		
+		Make sure to run this script as a user with enough permissions to update Run As accounts in SCOM.
+	
+	.LINK
+		My personal SCOM Blog: https://blakedrumm.com/
 #>
-
-# Script parameters
-param (
+param
+(
 	[string]$ManagementServer,
 	[string]$UserName,
 	[string]$DisplayName,
 	[string]$NewUserName,
 	[SecureString]$NewPassword,
 	[string]$NewDisplayName,
+	[Parameter(HelpMessage = 'The location of the SDK Binaries (DLL files).')]
 	[string]$SDKBinariesDirectory
 )
 
