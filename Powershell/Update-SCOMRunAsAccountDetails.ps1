@@ -1,6 +1,6 @@
 <#
 	.SYNOPSIS
-		This script updates SCOM Run As accounts with new credentials.
+		This script updates SCOM Run As accounts with new credentials via the SCOM SDK Binaries (DLL files).
 	
 	.DESCRIPTION
 		The Update-SCOMRunAsAccountDetails script connects to a SCOM Management Server,
@@ -42,10 +42,16 @@
 	
 	.NOTES
 		Author: Blake Drumm (blakedrumm@microsoft.com)
-		Last Updated: November 6th, 2023
-		Version: 1.0
+		Last Updated: November 7th, 2023
+		Version: 1.1
 		
 		Make sure to run this script as a user with enough permissions to update Run As accounts in SCOM.
+
+		###################################################################
+  		Change Log
+    		###################################################################
+    		November 7th, 2023 (v1.1): Added support for Wildcard with the -UserName parameter.
+      		November 3rd, 2023 (v1.0): Initial Release!
 	
 	.LINK
 		My personal SCOM Blog: https://blakedrumm.com/
@@ -107,32 +113,21 @@ function Update-SCOMRunAsAccountDetails
 	$Accounts = $secureData | Where-Object {
 		$displayNameMatch = -not [string]::IsNullOrWhiteSpace($DisplayName) -and $_.Name -eq $DisplayName -and -not $_.IsSystem
 		
-		# This will be our flag to check if the username matches
+		# Initialize the flag for username match as false
 		$userNameMatch = $false
 		
-		# Check if the username field is not empty or whitespace
+		# Check if the UserName parameter is not null or white space
 		if (-not [string]::IsNullOrWhiteSpace($UserName))
 		{
-			# Try to parse the UserName as XML if it looks like XML
-			if ($_.UserName -match "^<SCXUser><UserId>.+</UserId><Elev>.+</Elev></SCXUser>$")
+			# If the username parameter is a wildcard '*', then match all non-system accounts
+			if ($UserName -eq '*')
 			{
-				try
-				{
-					# Create an XML object from the UserName
-					$xml = [xml]$_.UserName
-					# Compare the UserId text with the UserName parameter
-					$userNameMatch = $xml.SCXUser.UserId -eq $UserName
-				}
-				catch
-				{
-					# If XML parsing failed, log and continue
-					Write-Warning "Failed to parse XML for user name comparison."
-				}
+				$userNameMatch = -not $_.IsSystem
 			}
 			else
 			{
-				# If it's not XML, compare directly
-				$userNameMatch = $_.UserName -eq $UserName
+				# If the username contains a wildcard character, use the -like operator for comparison
+				$userNameMatch = $_.UserName -like $UserName
 			}
 		}
 		
@@ -212,6 +207,8 @@ function Update-SCOMRunAsAccountDetails
 					$account.Data = $NewPassword
 				}
 				
+				# Re-query the account from the management group to get a fresh object
+				$account = $managementGroup.Security.GetSecureData() | Where-Object { $_.Id -eq $account.Id }
 				# Commit the changes
 				$account.Update()
 				
