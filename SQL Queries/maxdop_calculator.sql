@@ -32,6 +32,8 @@ DECLARE @NumaNodes INT,
         @MaxDop INT,
         @RecommendedMaxDop INT,
         @CostThreshold INT,
+        @TempDBFileCount INT,
+        @RecommendedTempDBFileCount INT,
         @ChangeScript NVARCHAR(MAX) = '',
         @ShowAdvancedOptions INT;
 
@@ -41,6 +43,10 @@ SELECT @NumCPUs = cpu_count FROM sys.dm_os_sys_info;
 SELECT @MaxDop = CAST(value_in_use AS INT) FROM sys.configurations WHERE name = 'max degree of parallelism';
 SELECT @CostThreshold = CAST(value_in_use AS INT) FROM sys.configurations WHERE name = 'cost threshold for parallelism';
 SELECT @ShowAdvancedOptions = CAST(value_in_use AS INT) FROM sys.configurations WHERE name = 'show advanced options';
+SELECT @TempDBFileCount = COUNT(*) FROM sys.master_files WHERE database_id = 2 AND type_desc = 'ROWS';
+
+-- Recommended TempDB File Count Calculation
+SET @RecommendedTempDBFileCount = IIF(@NumCPUs <= 8, @NumCPUs, 8);
 
 -- MAXDOP Calculation
 IF @NumaNodes = 1
@@ -68,7 +74,9 @@ INSERT INTO @Results (Description, Value)
 VALUES ('MAXDOP Configured Value', CAST(@MaxDop AS VARCHAR)),
        ('MAXDOP Recommended Value', CAST(@RecommendedMaxDop AS VARCHAR)),
        ('Cost Threshold Configured Value', CAST(@CostThreshold AS VARCHAR)),
-       ('Generally Recommended Cost Threshold', '40-50');
+       ('Generally Recommended Cost Threshold', '40-50'),
+       ('TempDB File Count', CAST(@TempDBFileCount AS VARCHAR)),
+       ('TempDB Recommended File Count', CAST(@RecommendedTempDBFileCount AS VARCHAR));
 
 -- Check and build ChangeScript for other settings
 IF @MaxDop <> @RecommendedMaxDop
