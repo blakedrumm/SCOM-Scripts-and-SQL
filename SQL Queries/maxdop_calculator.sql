@@ -15,6 +15,7 @@ Usage:
     2. Review the results and execute the generated script if the recommended settings are acceptable.
 
 Revision History:
+    2023-11-13: Added ability to check TempDB file count - Blake Drumm (blakedrumm@microsoft.com)
     2023-10-31: Fixed the MaxDOP Calculation - Blake Drumm (blakedrumm@microsoft.com)
     2023-10-30: Script created by Blake Drumm (blakedrumm@microsoft.com)
 
