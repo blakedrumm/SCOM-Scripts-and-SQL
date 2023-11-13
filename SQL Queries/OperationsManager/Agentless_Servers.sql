@@ -1,3 +1,10 @@
+-- Author: Blake Drumm (blakedrumm@microsoft.com)
+
+--SELECT [ManagedTypeId], [TypeName]
+--FROM [dbo].[ManagedType]
+--WHERE ManagedTypeId = 'EA99500D-8D52-FC52-B5A5-10DCD1E9D2BD'
+
+--TypeName: Microsoft.Windows.Computer
 DECLARE @ManagedTypeId uniqueidentifier = 'EA99500D-8D52-FC52-B5A5-10DCD1E9D2BD'
 
 SELECT DISTINCT
