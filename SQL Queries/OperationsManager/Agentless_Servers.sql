@@ -1,5 +1,4 @@
 -- Author: Blake Drumm (blakedrumm@microsoft.com)
--- Created: November 13th, 2023
 
 -- The following commented-out lines would select the ManagedTypeId and TypeName from the ManagedType table for a specific ID
 --SELECT [ManagedTypeId], [TypeName]
@@ -17,6 +16,8 @@ SELECT DISTINCT
     [T].[Path], -- Path of the entity
     [T].[FullName], -- Full name of the entity
     [T].[DisplayName], -- Display name of the entity
+    --[T].[TypedManagedEntityId],
+    --[T].[MonitoringClassId],
     [T].[IsManaged], -- Indicates if the entity is managed
     [T].[IsDeleted], -- Indicates if the entity is deleted
     [PXH].[BaseManagedEntityId] AS [ProxyAgentHealthServiceId], -- ID of the proxy agent health service
