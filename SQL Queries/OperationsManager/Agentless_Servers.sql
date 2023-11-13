@@ -12,9 +12,25 @@ SELECT DISTINCT
     [PXH].[DisplayName] AS [ProxyAgentPrincipalName],
     [T].[LastModified],
     [T].[TypedMonitoringObjectIsDeleted],
-    [T].[HealthState],
+    CASE [T].[HealthState]
+        WHEN 1 THEN
+            'Healthy'
+        WHEN 2 THEN
+            'Warning'
+        WHEN 3 THEN
+            'Critical'
+        ELSE
+            'Unknown (HealthState: ' + CAST([T].[HealthState] AS VARCHAR) + ')' -- Optional: for values other than 1, 2, or 3
+    END AS ResolvedHealthState,
     [T].[StateLastModified],
-    [T].[IsAvailable],
+    CASE [T].[IsAvailable]
+        WHEN 1 THEN
+            'True'
+        WHEN 0 THEN
+            'False'
+        ELSE
+            'Unknown (Availability: ' + CAST([T].[IsAvailable] AS VARCHAR) + ')' -- Optional: for values other than 1 or 0
+    END AS IsAvailable,
     [T].[AvailabilityLastModified],
     [T].[InMaintenanceMode],
     [T].[MaintenanceModeLastModified],
