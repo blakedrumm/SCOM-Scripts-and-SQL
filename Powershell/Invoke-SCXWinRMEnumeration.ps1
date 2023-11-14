@@ -1,52 +1,35 @@
-function Invoke-WinRMEnumeration {
+function Invoke-SCXWinRMEnumeration {
     param (
-        [Parameter(Mandatory=$true)]
-        [string]$ServerName,
-
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
+        [string[]]$Servers,
         [string]$Username,
-
-        [Parameter(Mandatory=$true)]
         [string]$Password,
-
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory = $false)]
         [ValidateSet("Basic", "Kerberos")]
         [string]$AuthenticationMethod = "Basic"
     )
 
-    $baseUri = "http://schemas.microsoft.com/wbem/wscim/1/cim-schema/2/"
-    $cimNamespace = "?__cimnamespace=root/scx"
-    $endpoint = "https://$ServerName`:1270/wsman"
-    $scxClasses = @(
-        "SCX_Agent", 
-        "SCX_DiskDrive", 
-        "SCX_DiskDriveStatisticalInformation", 
-        "SCX_EthernetPortStatistics", 
-        "SCX_FileSystem", 
-        "SCX_FileSystemStatisticalInformation", 
-        "SCX_IPProtocolEndpoint", 
-        "SCX_LogFile", 
-        "SCX_MemoryStatisticalInformation", 
-        "SCX_OperatingSystem", 
-        "SCX_ProcessorStatisticalInformation", 
-        "SCX_StatisticalInformation", 
-        "SCX_UnixProcess", 
-        "SCX_UnixProcessStatisticalInformation",
-        "SCX_Application_Server"
-    )
+    if (-not $Password -and $AuthenticationMethod -eq 'Basic') {
+        Write-Warning "Missing the -Password parameter for Basic authentication."
+        return
+    }
 
-    foreach ($class in $scxClasses) {
-        $uri = $baseUri + $class + $cimNamespace
+    foreach ($ServerName in $Servers) {
+    $error.Clear()
+        try {
+            Invoke-WinRMEnumeration -ServerName $ServerName -AuthenticationMethod $AuthenticationMethod -Username $Username -Password $Password -ErrorAction Stop
+        } catch {
+            $e = $_.Exception
+            $line = $_.InvocationInfo.ScriptLineNumber
+            $msg = $e.Message
+            $errorDetails = $_ | Select *
 
-        if ($AuthenticationMethod -eq "Basic") {
-            $command = "winrm enumerate $uri -username:$Username -password:$Password -r:$endpoint -auth:Basic -skipCAcheck -skipCNcheck -skipRevocationcheck -encoding:utf-8"
-        }
-        elseif ($AuthenticationMethod -eq "Kerberos") {
-            $command = "winrm e $uri -r:$endpoint -u:$Username -p:$Password -auth:Kerberos -skipcacheck -skipcncheck -encoding:utf-8"
+            Write-Warning "Caught Exception: $e"
+            Write-Warning "Message: $msg"
         }
 
-        Invoke-Expression $command
     }
 }
 
-#Invoke-WinRMEnumeration -ServerName RHEL7-9.contoso-2019.com -Username test -Password Password1 -AuthenticationMethod Basic
+# Usage example
+Invoke-SCXWinRMEnumeration -Servers 'rhel7-9.contoso-2019.com' -Username 'testuser' -Password 'Password1' -AuthenticationMethod 'Basic'
