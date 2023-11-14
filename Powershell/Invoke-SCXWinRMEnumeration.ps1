@@ -80,5 +80,5 @@ if ($Servers -or $Username -or $Password)
 else
 {
     # Usage example
-    Invoke-SCXWinRMEnumeration -Servers 'rhel7-9.contoso-2019.com' -Username 'monuser' -Password 'Thenewme1234' -AuthenticationMethod 'Basic'
+    Invoke-SCXWinRMEnumeration -Servers 'rhel7-9.contoso-2019.com' -Username 'monuser' -Password 'Password1' -AuthenticationMethod 'Basic'
 }
