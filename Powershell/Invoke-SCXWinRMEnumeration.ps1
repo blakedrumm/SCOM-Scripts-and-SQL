@@ -31,15 +31,15 @@
 		Invoke-SCXWinRMEnumeration -ComputerName "Server1", "Server2" -UserName "admin" -Password $securePassword -AuthenticationMethod "Basic" -Classes SCX_Agent, SCX_OperatingSystem
 	
 	.EXAMPLE
-	    $Credentials = (Get-Credential)
-	    Invoke-SCXWinRMEnumeration -ComputerName 'rhel7-9.contoso-2019.com' -AuthenticationMethod 'Basic' -EnumerateAllClasses
+		$Credentials = (Get-Credential)
+		Invoke-SCXWinRMEnumeration -ComputerName 'rhel7-9.contoso-2019.com' -AuthenticationMethod 'Basic' -EnumerateAllClasses
 	
 	.NOTES
-        Author: Blake Drumm (blakedrumm@microsoft.com)
-        Website: https://blakedrumm.com/
-        Version: 1.1
-        Created: November 17th, 2023
-        Requirements: PowerShell 5.0 or later, WinRM must be configured on the target server(s).
+	        Author: Blake Drumm (blakedrumm@microsoft.com)
+	        Website: https://blakedrumm.com/
+	        Version: 1.1
+	        Created: November 17th, 2023
+	        Requirements: PowerShell 5.0 or later, WinRM must be configured on the target server(s).
 #>
 param
 (
