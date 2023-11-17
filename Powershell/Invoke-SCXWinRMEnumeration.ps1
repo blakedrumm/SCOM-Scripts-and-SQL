@@ -1,6 +1,6 @@
 <#
 	.SYNOPSIS
-		Invoke-SCXWinRMEnumeration - Enumerates various SCX classes on specified UNIX/Linux Servers using WinRM.
+		Invoke-SCXWinRMEnumeration - Enumerates various SCX classes on specified ComputerName using WinRM.
 	
 	.DESCRIPTION
 		This script enumerates SCX classes using WinRM with Basic or Kerberos authentication.
@@ -35,12 +35,11 @@
 		Invoke-SCXWinRMEnumeration -ComputerName 'rhel7-9.contoso-2019.com' -AuthenticationMethod 'Basic' -EnumerateAllClasses
 	
 	.NOTES
-	        Author: Blake Drumm (blakedrumm@microsoft.com)
-	        Website: https://blakedrumm.com/
-	        Version: 1.1
-	        Created: November 17th, 2023
-	        Requirements: PowerShell 5.0 or later, WinRM must be configured on the target server(s).
+		Author: Blake Drumm
+		Version: 1.1
+		Created: November 17, 2023
 #>
+[CmdletBinding(HelpUri = 'https://blakedrumm.com/')]
 param
 (
 	[ValidateSet('Basic', 'Kerberos')]
@@ -48,21 +47,6 @@ param
 	[Parameter(HelpMessage = 'Server names or IP addresses for SCX class enumeration.')]
 	[Alias('ServerName')]
 	[string[]]$ComputerName,
-	[ValidateSet("SCX_Agent",
-				 "SCX_DiskDrive",
-				 "SCX_FileSystem",
-				 "SCX_UnixProcess",
-				 "SCX_IPProtocolEndpoint",
-				 "SCX_OperatingSystem",
-				 "SCX_StatisticalInformation",
-				 "SCX_ProcessorStatisticalInformation",
-				 "SCX_MemoryStatisticalInformation",
-				 "SCX_EthernetPortStatistics",
-				 "SCX_DiskDriveStatisticalInformation",
-				 "SCX_FileSystemStatisticalInformation",
-				 "SCX_UnixProcessStatisticalInformation",
-				 "SCX_LANEndpoint",
-				 "SCX_LogFile")]
 	[string[]]$Classes,
 	[switch]$EnumerateAllClasses,
 	[string]$UserName,
@@ -73,29 +57,15 @@ param
 
 function Invoke-SCXWinRMEnumeration
 {
+	[CmdletBinding(HelpUri = 'https://blakedrumm.com/')]
 	param
 	(
-		[ValidateSet('Basic', 'Kerberos')]
+		[ValidateSet('Basic', 'Kerberos', '')]
 		[string]$AuthenticationMethod,
 		[Parameter(Mandatory = $true,
 				   HelpMessage = 'Server names or IP addresses for SCX class enumeration.')]
 		[Alias('ServerName')]
 		[string[]]$ComputerName,
-		[ValidateSet("SCX_Agent",
-					 "SCX_DiskDrive",
-					 "SCX_FileSystem",
-					 "SCX_UnixProcess",
-					 "SCX_IPProtocolEndpoint",
-					 "SCX_OperatingSystem",
-					 "SCX_StatisticalInformation",
-					 "SCX_ProcessorStatisticalInformation",
-					 "SCX_MemoryStatisticalInformation",
-					 "SCX_EthernetPortStatistics",
-					 "SCX_DiskDriveStatisticalInformation",
-					 "SCX_FileSystemStatisticalInformation",
-					 "SCX_UnixProcessStatisticalInformation",
-					 "SCX_LANEndpoint",
-					 "SCX_LogFile")]
 		[string[]]$Classes,
 		[switch]$EnumerateAllClasses,
 		[string]$UserName,
@@ -104,13 +74,16 @@ function Invoke-SCXWinRMEnumeration
 		[PSCredential]$Credential
 	)
 	
-	try
+	if ($AuthenticationMethod -eq '')
 	{
-		$AuthenticationMethod = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Setup\Linux Auth' -ErrorAction Stop).Authentication
-	}
-	catch
-	{
-		$AuthenticationMethod = 'Basic'
+		try
+		{
+			$AuthenticationMethod = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Setup\Linux Auth' -ErrorAction Stop).Authentication
+		}
+		catch
+		{
+			$AuthenticationMethod = 'Basic'
+		}
 	}
 	
 	if ($UserName -and $AuthenticationMethod -eq 'Basic' -and -not $Password -and -NOT $Credential)
@@ -212,7 +185,7 @@ function Invoke-SCXWinRMEnumeration
 	
 }
 
-if ($Servers -or $ComputerNameme -or $Password)
+if ($Servers -or $ComputerName -or $Password)
 {
 	Invoke-SCXWinRMEnumeration -ComputerName $ComputerName -Credential:$Credential -UserName $UserName -Password $Password -AuthenticationMethod $AuthenticationMethod -Classes $Classes -EnumerateAllClasses:$EnumerateAllClasses
 }
