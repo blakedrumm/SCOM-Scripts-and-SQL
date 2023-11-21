@@ -32,7 +32,7 @@
 	
 	.EXAMPLE
 		$Credentials = (Get-Credential)
-		Invoke-SCXWinRMEnumeration -ComputerName 'rhel7-9.contoso-2019.com' -AuthenticationMethod 'Basic' -EnumerateAllClasses
+		Invoke-SCXWinRMEnumeration -ComputerName 'rhel7-9.contoso-2019.com' -AuthenticationMethod 'Basic' -Credential $Credentials -EnumerateAllClasses
 	
 	.NOTES
 		Author: Blake Drumm
