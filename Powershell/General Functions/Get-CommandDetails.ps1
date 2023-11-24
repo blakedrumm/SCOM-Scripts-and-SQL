@@ -1,30 +1,28 @@
 # -------------------------------------------------------------------------------
 # Author: Blake Drumm (blakedrumm@microsoft.com)
 # Date Created: November 1st, 2023
-# Edit line 7 if you want to change the module or command to get information on.
+# Script to get details of the '-SCOMAleAddrtResolutionState' command in the 'OperationsManager' module.
+# Edit line 8 if you want to change the module or command to get information on.
 # -------------------------------------------------------------------------------
 # Get details of commands in a specific module
 $commandDetailsList = foreach ($function in (Get-Command -Module OperationsManager)) {
     
-    # Determine the input types based on parameters accepting pipeline input
-    $inputTypes = $function.Parameters.Values | Where-Object {
+    # Identify mandatory parameters that accept pipeline input
+    $mandatoryPipelineInputParams = $function.Parameters.Values | Where-Object {
         $_.Attributes | Where-Object {
-            $_ -is [System.Management.Automation.ParameterAttribute] -and ($_.ValueFromPipeline -or $_.ValueFromPipelineByPropertyName)
+            $_ -is [System.Management.Automation.ParameterAttribute] -and 
+            $_.Mandatory -and 
+            ($_.ValueFromPipeline -or $_.ValueFromPipelineByPropertyName)
         }
-    } | ForEach-Object { $_.ParameterType.FullName } | Sort-Object -Unique
-    
-    # Create a custom object for each function
-    $functionDetails = [PSCustomObject]@{
-        Name         = $function.Name
-        InputType    = if ($inputTypes) { $inputTypes } else { 'None' }
-        OutputType   = if ($function.OutputType) { $function.OutputType.Name } else { 'None' }
-        Parameters   = @()
     }
-    
-    # Get parameter details
+
+    # Initialize an array to hold formatted parameter details strings
+    $paramDetailsList = @()
+
+    # Get parameter details and format them into strings
     foreach ($parameterName in $function.Parameters.Keys) {
         $parameter = $function.Parameters[$parameterName]
-        
+
         # Retrieve aliases for the parameter
         $aliasAttribute = $parameter.Attributes | Where-Object { $_ -is [System.Management.Automation.AliasAttribute] }
         $aliases = if ($aliasAttribute -and $aliasAttribute.AliasNames) {
@@ -49,11 +47,16 @@ $commandDetailsList = foreach ($function in (Get-Command -Module OperationsManag
         $pipelineInput = $parameter.Attributes | Where-Object {
             $_ -is [System.Management.Automation.ParameterAttribute] -and ($_.ValueFromPipeline -or $_.ValueFromPipelineByPropertyName)
         }
-        $pipelineInputType = 'None'
-        if ($pipelineInput.ValueFromPipeline) {
-            $pipelineInputType = 'ByValue'
-        } elseif ($pipelineInput.ValueFromPipelineByPropertyName) {
-            $pipelineInputType = 'ByPropertyName'
+        $pipelineInputType = if ($pipelineInput) { 
+            if ($pipelineInput.ValueFromPipeline) {
+                'ByValue'
+            } elseif ($pipelineInput.ValueFromPipelineByPropertyName) {
+                'ByPropertyName'
+            } else {
+                'None'
+            }
+        } else {
+            'None'
         }
 
         # Check if the parameter has a specific position
@@ -62,25 +65,40 @@ $commandDetailsList = foreach ($function in (Get-Command -Module OperationsManag
         }
         $position = if ($positionAttribute) { $positionAttribute.Position } else { 'Named' }
 
-        # Create a custom object for each parameter
-        $paramDetails = [PSCustomObject]@{
-            Name                   = $parameterName
-            Type                   = $parameter.ParameterType.FullName
-            DefaultValue           = $defaultValue
-            Required               = $parameter.Attributes.Mandatory
-            AcceptsWildcardChars   = $wildcardSupport -ne $null
-            AcceptsPipelineInput   = $pipelineInputType
-            Position               = $position
-            Aliases                = $aliases
-        }
+        # Format each parameter detail into a string
+        $paramDetailString = "Name: $($parameterName)`n" +
+                             "Type: $($parameter.ParameterType.FullName)`n" +
+                             "DefaultValue: $($defaultValue)`n" +
+                             "Required: $($parameter.Attributes.Mandatory)`n" +
+                             "AcceptsWildcardChars: $($wildcardSupport -ne $null)`n" +
+                             "AcceptsPipelineInput: $($pipelineInputType)`n" +
+                             "Position: $($position)`n" +
+                             "Aliases: $($aliases)"
 
-        # Add the parameter details object to the function details
-        $functionDetails.Parameters += $paramDetails
+        # Add the formatted string to the list
+        $paramDetailsList += $paramDetailString
     }
 
-    # Return the custom object for the function
-    $functionDetails
+    # Generate example for piping object with mandatory parameters
+    $examplePiping = if ($mandatoryPipelineInputParams) {
+        $exampleObjectProps = $mandatoryPipelineInputParams | ForEach-Object {
+            "$($_.Name) = <" + $_.ParameterType.Name + ">"
+        }
+        "[PSCustomObject]@{" + ($exampleObjectProps -join "; ") + "} | $($function.Name)"
+    } else {
+        "No mandatory pipeline input parameters available"
+    }
+
+    # Create a custom object for the function with all collected details
+    [PSCustomObject]@{
+        Name                = $function.Name
+        InputType           = if ($mandatoryPipelineInputParams) { $mandatoryPipelineInputParams.ParameterType.FullName | Sort-Object -Unique } else { 'None' }
+        OutputType          = if ($function.OutputType) { $function.OutputType.Name } else { 'None' }
+        Parameters          = $paramDetailsList -join "`n`n"
+        PipelineInputParams = $mandatoryPipelineInputParams.Name -join ', '
+        ExampleUsage        = $examplePiping
+    }
 }
 
-# Output the details or store them in a variable for further processing
-$commandDetailsList
+# Output the details in a structured format
+$commandDetailsList | Format-List
