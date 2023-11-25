@@ -1,7 +1,7 @@
 # -------------------------------------------------------------------------------
 # Author: Blake Drumm (blakedrumm@microsoft.com)
 # Date Created: November 1st, 2023
-# Script to get details of the '-SCOMAleAddrtResolutionState' command in the 'OperationsManager' module.
+# Date Modified: November 24th, 2023
 # Edit line 8 if you want to change the module or command to get information on.
 # -------------------------------------------------------------------------------
 # Get details of commands in a specific module
