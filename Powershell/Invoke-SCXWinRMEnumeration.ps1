@@ -37,7 +37,8 @@
 	.NOTES
 		Author: Blake Drumm
 		Version: 1.1
-		Created: November 17, 2023
+		Created: November 17th, 2023
+  		Modified: November 26th, 2023
 #>
 [CmdletBinding(HelpUri = 'https://blakedrumm.com/')]
 param
@@ -60,8 +61,8 @@ function Invoke-SCXWinRMEnumeration
 	[CmdletBinding(HelpUri = 'https://blakedrumm.com/')]
 	param
 	(
-		[ValidateSet('Basic', 'Kerberos', '')]
-		[string]$AuthenticationMethod,
+		[ValidateSet('Basic', 'Kerberos')]
+		[string]$AuthenticationMethod = 'Basic',
 		[Parameter(Mandatory = $true,
 				   HelpMessage = 'Server names or IP addresses for SCX class enumeration.')]
 		[Alias('ServerName')]
@@ -71,10 +72,26 @@ function Invoke-SCXWinRMEnumeration
 		[string]$UserName,
 		[System.Security.SecureString]$Password,
 		[Parameter(HelpMessage = 'You can provide the credentials to utilize for the WinRM commands.')]
-		[PSCredential]$Credential
+		[PSCredential]$Credential,
+		[Parameter(HelpMessage = 'Output type for the results. Valid values are CSV and Text.')]
+		[ValidateSet('CSV', 'Text')]
+		[string]$OutputType,
+		[Parameter(HelpMessage = 'Output file path for the results.')]
+		[string]$OutputFile
 	)
 	
-	if ($AuthenticationMethod -eq '')
+	if ($OutputFile -and -not $OutputType)
+	{
+		Write-Warning "The -OutputType parameter is required."
+		return
+	}
+	elseif (-NOT $OutputFile -and $OutputType)
+	{
+		Write-Warning "The -OutputFile parameter is required."
+		return
+	}
+	
+	if ($AuthenticationMethod -eq '' -or -NOT $AuthenticationMethod)
 	{
 		try
 		{
@@ -93,7 +110,7 @@ function Invoke-SCXWinRMEnumeration
 	}
 	elseif (-NOT $UserName -and -NOT $Password -and -NOT $Credential -and $AuthenticationMethod -eq 'Basic')
 	{
-		$Credential = (Get-Credential)
+		$Credential = Get-Credential
 	}
 	
 	$scxClasses = @(
@@ -110,16 +127,16 @@ function Invoke-SCXWinRMEnumeration
 		"SCX_DiskDriveStatisticalInformation",
 		"SCX_FileSystemStatisticalInformation",
 		"SCX_UnixProcessStatisticalInformation",
-		"SCX_LANEndpoint",
-		"SCX_LogFile"
+		"SCX_LANEndpoint"
 	)
 	
 	if (-NOT $Classes -and -NOT $EnumerateAllClasses)
 	{
 		$EnumerateAllClasses = $true
 	}
-	Write-Host "===================================================="
-	Write-Host "Authentication Method: $AuthenticationMethod" -ForegroundColor Gray
+	
+	$results = @()
+	
 	foreach ($ServerName in $ComputerName)
 	{
 		Write-Host "===================================================="
@@ -129,24 +146,24 @@ function Invoke-SCXWinRMEnumeration
 		{
 			if ($UserName -and $Password)
 			{
-				# Create a PSCredential object
 				$Credential = New-Object System.Management.Automation.PSCredential($Username, $Password)
 			}
+			
 			if ($EnumerateAllClasses)
 			{
 				foreach ($class in $scxClasses)
 				{
 					Write-Host "Enumerating: $class" -ForegroundColor Cyan
-					if ($Credential)
+					$result = if ($Credential)
 					{
-						# Invoke WinRM Enumeration
 						Get-WSManInstance -ComputerName $ServerName -Authentication $AuthenticationMethod -Credential:$Credential -Port 1270 -UseSSL -Enumerate "http://schemas.microsoft.com/wbem/wscim/1/cim-schema/2/$class`?__cimnamespace=root/scx"
 					}
 					else
 					{
-						# Invoke WinRM Enumeration
 						Get-WSManInstance -ComputerName $ServerName -Authentication $AuthenticationMethod -Port 1270 -UseSSL -Enumerate "http://schemas.microsoft.com/wbem/wscim/1/cim-schema/2/$class`?__cimnamespace=root/scx"
 					}
+					
+					$results += $result
 				}
 			}
 			else
@@ -155,18 +172,17 @@ function Invoke-SCXWinRMEnumeration
 				{
 					foreach ($c in $Classes)
 					{
-						Write-Host "Enumerating: $class" -ForegroundColor Cyan
-						if ($Credential)
+						Write-Host "Enumerating: $c" -ForegroundColor Cyan
+						$result = if ($Credential)
 						{
-							# Now, you have a PSCredential object in the $credential variable
 							Get-WSManInstance -ComputerName $ServerName -Authentication $AuthenticationMethod -Credential:$Credential -Port 1270 -UseSSL -Enumerate "http://schemas.microsoft.com/wbem/wscim/1/cim-schema/2/$c`?__cimnamespace=root/scx"
 						}
 						else
 						{
-							# Now, you have a PSCredential object in the $credential variable
 							Get-WSManInstance -ComputerName $ServerName -Authentication $AuthenticationMethod -Port 1270 -UseSSL -Enumerate "http://schemas.microsoft.com/wbem/wscim/1/cim-schema/2/$c`?__cimnamespace=root/scx"
-							
 						}
+						
+						$results += $result
 					}
 				}
 				else
@@ -174,17 +190,35 @@ function Invoke-SCXWinRMEnumeration
 					Write-Warning "Please provide one or more classes to the '-Classes' parameter. Or you can use the '-EnumerateAllClasses' parameter to list all available data for the Linux Agent."
 					break
 				}
-				
 			}
 		}
 		catch
 		{
-			Write-Warning "An error occurred on $ServerName` - $error"
+			Write-Warning "An error occurred on $ServerName - $error"
+			$results += "Error on $ServerName`: $_"
 		}
 	}
 	
+	# Output handling
+	if ($OutputType -eq 'CSV')
+	{
+		$results | Export-Csv -Path $OutputFile -NoTypeInformation
+		Write-Host "CSV file output located here: " -ForegroundColor Green -NoNewline
+		Write-Host "$OutputFile" -ForegroundColor Magenta
+		return
+	}
+	elseif ($OutputType -eq 'Text')
+	{
+		$results | Out-File -FilePath $OutputFile
+		Write-Host "Text file output located here: " -ForegroundColor Green -NoNewline
+		Write-Host "$OutputFile" -ForegroundColor Magenta
+		return
+	}
+	else
+	{
+		return $results
+	}
 }
-
 if ($Servers -or $ComputerName -or $Password)
 {
 	Invoke-SCXWinRMEnumeration -ComputerName $ComputerName -Credential:$Credential -UserName $UserName -Password $Password -AuthenticationMethod $AuthenticationMethod -Classes $Classes -EnumerateAllClasses:$EnumerateAllClasses
