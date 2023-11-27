@@ -81,7 +81,7 @@ function Invoke-SCXWinRMEnumeration
 		[string]$AuthenticationMethod = 'Basic',
 		[Parameter(Mandatory = $true,
 				   HelpMessage = 'Server names or IP addresses for SCX class enumeration.')]
-		[Alias('ServerName')]
+		[Alias('Servers')]
 		[string[]]$ComputerName,
 		[string[]]$Classes,
 		[switch]$EnumerateAllClasses,
