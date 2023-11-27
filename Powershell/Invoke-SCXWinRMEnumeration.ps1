@@ -274,7 +274,7 @@ function Invoke-SCXWinRMEnumeration
 }
 if ($Servers -or $ComputerName -or $Password)
 {
-	Invoke-SCXWinRMEnumeration -ComputerName $ComputerName -Credential:$Credential -UserName $UserName -Password $Password -AuthenticationMethod $AuthenticationMethod -Classes $Classes -EnumerateAllClasses:$EnumerateAllClasses
+	Invoke-SCXWinRMEnumeration -ComputerName $ComputerName -Credential:$Credential -UserName $UserName -Password $Password -AuthenticationMethod $AuthenticationMethod -Classes $Classes -EnumerateAllClasses:$EnumerateAllClasses -OutputType $OutputType -OutputFile $OutputFile -PassThru:$PassThru
 }
 else
 {
