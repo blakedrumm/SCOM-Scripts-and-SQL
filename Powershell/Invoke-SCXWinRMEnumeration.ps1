@@ -44,9 +44,9 @@
 param
 (
 	[ValidateSet('Basic', 'Kerberos')]
-	[string]$AuthenticationMethod,
+	[string]$AuthenticationMethod = 'Basic',
 	[Parameter(HelpMessage = 'Server names or IP addresses for SCX class enumeration.')]
-	[Alias('ServerName')]
+	[Alias('Servers')]
 	[string[]]$ComputerName,
 	[string[]]$Classes,
 	[switch]$EnumerateAllClasses,
