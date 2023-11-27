@@ -26,6 +26,15 @@
 	.PARAMETER Credential
 		You can provide the credentials to utilize for the WinRM commands.
 	
+	.PARAMETER OutputType
+		Output type for the results. Valid values are CSV and Text.
+	
+	.PARAMETER OutputFile
+		Output file path for the results.
+	
+	.PARAMETER PassThru
+		Do not Write-Host and pass through the Object data.
+	
 	.EXAMPLE
 		$securePassword = ConvertTo-SecureString 'Password1' -AsPlainText -Force
 		Invoke-SCXWinRMEnumeration -ComputerName "Server1", "Server2" -UserName "admin" -Password $securePassword -AuthenticationMethod "Basic" -Classes SCX_Agent, SCX_OperatingSystem
@@ -36,9 +45,9 @@
 	
 	.NOTES
 		Author: Blake Drumm
-		Version: 1.1
+		Version: 1.2
 		Created: November 17th, 2023
-  		Modified: November 26th, 2023
+		Modified: November 26th, 2023
 #>
 [CmdletBinding(HelpUri = 'https://blakedrumm.com/')]
 param
@@ -53,7 +62,14 @@ param
 	[string]$UserName,
 	[System.Security.SecureString]$Password,
 	[Parameter(HelpMessage = 'You can provide the credentials to utilize for the WinRM commands.')]
-	[PSCredential]$Credential
+	[PSCredential]$Credential,
+	[Parameter(HelpMessage = 'Output type for the results. Valid values are CSV and Text.')]
+	[ValidateSet('CSV', 'Text')]
+	[string[]]$OutputType,
+	[Parameter(HelpMessage = 'Output file path for the results.')]
+	[string]$OutputFile,
+	[Parameter(HelpMessage = 'Do not Write-Host and pass through the Object data.')]
+	[switch]$PassThru
 )
 
 function Invoke-SCXWinRMEnumeration
@@ -75,9 +91,11 @@ function Invoke-SCXWinRMEnumeration
 		[PSCredential]$Credential,
 		[Parameter(HelpMessage = 'Output type for the results. Valid values are CSV and Text.')]
 		[ValidateSet('CSV', 'Text')]
-		[string]$OutputType,
+		[string[]]$OutputType,
 		[Parameter(HelpMessage = 'Output file path for the results.')]
-		[string]$OutputFile
+		[string]$OutputFile,
+		[Parameter(HelpMessage = 'Do not Write-Host and pass through the Object data.')]
+		[switch]$PassThru
 	)
 	
 	if ($OutputFile -and -not $OutputType)
@@ -139,8 +157,14 @@ function Invoke-SCXWinRMEnumeration
 	
 	foreach ($ServerName in $ComputerName)
 	{
-		Write-Host "===================================================="
-		Write-Host "Current Server: $ServerName" -ForegroundColor Green
+		if (-NOT $PassThru)
+		{
+			Write-Host "===================================================="
+			Write-Host "Current Server: $ServerName"
+			Write-Host "Authentication Method: " -NoNewline
+			Write-Host "$AuthenticationMethod" -ForegroundColor DarkCyan
+		}
+		
 		$error.Clear()
 		try
 		{
@@ -153,7 +177,10 @@ function Invoke-SCXWinRMEnumeration
 			{
 				foreach ($class in $scxClasses)
 				{
-					Write-Host "Enumerating: $class" -ForegroundColor Cyan
+					if (-NOT $PassThru)
+					{
+						Write-Host "   Enumerating: $class" -ForegroundColor Cyan
+					}
 					$result = if ($Credential)
 					{
 						Get-WSManInstance -ComputerName $ServerName -Authentication $AuthenticationMethod -Credential:$Credential -Port 1270 -UseSSL -Enumerate "http://schemas.microsoft.com/wbem/wscim/1/cim-schema/2/$class`?__cimnamespace=root/scx"
@@ -172,7 +199,10 @@ function Invoke-SCXWinRMEnumeration
 				{
 					foreach ($c in $Classes)
 					{
-						Write-Host "Enumerating: $c" -ForegroundColor Cyan
+						if (-NOT $PassThru)
+						{
+							Write-Host "   Enumerating: $c" -ForegroundColor Cyan
+						}
 						$result = if ($Credential)
 						{
 							Get-WSManInstance -ComputerName $ServerName -Authentication $AuthenticationMethod -Credential:$Credential -Port 1270 -UseSSL -Enumerate "http://schemas.microsoft.com/wbem/wscim/1/cim-schema/2/$c`?__cimnamespace=root/scx"
@@ -202,22 +232,45 @@ function Invoke-SCXWinRMEnumeration
 	# Output handling
 	if ($OutputType -eq 'CSV')
 	{
-		$results | Export-Csv -Path $OutputFile -NoTypeInformation
-		Write-Host "CSV file output located here: " -ForegroundColor Green -NoNewline
-		Write-Host "$OutputFile" -ForegroundColor Magenta
-		return
+		if ($OutputType -match 'Text')
+		{
+			$ParentDirectory = Split-Path $OutputFile
+			$OutputPath = "$ParentDirectory\$([System.IO.Path]::GetFileNameWithoutExtension($OutputFile)).csv"
+		}
+		else
+		{
+			$OutputPath = $OutputFile
+		}
+		$results | Export-Csv -Path $OutputPath -NoTypeInformation
+		if (-NOT $PassThru)
+		{
+			Write-Host "CSV file output located here: " -ForegroundColor Green -NoNewline
+			Write-Host "$OutputPath" -ForegroundColor Yellow
+		}
 	}
-	elseif ($OutputType -eq 'Text')
+	if ($OutputType -eq 'Text')
 	{
-		$results | Out-File -FilePath $OutputFile
-		Write-Host "Text file output located here: " -ForegroundColor Green -NoNewline
-		Write-Host "$OutputFile" -ForegroundColor Magenta
-		return
+		if ($OutputType -match 'CSV')
+		{
+			$ParentDirectory = Split-Path $OutputFile
+			$OutputPath = "$ParentDirectory\$([System.IO.Path]::GetFileNameWithoutExtension($OutputFile)).txt"
+		}
+		else
+		{
+			$OutputPath = $OutputFile
+		}
+		$results | Out-File -FilePath $OutputPath
+		if (-NOT $PassThru)
+		{
+			Write-Host "Text file output located here: " -ForegroundColor Green -NoNewline
+			Write-Host "$OutputPath" -ForegroundColor Yellow
+		}
 	}
 	else
 	{
-		return $results
+		$results
 	}
+	return
 }
 if ($Servers -or $ComputerName -or $Password)
 {
