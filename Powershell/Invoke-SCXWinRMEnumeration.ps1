@@ -64,8 +64,8 @@ param
 	[Parameter(HelpMessage = 'You can provide the credentials to utilize for the WinRM commands.')]
 	[PSCredential]$Credential,
 	[Parameter(HelpMessage = 'Output type for the results. Valid values are CSV and Text.')]
-	[ValidateSet('CSV', 'Text')]
-	[string[]]$OutputType,
+	[ValidateSet('CSV', 'Text', 'None')]
+	[string[]]$OutputType = 'None',
 	[Parameter(HelpMessage = 'Output file path for the results.')]
 	[string]$OutputFile,
 	[Parameter(HelpMessage = 'Do not Write-Host and pass through the Object data.')]
@@ -90,24 +90,13 @@ function Invoke-SCXWinRMEnumeration
 		[Parameter(HelpMessage = 'You can provide the credentials to utilize for the WinRM commands.')]
 		[PSCredential]$Credential,
 		[Parameter(HelpMessage = 'Output type for the results. Valid values are CSV and Text.')]
-		[ValidateSet('CSV', 'Text')]
-		[string[]]$OutputType,
+		[ValidateSet('CSV', 'Text', 'None')]
+		[string[]]$OutputType = 'None',
 		[Parameter(HelpMessage = 'Output file path for the results.')]
 		[string]$OutputFile,
 		[Parameter(HelpMessage = 'Do not Write-Host and pass through the Object data.')]
 		[switch]$PassThru
 	)
-	
-	if ($OutputFile -and -not $OutputType)
-	{
-		Write-Warning "The -OutputType parameter is required."
-		return
-	}
-	elseif (-NOT $OutputFile -and $OutputType)
-	{
-		Write-Warning "The -OutputFile parameter is required."
-		return
-	}
 	
 	if ($AuthenticationMethod -eq '' -or -NOT $AuthenticationMethod)
 	{
@@ -266,7 +255,7 @@ function Invoke-SCXWinRMEnumeration
 			Write-Host "$OutputPath" -ForegroundColor Yellow
 		}
 	}
-	else
+	if ($OutputType -ne 'Text' -and $OutputType -ne 'CSV')
 	{
 		$results
 	}
@@ -274,7 +263,7 @@ function Invoke-SCXWinRMEnumeration
 }
 if ($Servers -or $ComputerName -or $Password)
 {
-	Invoke-SCXWinRMEnumeration -ComputerName $ComputerName -Credential:$Credential -UserName $UserName -Password $Password -AuthenticationMethod $AuthenticationMethod -Classes $Classes -EnumerateAllClasses:$EnumerateAllClasses -OutputType $OutputType -OutputFile $OutputFile -PassThru:$PassThru
+	Invoke-SCXWinRMEnumeration -ComputerName $ComputerName -Credential:$Credential -UserName $UserName -Password $Password -AuthenticationMethod $AuthenticationMethod -Classes $Classes -EnumerateAllClasses:$EnumerateAllClasses -OutputType:$OutputType -OutputFile $OutputFile -PassThru:$PassThru
 }
 else
 {
