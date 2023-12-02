@@ -1,9 +1,9 @@
 <#
     .SYNOPSIS
-        Expand-ZipOrGzip - Extracts ZIP or GZIP files, including TAR within GZIP.
+        Expand-ZipOrGzip - Extracts ZIP or GZIP files, including TAR within GZIP, using 7-Zip for GZIP files if specified, with an option to hide toast notifications.
 
     .DESCRIPTION
-        This function extracts ZIP or GZIP compressed files. If a GZIP file contains a TAR file, it extracts the TAR file as well. Notifications are shown at various stages of the process.
+        This function extracts ZIP or GZIP compressed files. If a GZIP file contains a TAR file, it extracts the TAR file as well. Notifications are shown at various stages of the process unless hidden by a switch. If the -7zip switch is used, GZIP files are extracted using 7-Zip.
 
     .PARAMETER FilePath
         The path of the ZIP or GZIP file to be extracted.
@@ -17,17 +17,15 @@
     .PARAMETER OverwriteExistingFiles
         Optionally, overwrites existing files in the destination directory without prompting.
 
-    .EXAMPLE
-        Expand-ZipOrGzip -FilePath "C:\path\to\file.gz" -DestinationFolderPath "C:\extract\here" -OverwriteExistingFiles
-        Extracts a GZIP file to the specified destination, overwriting any existing files.
+    .PARAMETER Use7zip
+        Optionally, use 7-Zip for extracting GZIP files.
+
+    .PARAMETER HideToastNotifications
+        Optionally, hides toast notifications during the process.
 
     .EXAMPLE
-        Expand-ZipOrGzip -FilePath "C:\*.gz" -DestinationFolderPath "C:\extract\here" -OverwriteExistingFiles
-        Extracts a GZIP file of wildcard to the specified destination, overwriting any existing files.
-
-    .EXAMPLE
-        Expand-ZipOrGzip -FilePath "C:\path\to\archive.zip" -DestinationFolderPath "C:\extract\zip"
-        Extracts a ZIP file to the specified destination folder.
+        Expand-ZipOrGzip -FilePath "C:\path\to\file.gz" -DestinationFolderPath "C:\extract\here" -7zip
+        Extracts a GZIP file using 7-Zip to the specified destination.
 
     .NOTES
         Author: Blake Drumm (blakedrumm@microsoft.com)
@@ -38,42 +36,65 @@
 #>
 param
 (
+	[string]$FilePath,
+	[string]$DestinationFolderPath,
+	[switch]$HideProgressDialog,
+	[switch]$OverwriteExistingFiles,
+	[switch]$Use7zip,
+	[switch]$HideToastNotifications
+)
+
+function Expand-ZipOrGzip (
 	[ValidateNotNullOrEmpty()]
 	[string]$FilePath,
 	[ValidateNotNullOrEmpty()]
 	[string]$DestinationFolderPath,
 	[switch]$HideProgressDialog,
-	[switch]$OverwriteExistingFiles
-)
-
-# Function to show toast notification
-function Show-ToastNotification
-{
-	param (
-		[string]$Title,
-		[string]$Text,
-		[int]$Duration = 500,
-		[string]$IconType = 'Info'
-	)
-	
-	Add-Type -AssemblyName System.Windows.Forms
-	$notifyIcon = New-Object System.Windows.Forms.NotifyIcon
-	
-	$notifyIcon.Icon = [System.Drawing.SystemIcons]::Information
-	$notifyIcon.BalloonTipIcon = [System.Windows.Forms.ToolTipIcon]::$IconType
-	$notifyIcon.BalloonTipTitle = $Title
-	$notifyIcon.BalloonTipText = $Text
-	$notifyIcon.Visible = $true
-	$notifyIcon.ShowBalloonTip($Duration)
-}
-
-function Expand-ZipOrGzip (
-	[ValidateNotNullOrEmpty()][string]$FilePath,
-	[ValidateNotNullOrEmpty()][string]$DestinationFolderPath,
-	[switch]$HideProgressDialog,
-	[switch]$OverwriteExistingFiles
+	[switch]$OverwriteExistingFiles,
+	[switch]$Use7zip,
+	[switch]$HideToastNotifications
 )
 {
+	
+	# Global variable for NotifyIcon
+	$Global:notifyIcon = $null
+	
+	# Function to show toast notification
+	function Show-ToastNotification
+	{
+		param (
+			[string]$Title,
+			[string]$Text,
+			[int]$Duration = 5000,
+			# Duration in milliseconds
+			[string]$IconType = 'Info'
+		)
+		
+		if (-not $HideToastNotifications)
+		{
+			Add-Type -AssemblyName System.Windows.Forms
+			
+			# Reuse the existing NotifyIcon or create a new one
+			if ($null -eq $Global:notifyIcon)
+			{
+				$Global:notifyIcon = New-Object System.Windows.Forms.NotifyIcon
+				$Global:notifyIcon.Icon = [System.Drawing.SystemIcons]::Information
+			}
+			
+			$Global:notifyIcon.BalloonTipIcon = [System.Windows.Forms.ToolTipIcon]::$IconType
+			$Global:notifyIcon.BalloonTipTitle = $Title
+			$Global:notifyIcon.BalloonTipText = $Text
+			$Global:notifyIcon.Visible = $true
+			$Global:notifyIcon.ShowBalloonTip($Duration)
+			
+			# Schedule disposal of the NotifyIcon
+			Start-Sleep -Milliseconds ($Duration + 100)
+			$Global:notifyIcon.Visible = $false
+			$Global:notifyIcon.Dispose()
+			$Global:notifyIcon = $null
+		}
+	}
+	
 	# Resolve file paths with wildcard characters
 	$resolvedFilePaths = Resolve-Path $FilePath
 	foreach ($resolvedFilePath in $resolvedFilePaths)
@@ -85,8 +106,20 @@ function Expand-ZipOrGzip (
 			try
 			{
 				$fileExtension = [System.IO.Path]::GetExtension($resolvedFilePath).ToLower()
-				
-				if ($fileExtension -eq ".gz")
+				if ($fileExtension -eq ".gz" -and $Use7zip)
+				{
+					# Using 7zip for extraction
+					$outputFolderPath = [System.IO.Path]::GetDirectoryName($DestinationFolderPath)
+					$outputFileName = [System.IO.Path]::GetFileNameWithoutExtension($resolvedFilePath)
+					$7zipPath = "C:\Program Files\7-Zip\7z.exe" # Adjust this path as needed
+					
+					Show-ToastNotification -Title "7-Zip Extraction Started" -Text "Starting 7-Zip extraction of: `n$resolvedFilePath"
+					
+					Start-Process -FilePath $7zipPath -ArgumentList "e `"$resolvedFilePath`" -o`"$outputFolderPath`" -y" -NoNewWindow -Wait
+					
+					Show-ToastNotification -Title "7-Zip Extraction Complete" -Text "7-Zip extraction complete for: `n$resolvedFilePath"
+				}
+				elseif ($fileExtension -eq ".gz")
 				{
 					$outputFilePath = [System.IO.Path]::Combine($DestinationFolderPath, [System.IO.Path]::GetFileNameWithoutExtension($resolvedFilePath))
 					$error.Clear()
@@ -203,10 +236,17 @@ function Expand-ZipOrGzip (
 }
 if ($FilePath -or $DestinationFolderPath)
 {
-	Expand-ZipOrGzip -FilePath $FilePath -DestinationFolderPath $DestinationFolderPath -HideProgressDialog:$HideProgressDialog -OverwriteExistingFiles:$OverwriteExistingFiles
+	Expand-ZipOrGzip -FilePath $FilePath -DestinationFolderPath $DestinationFolderPath -HideProgressDialog:$HideProgressDialog -OverwriteExistingFiles:$OverwriteExistingFiles -Use7zip:$Use7zip
 }
 else
 {
-	# Example usage
+	# --------------------------------------------------------------------------
+	# Example 1:
+	# Expand-ZipOrGzip -FilePath "G:\*.tar.gz" -DestinationFolderPath "C:\Output" -OverwriteExistingFiles -Use7zip
+	# --------------------------------------------------------------------------
+	# Example 2:
+	# Expand-ZipOrGzip -FilePath "G:\File.zip" -DestinationFolderPath "C:\Output" -OverwriteExistingFiles
+	# --------------------------------------------------------------------------
+	# Modify the line below to change what happens when you run this script from PowerShell ISE
 	Expand-ZipOrGzip
 }
