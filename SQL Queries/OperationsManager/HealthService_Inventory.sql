@@ -1,10 +1,15 @@
 SELECT 
     Q2.IsAvailable,
-    Q2.State AS 'HealthState',
+    CASE Q2.HealthState
+        WHEN 0 THEN 'Uninitialized'
+        WHEN 1 THEN 'Healthy'
+        WHEN 2 THEN 'Warning'
+        WHEN 3 THEN 'Critical'
+        WHEN 4 THEN 'Unmonitored'
+        WHEN 255 THEN 'Not Applicable'
+        ELSE 'Unknown State'
+    END AS HealthStateDescription,
     Q2.ServerName,
-    Q1.PrimaryManagementServer,
-    Q1.OSVersion,
-    Q1.OSBuildNumber,
     -- Select specific columns from HS. Replace '*' with actual column names if needed.
     Q1.*
 FROM 
@@ -31,16 +36,14 @@ LEFT JOIN
         SELECT 
             v1.path as [ServerName],
             replace(replace(v1.isavailable,0,'False'),1,'True') as [IsAvailable],
-            State.displayname as [State] 
+			v1.HealthState
         FROM 
             ManagedEntityGenericView v1
         INNER JOIN 
             ManagedTypeView mv ON v1.MonitoringClassId = mv.Id
-        LEFT JOIN 
-            DisplayStringView State ON ('OperationalDataTypes.StateType.HealthState.' + CAST(v1.HealthState AS NVARCHAR)) = State.ElementName
         WHERE 
-            mv.Name = 'microsoft.systemCenter.agent' 
-            AND State.LanguageCode = 'ENU'
+            mv.Name = 'microsoft.systemCenter.agent' OR
+			mv.Name = 'Microsoft.SystemCenter.GatewayManagementServer'
     ) AS Q2
 ON 
     Q1.DisplayName = Q2.ServerName
