@@ -8,7 +8,7 @@ SELECT
         WHEN 4 THEN 'Unmonitored'
         WHEN 255 THEN 'Not Applicable'
         ELSE 'Unknown State'
-    END AS HealthStateDescription,
+    END AS HealthState,
     Q2.ServerName,
     -- Select specific columns from HS. Replace '*' with actual column names if needed.
     Q1.*
