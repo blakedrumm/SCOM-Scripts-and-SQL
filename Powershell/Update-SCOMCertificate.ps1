@@ -1,3 +1,47 @@
+<#
+.SYNOPSIS
+    Script to manage and configure certificates for System Center Operations Manager and Remote Desktop Protocol.
+
+.DESCRIPTION
+    This PowerShell script imports certificates for SCOM and RDP, updates registry settings, and restarts services as necessary. 
+    It allows for management of certificates based on various parameters such as FriendlyName, SubjectName, SerialNumber, etc.
+
+.PARAMETER FriendlyName
+    Optional. The friendly name of the certificate to import.
+
+.PARAMETER SubjectName
+    Optional. The subject name of the certificate.
+
+.PARAMETER SerialNumber
+    Optional. The serial number of the certificate.
+
+.PARAMETER DateIssued
+    Optional. The issue date of the certificate.
+
+.PARAMETER ExpirationDate
+    Optional. The expiration date of the certificate.
+
+.PARAMETER ShowAllCertificates
+    Switch to display all certificates in the Local Computer Personal Certificate Store.
+
+.PARAMETER UpdateRegistry
+    Switch to update the registry with the script. This is required for the script to make changes.
+
+.EXAMPLE
+    .\YourScriptName.ps1 -FriendlyName "MyCert" -UpdateRegistry
+    This example imports a certificate with the friendly name "MyCert" and updates the registry.
+
+.NOTES
+    Author: Blake Drumm (blakedrumm@microsoft.com)
+    Date Created: June 6th, 2023
+    Date Modified: June 14th, 2023
+    Version: 1.0
+
+    This script is designed for use with Microsoft System Center Operations Manager. Ensure you have the appropriate permissions before running this script.
+
+.LINK
+    https://blakedrumm.com/
+#>
 param
 (
 	[string]$FriendlyName,
