@@ -53,10 +53,6 @@ param
 	[switch]$UpdateRegistry
 )
 
-# Author: Blake Drumm (blakedrumm@microsoft.com)
-# Date Created: June 6th, 2023
-# Date Modified: June 14th, 2023
-
 #region ImportCertAndUsePassword
 
 $PathToPassword = 'C:\Certs\password.txt'
@@ -69,8 +65,8 @@ if (-NOT $(Get-Item $PathToPassword -ErrorAction SilentlyContinue))
 	$PasswordBytes = ConvertFrom-SecureString -SecureString $SecurePassword
 	Set-Content -Path $PathToPassword -Value $PasswordBytes
 	pause
-	#endregion
 }
+#endregion
 
 $PasswordBytes = Get-Content -Path $PathToPassword
 $pwd = ConvertTo-SecureString -String $PasswordBytes
