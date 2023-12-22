@@ -103,7 +103,7 @@
 		
 		Author: Blake Drumm (blakedrumm@microsoft.com)
 		First Created on: January 5th, 2022
-		Last Modified on: December 22nd, 2023
+		Last Modified on: October 12th, 2022
 #>
 param
 (
@@ -128,6 +128,7 @@ param
 )
 BEGIN
 {
+	
 	Write-Output '==================================================================='
 	Write-Output '==========================  Start of Script ======================='
 	Write-Output '==================================================================='
@@ -182,66 +183,6 @@ PROCESS
 			[Alias('right')]
 			[array]$UserRight
 		)
-		Add-Type -AssemblyName "System.DirectoryServices.AccountManagement"
-		
-		$TypeLoaded = [AppDomain]::CurrentDomain.GetAssemblies() |
-		Where-Object { $_.FullName -like "*System.DirectoryServices.AccountManagement*" }
-		
-		if (-NOT $TypeLoaded)
-		{
-			Write-Warning "Unable to load 'System.DirectoryServices.AccountManagement' type in the PowerShell script."
-			break
-		}
-		
-		function Is-GroupName
-		{
-			param (
-				[string]$name
-			)
-			
-			try
-			{
-				$contextType = [System.DirectoryServices.AccountManagement.ContextType]::Domain
-				$principalContext = New-Object System.DirectoryServices.AccountManagement.PrincipalContext($contextType)
-				
-				# Attempt to find the group in the domain
-				$groupPrincipal = [System.DirectoryServices.AccountManagement.GroupPrincipal]::FindByIdentity($principalContext, $name)
-				
-				if ($groupPrincipal -ne $null)
-				{
-					return $true
-				}
-				
-				# If not found in domain, check local machine
-				$contextType = [System.DirectoryServices.AccountManagement.ContextType]::Machine
-				$principalContext = New-Object System.DirectoryServices.AccountManagement.PrincipalContext($contextType)
-				
-				$groupPrincipal = [System.DirectoryServices.AccountManagement.GroupPrincipal]::FindByIdentity($principalContext, $name)
-				
-				return $groupPrincipal -ne $null
-			}
-			catch
-			{
-				Write-Warning "Error occurred while checking group: $_"
-				return $false
-			}
-		}
-		
-		foreach ($item in $Username)
-		{
-			if (Is-GroupName -name $item)
-			{
-				Write-Host "$(Time-Stamp)$item is a group."
-				$userType = 'Group'
-			}
-			else
-			{
-				Write-Host "$(Time-Stamp)$item is a user."
-				$userType = 'User'
-			}
-		}
-		
-		
 		if (!$UserRight)
 		{
 			Write-Warning "Inner Function: Unable to continue because you did not supply the '-UserRight' parameter."
@@ -312,7 +253,6 @@ PROCESS
 				{
 					$sid = ((New-Object System.Security.Principal.NTAccount($Username)).Translate([System.Security.Principal.SecurityIdentifier])).Value
 				}
-				Write-Verbose "$userType ($Username) SID: $sid"
 				secedit /export /cfg $export | Out-Null
 				#Change the below to any right you would like
 				$sids = (Select-String $export -Pattern "$right").Line
@@ -343,13 +283,13 @@ PROCESS
 			secedit /import /db $secedt /cfg $import | Out-Null
 			secedit /configure /db $secedt | Out-Null
 			gpupdate /force | Out-Null
+			Write-Verbose "The script will not delete the following paths due to running in verbose mode, please remove these files manually if needed:"
+			Write-Verbose "`$import : $import"
+			Write-Verbose "`$export : $export"
+			Write-Verbose "`$secedt : $secedt"
 			
 			if ($VerbosePreference.value__ -eq 0)
 			{
-				Write-Verbose "The script will not delete the following paths due to running in verbose mode, please remove these files manually if needed:"
-				Write-Verbose "`$import : $import"
-				Write-Verbose "`$export : $export"
-				Write-Verbose "`$secedt : $secedt"
 				Remove-Item -Path $import -Force | Out-Null
 				Remove-Item -Path $export -Force | Out-Null
 				Remove-Item -Path $secedt -Force | Out-Null
@@ -484,20 +424,17 @@ PROCESS
 	else
 	{
 		
-	 <# Edit line 500 to modify the default command run when this script is executed.
-	   
-		Example:
+	 <# Edit line 437 to modify the default command run when this script is executed.
+	   Example: 
 	        Set-UserRights -AddRight -UserRight SeServiceLogonRight, SeBatchLogonRight -ComputerName $env:COMPUTERNAME, SQL.contoso.com -UserName CONTOSO\User1, CONTOSO\User2
 	        or
 	        Set-UserRights -AddRight -UserRight SeBatchLogonRight -Username S-1-5-11
-			or
-			Set-UserRights -AddRight -UserRight SeServiceLogonRight, SeBatchLogonRight -Username Administrators
 	        or
 	        Set-UserRights -RemoveRight -UserRight SeBatchLogonRight -Username CONTOSO\User2
 	        or
 	        Set-UserRights -RemoveRight -UserRight SeServiceLogonRight, SeBatchLogonRight -Username CONTOSO\User1
 	   #>
-		Set-UserRights -AddRight -UserRight SeServiceLogonRight -Username Administrators -Verbose
+		Set-UserRights
 	}
 }
 END
