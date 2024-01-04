@@ -6,7 +6,7 @@
 # Blog: https://blakedrumm.com/
 
 # You can modify the below to use HTTP or HTTPS. Replace <WebConsoleAddress> with the address for your Web Console.
-$MainURL = 'http://MS02-2022.contoso-2022.com/OperationsManager'
+$MainURL = 'http://<WebConsoleAddress>/OperationsManager'
 
 function Authenticate-SCOMAPI
 {
@@ -21,6 +21,10 @@ function Authenticate-SCOMAPI
     $EncodedText = [Convert]::ToBase64String($Bytes)
     $JSONBody = $EncodedText | ConvertTo-Json
 
+    # Initiate the Cross-Site Request Forgery (CSRF) token, this is to prevent CSRF attacks
+    $CSRFtoken = $WebSession.Cookies.GetCookies($MainURL) | ? { $_.Name -eq 'SCOM-CSRF-TOKEN' }
+    $SCOMHeaders.Add('SCOM-CSRF-TOKEN', [System.Web.HttpUtility]::UrlDecode($CSRFtoken.Value))
+
     # Authentication
     if ($Credential -ne $null) {
         Invoke-RestMethod -Method Post -Uri "$MainURL/authenticate" -Headers $SCOMHeaders -Body $JSONBody -Credential $Credential -SessionVariable WebSession
@@ -28,10 +32,8 @@ function Authenticate-SCOMAPI
         Invoke-RestMethod -Method Post -Uri "$MainURL/authenticate" -Headers $SCOMHeaders -Body $JSONBody -UseDefaultCredentials -SessionVariable WebSession
     }
     $script:WebSession = $WebSession
-    # Initiate the Cross-Site Request Forgery (CSRF) token, this is to prevent CSRF attacks
-    $CSRFtoken = $WebSession.Cookies.GetCookies($MainURL) | ? { $_.Name -eq 'SCOM-CSRF-TOKEN' }
-    $SCOMHeaders.Add('SCOM-CSRF-TOKEN', [System.Web.HttpUtility]::UrlDecode($CSRFtoken.Value))
 }
+
 Authenticate-SCOMAPI
 
 # Function to fetch all installed SCOM Consoles
