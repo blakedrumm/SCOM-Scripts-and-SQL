@@ -2,57 +2,62 @@
 # This script includes functions to interact with SCOM's REST API
 # Author: Blake Drumm (blakedrumm@microsoft.com)
 # Date Created: November 1st, 2023
+# Date Updated: January 4th, 2024
 # Blog: https://blakedrumm.com/
 
-# Initialize SCOM API Base URL
-$URIBase = 'http://<WebConsoleURL>/OperationsManager'
+$MainURL = 'http://MS02-2022.contoso-2022.com/OperationsManager'
 
-# Function to initialize HTTP headers and CSRF token for SCOM API
-function Initialize-SCOMHeaders {
-    $SCOMHeaders = @{
-        'Content-Type' = 'application/json; charset=utf-8'
-    }
-
-    $CSRFtoken = $WebSession.Cookies.GetCookies($URIBase) | Where-Object { $_.Name -eq 'SCOM-CSRF-TOKEN' }
-    $SCOMHeaders['SCOM-CSRF-TOKEN'] = [System.Web.HttpUtility]::UrlDecode($CSRFtoken.Value)
-    return $SCOMHeaders
-}
-
-# Function to authenticate with the SCOM API
-function Authenticate-SCOM {
+function Authenticate-SCOMAPI
+{
     param (
         [PSCredential]$Credential = $null
     )
+    # Set SCOM Header and the Body
+    $SCOMHeaders = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+    $SCOMHeaders.Add('Content-Type', 'application/json; charset=utf-8')
+    $BodyRaw = "Windows"
+    $Bytes = [System.Text.Encoding]::UTF8.GetBytes($BodyRaw)
+    $EncodedText = [Convert]::ToBase64String($Bytes)
+    $JSONBody = $EncodedText | ConvertTo-Json
 
-    $bodyRaw = "Windows"
-    $encodedText = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($bodyRaw))
-    $JSONBody = $encodedText | ConvertTo-Json
-
-    $SCOMHeaders = Initialize-SCOMHeaders
-
+    # Authentication
     if ($Credential -ne $null) {
-        Invoke-RestMethod -Method Post -Uri "$URIBase/authenticate" -Headers $SCOMHeaders -Body $JSONBody -Credential $Credential -SessionVariable WebSession
+        Invoke-RestMethod -Method Post -Uri "$MainURL/authenticate" -Headers $SCOMHeaders -Body $JSONBody -Credential $Credential -SessionVariable WebSession
     } else {
-        Invoke-RestMethod -Method Post -Uri "$URIBase/authenticate" -Headers $SCOMHeaders -Body $JSONBody -UseDefaultCredentials -SessionVariable WebSession
+        Invoke-RestMethod -Method Post -Uri "$MainURL/authenticate" -Headers $SCOMHeaders -Body $JSONBody -UseDefaultCredentials -SessionVariable WebSession
     }
+    $script:WebSession = $WebSession
+    # Initiate the Cross-Site Request Forgery (CSRF) token, this is to prevent CSRF attacks
+    $CSRFtoken = $WebSession.Cookies.GetCookies($MainURL) | ? { $_.Name -eq 'SCOM-CSRF-TOKEN' }
+    $SCOMHeaders.Add('SCOM-CSRF-TOKEN', [System.Web.HttpUtility]::UrlDecode($CSRFtoken.Value))
+}
+Authenticate-SCOMAPI
+
+# Function to fetch all installed SCOM Consoles
+function Get-SCOMConsoles
+{
+    # Criteria: Enter the displayname of the SCOM object
+    $Criteria = "DisplayName LIKE '%System Center Operations Manager Console%'"
+ 
+    # Convert our criteria to JSON format
+    $JSONBody = $Criteria | ConvertTo-Json
+ 
+    $Response = Invoke-WebRequest -Uri "$MainURL/OperationsManager/data/scomObjects" -Method Post -Body $JSONBody -WebSession $script:WebSession
+ 
+    # Convert our response from JSON format to a custom object or hash table
+    $Object = ConvertFrom-Json -InputObject $Response.Content
+ 
+    # Print out the object results
+    $Object.scopeDatas
 }
 
-# Function to fetch Effective Monitoring Configuration by GUID
-function Get-EffectiveMonitoringConfiguration {
-    param (
-        [string]$guid
-    )
+# Function to fetch all Windows Servers
+function Get-WindowsServers {
+    $criteria = "DisplayName LIKE 'Microsoft Windows Server%'"
+    $JSONBody = $criteria | ConvertTo-Json
 
-    $uri = "$URIBase/effectiveMonitoringConfiguration/$guid`?isRecursive=True"
-    $response = Invoke-WebRequest -Uri $uri -Method GET -WebSession $WebSession
-    return $response.Content | ConvertFrom-Json
-}
-
-# Function to fetch Unsealed Management Packs
-function Get-UnsealedManagementPacks {
-    $uri = "$URIBase/data/UnsealedManagementPacks"
-    $response = Invoke-WebRequest -Uri $uri -Method GET -WebSession $WebSession
-    return $response.Content | ConvertFrom-Json
+    $response = Invoke-WebRequest -Uri "$MainURL/data/scomObjects" -Method Post -Body $JSONBody -WebSession $script:WebSession
+    return ($response.Content | ConvertFrom-Json).scopeDatas
 }
 
 # Function to fetch the state of the Management Group
@@ -64,18 +69,24 @@ function Get-ManagementGroupState {
     })
 
     $JSONQuery = $query | ConvertTo-Json
-    $response = Invoke-RestMethod -Uri "$URIBase/data/state" -Method Post -Body $JSONQuery -ContentType "application/json" -WebSession $WebSession
+    $response = Invoke-RestMethod -Uri "$MainURL/data/state" -Method Post -Body $JSONQuery -ContentType "application/json" -WebSession $script:WebSession
     return $response.Rows
 }
 
-# Function to fetch all Windows Servers
-function Get-WindowsServers {
-    $criteria = "DisplayName LIKE 'Microsoft Windows Server%'"
-    $JSONBody = $criteria | ConvertTo-Json
+# Function to fetch Unsealed Management Packs
+function Get-UnsealedManagementPacks {
+    $response = Invoke-WebRequest -Uri "$MainURL/data/UnsealedManagementPacks" -Method GET -WebSession $script:WebSession
+    return $response.Content | ConvertFrom-Json
+}
 
-    $uri = "$URIBase/data/scomObjects"
-    $response = Invoke-WebRequest -Uri $uri -Method Post -Body $JSONBody -WebSession $WebSession
-    return ($response.Content | ConvertFrom-Json).scopeDatas
+# Function to fetch Effective Monitoring Configuration by GUID
+function Get-EffectiveMonitoringConfiguration {
+    param (
+        [string]$guid
+    )
+    $uri = "$MainURL/effectiveMonitoringConfiguration/$guid`?isRecursive=True"
+    $response = Invoke-WebRequest -Uri $uri -Method GET -WebSession $script:WebSession
+    return $response.Content | ConvertFrom-Json
 }
 
 # ------------------------------------------------------------------------------------------
