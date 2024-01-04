@@ -5,7 +5,8 @@
 # Date Updated: January 4th, 2024
 # Blog: https://blakedrumm.com/
 
-$MainURL = 'http://MS02-2022.contoso-2022.com/OperationsManager'
+# You can modify the below to use HTTP or HTTPS. Replace <WebConsoleAddress> with the address for your Web Console.
+$MainURL = 'http://<WebConsoleAddress>/OperationsManager'
 
 function Authenticate-SCOMAPI
 {
