@@ -6,7 +6,7 @@
 # Blog: https://blakedrumm.com/
 
 # You can modify the below to use HTTP or HTTPS. Replace <WebConsoleAddress> with the address for your Web Console.
-$MainURL = 'http://<WebConsoleAddress>/OperationsManager'
+$MainURL = 'http://MS02-2022.contoso-2022.com/OperationsManager'
 
 function Authenticate-SCOMAPI
 {
@@ -133,6 +133,6 @@ Write-Output "-----------------------------------------"
 
 # Get Management Group Health Status
 $state = Get-ManagementGroupState
-Write-Output "Monitored Computer State:`n$($state | ConvertTo-Json)"
+Write-Output "Management Group State:`n$($state | ConvertTo-Json)"
 
 Write-Output "-----------------------------------------"
