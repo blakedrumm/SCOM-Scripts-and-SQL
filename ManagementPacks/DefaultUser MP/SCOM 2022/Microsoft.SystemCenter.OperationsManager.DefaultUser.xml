@@ -1,0 +1,1055 @@
+﻿<?xml version="1.0" encoding="utf-8"?><ManagementPack ContentReadable="true" SchemaVersion="2.0" OriginalSchemaVersion="1.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <Manifest>
+    <Identity>
+      <ID>Microsoft.SystemCenter.OperationsManager.DefaultUser</ID>
+      <Version>10.22.10118.0</Version>
+    </Identity>
+    <Name>My Default Management Pack</Name>
+    <References>
+      <Reference Alias="Notification">
+        <ID>Microsoft.SystemCenter.Notifications.Library</ID>
+        <Version>10.22.10118.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="Windows">
+        <ID>Microsoft.Windows.Library</ID>
+        <Version>7.5.8501.1</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="System">
+        <ID>System.Library</ID>
+        <Version>7.5.8501.1</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SC">
+        <ID>Microsoft.SystemCenter.Library</ID>
+        <Version>10.22.10118.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SystemCenter">
+        <ID>Microsoft.SystemCenter.DataWarehouse.Internal</ID>
+        <Version>10.22.10118.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+    </References>
+  </Manifest>
+  <Monitoring>
+    <Overrides>
+      <RuleConfigurationOverride ID="ExpirationStartTime" Context="SystemCenter!Microsoft.SystemCenter.DataWarehouseSynchronizationService" Enforced="false" Rule="SystemCenter!Microsoft.SystemCenter.DataWarehouse.CollectAlertData" Parameter="ExpirationStartTime" Module="DS">
+        <Value>02/07/2023 03:10:40</Value>
+      </RuleConfigurationOverride>
+      <RuleConfigurationOverride ID="LanguageCode" Context="SystemCenter!Microsoft.SystemCenter.DataWarehouseSynchronizationService" Enforced="false" Rule="SystemCenter!Microsoft.SystemCenter.DataWarehouse.CollectAlertData" Parameter="LanguageCode" Module="DS">
+        <Value>ENU</Value>
+      </RuleConfigurationOverride>
+    </Overrides>
+  </Monitoring>
+  <Presentation>
+    <Views>
+      <View ID="System.Views.AlertView" Accessibility="Public" Enabled="true" Target="System!System.Entity" TypeID="SC!Microsoft.SystemCenter.AlertViewType" Visible="true">
+        <Category>Operations</Category>
+        <Criteria>
+          <ResolutionState>
+            <StateRange Operator="NotEquals">255</StateRange>
+          </ResolutionState>
+        </Criteria>
+        <Presentation>
+          <ColumnInfo Index="0" SortIndex="0" Width="60" Grouped="true" Sorted="false" IsSortable="true" Visible="true" SortOrder="Descending">
+            <Name>Severity</Name>
+            <Id>Severity</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="1" SortIndex="-1" Width="30" Grouped="false" Sorted="false" IsSortable="false" Visible="true" SortOrder="Ascending">
+            <Name>Icon</Name>
+            <Id>Icon</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="2" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Path</Name>
+            <Id>MonitoringObjectPath</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="3" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>Source</Name>
+            <Id>MonitoringObjectDisplayName</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="4" SortIndex="-1" Width="22" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>Maintenance Mode</Name>
+            <Id>MonitoringObjectInMaintenanceMode</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="5" SortIndex="-1" Width="250" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>Name</Name>
+            <Id>Name</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="6" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>Resolution State</Name>
+            <Id>ResolutionState</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="7" SortIndex="1" Width="150" Grouped="false" Sorted="true" IsSortable="true" Visible="true" SortOrder="Descending">
+            <Name>Created</Name>
+            <Id>TimeRaised</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="8" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="false" Visible="true" SortOrder="Ascending">
+            <Name>Age</Name>
+            <Id>Age</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="9" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Type</Name>
+            <Id>Category</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="10" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Owner</Name>
+            <Id>Owner</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="11" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Priority</Name>
+            <Id>Priority</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="12" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Latency</Name>
+            <Id>Latency</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="13" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Description</Name>
+            <Id>Description</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="14" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Connector</Name>
+            <Id>ConnectorId</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="15" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Forwarding Status</Name>
+            <Id>ConnectorStatus</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="16" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Class</Name>
+            <Id>Class</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="17" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Time in State</Name>
+            <Id>TimeInState</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="18" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Custom Field 1</Name>
+            <Id>CustomField1</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="19" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Custom Field 2</Name>
+            <Id>CustomField2</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="20" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Custom Field 3</Name>
+            <Id>CustomField3</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="21" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Custom Field 4</Name>
+            <Id>CustomField4</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="22" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Custom Field 5</Name>
+            <Id>CustomField5</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="23" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Custom Field 6</Name>
+            <Id>CustomField6</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="24" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Custom Field 7</Name>
+            <Id>CustomField7</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="25" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Custom Field 8</Name>
+            <Id>CustomField8</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="26" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Custom Field 9</Name>
+            <Id>CustomField9</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="27" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Custom Field 10</Name>
+            <Id>CustomField10</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="28" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Resolved By</Name>
+            <Id>ResolvedBy</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="29" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Time Resolved</Name>
+            <Id>TimeResolved</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="30" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Last State Change</Name>
+            <Id>TimeResolutionStateLastModified</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="31" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Last Modified</Name>
+            <Id>LastModified</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="32" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Last Modified By</Name>
+            <Id>LastModifiedBy</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="33" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Management Group</Name>
+            <Id>ManagementGroup</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="34" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Site</Name>
+            <Id>SiteName</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="35" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Repeat Count</Name>
+            <Id>RepeatCount</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="36" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Ticket ID</Name>
+            <Id>TicketId</Id>
+          </ColumnInfo>
+        </Presentation>
+        <Target />
+      </View>
+      <View ID="System.Views.InventoryView" Accessibility="Public" Enabled="true" Target="System!System.Computer" TypeID="SC!Microsoft.SystemCenter.InventoryViewType" Visible="true">
+        <Category>Operations</Category>
+      </View>
+      <View ID="System.Views.StateView.AllComputers" Accessibility="Public" Enabled="true" Target="Windows!Microsoft.Windows.Computer" TypeID="SC!Microsoft.SystemCenter.StateViewType" Visible="true">
+        <Category>Operations</Category>
+        <Criteria />
+        <Presentation>
+          <ColumnInfo Index="0" SortIndex="0" Width="100" Grouped="false" Sorted="true" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>State</Name>
+            <Id>Microsoft.Windows.Computer</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="1" SortIndex="-1" Width="22" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>Maintenance Mode</Name>
+            <Id>InMaintenanceMode</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="2" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>Name</Name>
+            <Id>Name</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="3" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Path</Name>
+            <Id>Path</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="4" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="false" SortOrder="Ascending">
+            <Name>Display Name</Name>
+            <Id>DisplayName</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="5" SortIndex="-1" Width="90" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>Agent</Name>
+            <Id>Microsoft.SystemCenter.Agent</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="6" SortIndex="-1" Width="90" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>Management Server</Name>
+            <Id>Microsoft.SystemCenter.ManagementServer</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="7" SortIndex="-1" Width="90" Grouped="false" Sorted="false" IsSortable="false" Visible="true" SortOrder="Ascending">
+            <Name>Windows Operating System</Name>
+            <Id>Microsoft.Windows.OperatingSystem</Id>
+          </ColumnInfo>
+        </Presentation>
+      </View>
+      <View ID="System.Views.StateView.AllServices" Accessibility="Public" Enabled="true" Target="System!System.Service" TypeID="SC!Microsoft.SystemCenter.StateViewType" Visible="true">
+        <Category>Operations</Category>
+        <Presentation>
+          <ColumnInfo Index="0" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>State</Name>
+            <Id>System.Service</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="1" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>Maintenance Mode</Name>
+            <Id>InMaintenanceMode</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="2" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>Name</Name>
+            <Id>Name</Id>
+          </ColumnInfo>
+        </Presentation>
+      </View>
+      <View ID="System.Views.TaskStatusView" Accessibility="Public" Enabled="true" Target="System!System.Entity" TypeID="SC!Microsoft.SystemCenter.TaskStatusViewType" Visible="true">
+        <Category>Operations</Category>
+        <Criteria />
+        <Presentation>
+          <ColumnInfo Index="0" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>Status</Name>
+            <Id>Status</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="1" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>Task Name</Name>
+            <Id>DisplayName</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="2" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Descending">
+            <Name>Scheduled Time</Name>
+            <Id>TimeScheduled</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="3" SortIndex="0" Width="100" Grouped="false" Sorted="true" IsSortable="true" Visible="true" SortOrder="Descending">
+            <Name>Start Time</Name>
+            <Id>TimeStarted</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="4" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>Submitted By</Name>
+            <Id>SubmittedBy</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="5" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>Run As</Name>
+            <Id>RunningAs</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="6" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>Task Target</Name>
+            <Id>TargetName</Id>
+          </ColumnInfo>
+          <ColumnInfo Index="7" SortIndex="-1" Width="100" Grouped="false" Sorted="false" IsSortable="true" Visible="true" SortOrder="Ascending">
+            <Name>Task Target Class</Name>
+            <Id>TargetedType</Id>
+          </ColumnInfo>
+        </Presentation>
+      </View>
+    </Views>
+    <Folders>
+      <Folder ID="System.Views.ViewFolder.Root" Accessibility="Public" ParentFolder="SC!Microsoft.SystemCenter.Monitoring.ViewFolder.Root" />
+    </Folders>
+    <FolderItems>
+      <FolderItem ElementID="System.Views.AlertView" ID="System.Views.AlertView" Folder="System.Views.ViewFolder.Root" />
+      <FolderItem ElementID="System.Views.InventoryView" ID="System.Views.InventoryView" Folder="System.Views.ViewFolder.Root" />
+      <FolderItem ElementID="System.Views.StateView.AllComputers" ID="System.Views.StateView.AllComputers" Folder="System.Views.ViewFolder.Root" />
+      <FolderItem ElementID="System.Views.StateView.AllServices" ID="System.Views.StateView.AllServices" Folder="System.Views.ViewFolder.Root" />
+      <FolderItem ElementID="System.Views.TaskStatusView" ID="System.Views.TaskStatusView" Folder="System.Views.ViewFolder.Root" />
+    </FolderItems>
+  </Presentation>
+  <LanguagePacks>
+    <LanguagePack ID="ENU" IsDefault="true">
+      <DisplayStrings>
+        <DisplayString ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser">
+          <Name>Default Management Pack</Name>
+          <Description>This management pack is the default location for storing all custom management pack objects such as rules, tasks and monitors.  It is also used to store all overrides and notifications that are defined. </Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.AlertView">
+          <Name>Active Alerts</Name>
+          <Description>Displays all active alerts</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.InventoryView">
+          <Name>Discovered Inventory</Name>
+          <Description>Shows your discovered inventory</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllComputers">
+          <Name>Windows Computers</Name>
+          <Description>Shows state for all managed Windows computers</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllServices">
+          <Name>Distributed Applications</Name>
+          <Description>Shows state for all distributed applications</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.TaskStatusView">
+          <Name>Task Status</Name>
+          <Description>Shows task status and its output</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.ViewFolder.Root">
+          <Name>Global Views</Name>
+        </DisplayString>
+      </DisplayStrings>
+      <KnowledgeArticles>
+        <KnowledgeArticle ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser" Visible="true">
+          <MamlContent>
+            <maml:section xmlns:maml="http://schemas.microsoft.com/maml/2004/10">
+              <maml:title>Summary</maml:title>
+              <maml:para>This management pack is the default location for storing all custom management pack objects such as rules, tasks and monitors.  It is also used to store all overrides and notifications that are defined.</maml:para>
+            </maml:section>
+          </MamlContent>
+        </KnowledgeArticle>
+      </KnowledgeArticles>
+    </LanguagePack>
+    <LanguagePack ID="CSY" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser">
+          <Name>Výchozí jazyková sada sady Management Pack</Name>
+          <Description>Tato sada Management Pack je výchozím umístěním pro uložení všech vlastních objektů sady Management Pack, jako například pravidel, úloh a monitorování.  Používá se také pro uložení všech definovaných přepsání a oznámení. </Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.AlertView">
+          <Name>Aktivní výstrahy</Name>
+          <Description>Zobrazí všechny aktivní výstrahy.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.InventoryView">
+          <Name>Zjištěný inventář</Name>
+          <Description>Zobrazí vaše zjištěné inventáře.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllComputers">
+          <Name>Počítače se systémem Windows</Name>
+          <Description>Zobrazí stav všech spravovaných počítačů se systémem Windows.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllServices">
+          <Name>Distribuované aplikace</Name>
+          <Description>Zobrazí stav všech distribuovaných aplikací.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.TaskStatusView">
+          <Name>Stav úlohy</Name>
+          <Description>Zobrazí stav úlohy a její výstup.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.ViewFolder.Root">
+          <Name>Globální zobrazení</Name>
+        </DisplayString>
+      </DisplayStrings>
+      <KnowledgeArticles>
+        <KnowledgeArticle ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser" Visible="true">
+          <MamlContent>
+            <maml:section xmlns:maml="http://schemas.microsoft.com/maml/2004/10">
+              <maml:title>Souhrn</maml:title>
+              <maml:para>Tato sada Management Pack je výchozím umístěním pro uložení všech vlastních objektů sady Management Pack, jako například pravidel, úloh a monitorování.  Používá se také pro uložení všech definovaných přepsání a oznámení.</maml:para>
+            </maml:section>
+          </MamlContent>
+        </KnowledgeArticle>
+      </KnowledgeArticles>
+    </LanguagePack>
+    <LanguagePack ID="DEU" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser">
+          <Name>Sprachpaket für Standard-Management Pack</Name>
+          <Description>Dieses Management Pack stellt den Standardspeicherort für alle benutzerdefinierten Objekte des Management Packs wie Regeln, Tasks und Monitore bereit.  Darüber hinaus dient es zum Speichern aller definierten Außerkraftsetzungen und Benachrichtigungen. </Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.AlertView">
+          <Name>Aktive Warnungen</Name>
+          <Description>Zeigt alle aktiven Warnungen an.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.InventoryView">
+          <Name>Ermitteltes Inventar</Name>
+          <Description>Zeigt das ermittelte Inventar an</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllComputers">
+          <Name>Windows-Computer</Name>
+          <Description>In dieser Ansicht wird der Status aller verwalteten Windows-Computer angezeigt.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllServices">
+          <Name>Verteilte Anwendungen</Name>
+          <Description>Zeigt den Status aller verteilten Anwendungen an.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.TaskStatusView">
+          <Name>Taskstatus</Name>
+          <Description>Zeigt den Taskstatus und dessen Ausgabe an</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.ViewFolder.Root">
+          <Name>Globale Ansichten</Name>
+        </DisplayString>
+      </DisplayStrings>
+      <KnowledgeArticles>
+        <KnowledgeArticle ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser" Visible="true">
+          <MamlContent>
+            <maml:section xmlns:maml="http://schemas.microsoft.com/maml/2004/10">
+              <maml:title>Zusammenfassung</maml:title>
+              <maml:para>Dieses Management Pack stellt den Standardspeicherort für alle benutzerdefinierten Objekte des Management Packs wie Regeln, Tasks und Monitore bereit.  Darüber hinaus dient es zum Speichern aller definierten Außerkraftsetzungen und Benachrichtigungen.</maml:para>
+            </maml:section>
+          </MamlContent>
+        </KnowledgeArticle>
+      </KnowledgeArticles>
+    </LanguagePack>
+    <LanguagePack ID="ESN" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser">
+          <Name>Paquete de idioma de módulo de administración predeterminado</Name>
+          <Description>Este módulo de administración es la ubicación predeterminada para almacenar todos los objetos de módulos de administración personalizados como, por ejemplo, reglas, tareas y monitores.  También se usa para almacenar todas las invalidaciones y notificaciones definidas. </Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.AlertView">
+          <Name>Alertas activas</Name>
+          <Description>Muestra todas las alertas activas</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.InventoryView">
+          <Name>Inventario detectado</Name>
+          <Description>Muestra el inventario detectado</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllComputers">
+          <Name>Equipos de Windows</Name>
+          <Description>Muestra el estado de todos los equipos de Windows administrados</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllServices">
+          <Name>Aplicaciones distribuidas</Name>
+          <Description>Muestra el estado de todas las aplicaciones distribuidas</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.TaskStatusView">
+          <Name>Estado de la tarea</Name>
+          <Description>Muestra el estado de una tarea y sus resultados</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.ViewFolder.Root">
+          <Name>Vistas globales</Name>
+        </DisplayString>
+      </DisplayStrings>
+      <KnowledgeArticles>
+        <KnowledgeArticle ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser" Visible="true">
+          <MamlContent>
+            <maml:section xmlns:maml="http://schemas.microsoft.com/maml/2004/10">
+              <maml:title>Resumen</maml:title>
+              <maml:para>Este módulo de administración es la ubicación predeterminada para almacenar todos los objetos de módulos de administración personalizados como, por ejemplo, reglas, tareas y monitores.  También se usa para almacenar todas las invalidaciones y notificaciones definidas.</maml:para>
+            </maml:section>
+          </MamlContent>
+        </KnowledgeArticle>
+      </KnowledgeArticles>
+    </LanguagePack>
+    <LanguagePack ID="FRA" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser">
+          <Name>Module linguistique du Pack d'administration par défaut</Name>
+          <Description>Ce pack d'administration est l'emplacement par défaut pour stocker tous les objets de pack d'administration personnalisés tels que les règles, les tâches et les moniteurs.  Il sert également à stocker toutes les valeurs de remplacement et notifications qui sont définies. </Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.AlertView">
+          <Name>Alertes actives</Name>
+          <Description>Affiche toutes les alertes actives.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.InventoryView">
+          <Name>Inventaire détecté</Name>
+          <Description>Affiche votre inventaire détecté.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllComputers">
+          <Name>Ordinateurs Windows</Name>
+          <Description>Affiche l'état de tous les ordinateurs Windows gérés.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllServices">
+          <Name>Applications distribuées</Name>
+          <Description>Affiche l'état de toutes les applications distribuées.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.TaskStatusView">
+          <Name>État de la tâche</Name>
+          <Description>Affiche l'état de la tâche et sa sortie.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.ViewFolder.Root">
+          <Name>Affichages globaux</Name>
+        </DisplayString>
+      </DisplayStrings>
+      <KnowledgeArticles>
+        <KnowledgeArticle ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser" Visible="true">
+          <MamlContent>
+            <maml:section xmlns:maml="http://schemas.microsoft.com/maml/2004/10">
+              <maml:title>Résumé</maml:title>
+              <maml:para>Ce pack d'administration est l'emplacement par défaut pour stocker tous les objets de pack d'administration personnalisés tels que les règles, les tâches et les moniteurs.  Il sert également à stocker toutes les valeurs de remplacement et notifications qui sont définies.</maml:para>
+            </maml:section>
+          </MamlContent>
+        </KnowledgeArticle>
+      </KnowledgeArticles>
+    </LanguagePack>
+    <LanguagePack ID="HUN" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser">
+          <Name>Alapértelmezett felügyeleti csomag nyelvi csomagja</Name>
+          <Description>Ez a felügyeleti csomag az összes olyan egyéni felügyeleticsomag-objektum alapértelmezett helye, mint például a szabályok, a feladatok és a figyelések.  A definiált felülbírálások és értesítések tárolására is szolgál. </Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.AlertView">
+          <Name>Aktív riasztások</Name>
+          <Description>Megjeleníti az összes aktív riasztást.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.InventoryView">
+          <Name>Felderített leltár</Name>
+          <Description>Megjeleníti a saját felderített leltárt.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllComputers">
+          <Name>Windows-számítógépek</Name>
+          <Description>Megjeleníti az összes felügyelt Windows-számítógép állapotát.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllServices">
+          <Name>Elosztott alkalmazások</Name>
+          <Description>Megjeleníti az összes elosztott alkalmazás állapotát.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.TaskStatusView">
+          <Name>Feladat állapota</Name>
+          <Description>Megjeleníti a feladat állapotát és kimenetét.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.ViewFolder.Root">
+          <Name>Globális nézetek</Name>
+        </DisplayString>
+      </DisplayStrings>
+      <KnowledgeArticles>
+        <KnowledgeArticle ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser" Visible="true">
+          <MamlContent>
+            <maml:section xmlns:maml="http://schemas.microsoft.com/maml/2004/10">
+              <maml:title>Összefoglalás</maml:title>
+              <maml:para>Ez a felügyeleti csomag az összes olyan egyéni felügyeleticsomag-objektum alapértelmezett helye, mint például a szabályok, a feladatok és a figyelések.  A definiált felülbírálások és értesítések tárolására is szolgál.</maml:para>
+            </maml:section>
+          </MamlContent>
+        </KnowledgeArticle>
+      </KnowledgeArticles>
+    </LanguagePack>
+    <LanguagePack ID="ITA" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser">
+          <Name>Language Pack del Management Pack predefinito</Name>
+          <Description>Questo Management Pack è il percorso predefinito per archiviare tutti gli oggetti personalizzati del Management Pack come regole, attività e monitoraggi.  Viene inoltre utilizzato per l'archiviazione di tutte le sostituzioni e le notifiche definite. </Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.AlertView">
+          <Name>Avvisi attivi</Name>
+          <Description>Visualizza tutti gli avvisi attivi</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.InventoryView">
+          <Name>Inventario individuato</Name>
+          <Description>Mostra il proprio inventario individuato</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllComputers">
+          <Name>Computer Windows</Name>
+          <Description>Mostra lo stato di tutti i computer Windows gestiti</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllServices">
+          <Name>Applicazioni distribuite</Name>
+          <Description>Mostra lo stato di tutte le applicazioni distribuite</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.TaskStatusView">
+          <Name>Stato attività</Name>
+          <Description>Mostra lo stato dell'attività e l'output</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.ViewFolder.Root">
+          <Name>Viste globali</Name>
+        </DisplayString>
+      </DisplayStrings>
+      <KnowledgeArticles>
+        <KnowledgeArticle ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser" Visible="true">
+          <MamlContent>
+            <maml:section xmlns:maml="http://schemas.microsoft.com/maml/2004/10">
+              <maml:title>Riepilogo</maml:title>
+              <maml:para>Questo Management Pack è il percorso predefinito per archiviare tutti gli oggetti personalizzati del Management Pack come regole, attività e monitoraggi.  Viene inoltre utilizzato per l'archiviazione di tutte le sostituzioni e le notifiche definite.</maml:para>
+            </maml:section>
+          </MamlContent>
+        </KnowledgeArticle>
+      </KnowledgeArticles>
+    </LanguagePack>
+    <LanguagePack ID="JPN" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser">
+          <Name>既定の管理パック用言語パック</Name>
+          <Description>この管理パックは、ルール、タスク、モニターなど、すべてのカスタム管理パック オブジェクトを格納するための既定の場所です。また、定義されたすべての上書きと通知の格納にも使用されます。 </Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.AlertView">
+          <Name>アクティブなアラート</Name>
+          <Description>すべてのアクティブなアラートを表示します</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.InventoryView">
+          <Name>検出された一覧</Name>
+          <Description>検出された一覧を表示します</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllComputers">
+          <Name>Windows コンピューター</Name>
+          <Description>すべての管理された Windows コンピューターの状態を表示します。</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllServices">
+          <Name>分散アプリケーション</Name>
+          <Description>すべての分散アプリケーションの状態を表示します</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.TaskStatusView">
+          <Name>タスクの状態</Name>
+          <Description>タスクの状態とその出力を表示します</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.ViewFolder.Root">
+          <Name>グローバル ビュー</Name>
+        </DisplayString>
+      </DisplayStrings>
+      <KnowledgeArticles>
+        <KnowledgeArticle ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser" Visible="true">
+          <MamlContent>
+            <maml:section xmlns:maml="http://schemas.microsoft.com/maml/2004/10">
+              <maml:title>概要</maml:title>
+              <maml:para>この管理パックは、ルール、タスク、モニターなど、すべてのカスタム管理パック オブジェクトを格納するための既定の場所です。また、定義されたすべての上書きと通知の格納にも使用されます。</maml:para>
+            </maml:section>
+          </MamlContent>
+        </KnowledgeArticle>
+      </KnowledgeArticles>
+    </LanguagePack>
+    <LanguagePack ID="KOR" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser">
+          <Name>기본 관리 팩 언어 팩</Name>
+          <Description>이 관리 팩은 규칙, 작업 및 모니터와 같은 모든 사용자 지정 관리 팩 개체를 저장하는 기본 위치입니다.  또한 정의된 모든 재정의 및 알림도 저장됩니다. </Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.AlertView">
+          <Name>활성 경고</Name>
+          <Description>모든 활성 경고를 표시합니다.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.InventoryView">
+          <Name>검색된 인벤토리</Name>
+          <Description>검색된 인벤토리를 표시합니다.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllComputers">
+          <Name>Windows 컴퓨터</Name>
+          <Description>관리되는 모든 Windows 컴퓨터의 상태를 표시합니다.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllServices">
+          <Name>배포 응용 프로그램</Name>
+          <Description>모든 배포 응용 프로그램의 상태를 표시합니다.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.TaskStatusView">
+          <Name>작업 상태</Name>
+          <Description>작업 상태 및 해당 출력을 표시합니다.</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.ViewFolder.Root">
+          <Name>전역 보기</Name>
+        </DisplayString>
+      </DisplayStrings>
+      <KnowledgeArticles>
+        <KnowledgeArticle ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser" Visible="true">
+          <MamlContent>
+            <maml:section xmlns:maml="http://schemas.microsoft.com/maml/2004/10">
+              <maml:title>요약</maml:title>
+              <maml:para>이 관리 팩은 규칙, 작업 및 모니터와 같은 모든 사용자 지정 관리 팩 개체를 저장하는 기본 위치입니다.  또한 정의된 모든 재정의 및 알림도 저장됩니다.</maml:para>
+            </maml:section>
+          </MamlContent>
+        </KnowledgeArticle>
+      </KnowledgeArticles>
+    </LanguagePack>
+    <LanguagePack ID="NLD" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser">
+          <Name>Taalpakket voor standaard management pack</Name>
+          <Description>Dit management pack is de standaardlocatie voor de opslag van alle aangepaste management pack-objecten, zoals regels, taken en monitors.  Het wordt ook gebruikt voor het opslaan van alle gedefinieerde onderdrukkingen en meldingen. </Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.AlertView">
+          <Name>Actieve waarschuwingen</Name>
+          <Description>Hiermee worden alle actieve waarschuwingen weergegeven</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.InventoryView">
+          <Name>Gedetecteerde voorraad</Name>
+          <Description>Hiermee wordt uw gedetecteerde voorraad weergegeven</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllComputers">
+          <Name>Windows-computers</Name>
+          <Description>Hiermee wordt de status voor alle beheerde Windows-computers weergeven</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllServices">
+          <Name>Gedistribueerde toepassingen</Name>
+          <Description>Hiermee wordt de status voor alle gedistribueerde toepassingen weergeven</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.TaskStatusView">
+          <Name>Taakstatus</Name>
+          <Description>Hiermee wordt de taakstatus en de uitvoer ervan weergegeven</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.ViewFolder.Root">
+          <Name>Algemene weergaven</Name>
+        </DisplayString>
+      </DisplayStrings>
+      <KnowledgeArticles>
+        <KnowledgeArticle ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser" Visible="true">
+          <MamlContent>
+            <maml:section xmlns:maml="http://schemas.microsoft.com/maml/2004/10">
+              <maml:title>Samenvatting</maml:title>
+              <maml:para>Dit management pack is de standaardlocatie voor de opslag van alle aangepaste management pack-objecten, zoals regels, taken en monitors.  Het wordt ook gebruikt voor het opslaan van alle gedefinieerde onderdrukkingen en meldingen.</maml:para>
+            </maml:section>
+          </MamlContent>
+        </KnowledgeArticle>
+      </KnowledgeArticles>
+    </LanguagePack>
+    <LanguagePack ID="PLK" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser">
+          <Name>Pakiet językowy dla domyślnego pakietu administracyjnego</Name>
+          <Description>Ten pakiet administracyjny to domyślne miejsce przechowywania wszystkich niestandardowych obiektów pakietów administracyjnych, takich jak zasady, zadania i monitory.  Służy również do przechowywania wszystkich zdefiniowanych zastąpień i powiadomień. </Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.AlertView">
+          <Name>Aktywne alerty</Name>
+          <Description>Wyświetla wszystkie aktywne alerty</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.InventoryView">
+          <Name>Spis odnalezionych zasobów</Name>
+          <Description>Pokazuje spis zasobów uzyskany przy użyciu funkcji odnajdywania</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllComputers">
+          <Name>Komputery z systemem Windows</Name>
+          <Description>Pokazuje stan wszystkich zarządzanych komputerów z systemem Windows</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllServices">
+          <Name>Aplikacje rozproszone</Name>
+          <Description>Pokazuje stan wszystkich aplikacji rozproszonych</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.TaskStatusView">
+          <Name>Stan zadania</Name>
+          <Description>Pokazuje stan i dane wyjściowe zadania</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.ViewFolder.Root">
+          <Name>Widoki globalne</Name>
+        </DisplayString>
+      </DisplayStrings>
+      <KnowledgeArticles>
+        <KnowledgeArticle ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser" Visible="true">
+          <MamlContent>
+            <maml:section xmlns:maml="http://schemas.microsoft.com/maml/2004/10">
+              <maml:title>Podsumowanie</maml:title>
+              <maml:para>Ten pakiet administracyjny to domyślne miejsce przechowywania wszystkich niestandardowych obiektów pakietów administracyjnych, takich jak zasady, zadania i monitory.  Służy również do przechowywania wszystkich zdefiniowanych zastąpień i powiadomień.</maml:para>
+            </maml:section>
+          </MamlContent>
+        </KnowledgeArticle>
+      </KnowledgeArticles>
+    </LanguagePack>
+    <LanguagePack ID="PTB" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser">
+          <Name>Pacote de Idiomas para o Pacote de Gerenciamento Padrão</Name>
+          <Description>Este pacote de gerenciamento é o local padrão para o armazenamento de todos os objetos de pacotes de gerenciamento personalizados, como regras, tarefas e monitores.  Ele também é usado para armazenar todas as substituições e notificações definidas. </Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.AlertView">
+          <Name>Alertas Ativos</Name>
+          <Description>Exibe todos os alertas ativos</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.InventoryView">
+          <Name>Inventário Descoberto</Name>
+          <Description>Mostra o Inventário Descoberto</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllComputers">
+          <Name>Computadores com Windows</Name>
+          <Description>Mostra o estado de todos os computadores Windows gerenciados</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllServices">
+          <Name>Aplicativos Distribuídos</Name>
+          <Description>Mostra o estado de todos os aplicativos distribuídos</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.TaskStatusView">
+          <Name>Status da Tarefa</Name>
+          <Description>Mostra o status e a saída da tarefa</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.ViewFolder.Root">
+          <Name>Exibições Globais</Name>
+        </DisplayString>
+      </DisplayStrings>
+      <KnowledgeArticles>
+        <KnowledgeArticle ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser" Visible="true">
+          <MamlContent>
+            <maml:section xmlns:maml="http://schemas.microsoft.com/maml/2004/10">
+              <maml:title>Resumo</maml:title>
+              <maml:para>Este pacote de gerenciamento é o local padrão para o armazenamento de todos os objetos de pacotes de gerenciamento personalizados, como regras, tarefas e monitores.  Ele também é usado para armazenar todas as substituições e notificações definidas.</maml:para>
+            </maml:section>
+          </MamlContent>
+        </KnowledgeArticle>
+      </KnowledgeArticles>
+    </LanguagePack>
+    <LanguagePack ID="PTG" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser">
+          <Name>Pacote de Idiomas do Pacote de Gestão Predefinido</Name>
+          <Description>Este pacote de gestão é a localização predefinida para armazenar todos os objetos do pacote de gestão personalizado, tais como regras, tarefas e monitores.  Também é utilizado para arquivar todas as substituições e notificações definidas. </Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.AlertView">
+          <Name>Alertas Ativos</Name>
+          <Description>Apresenta todos os alertas ativos</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.InventoryView">
+          <Name>Inventário Detetado</Name>
+          <Description>Mostra o inventário detetado</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllComputers">
+          <Name>Computadores Windows</Name>
+          <Description>Mostra o estado de todos os computadores Windows geridos</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllServices">
+          <Name>Aplicações Distribuídas</Name>
+          <Description>Mostra o estado de todas as aplicações distribuídas</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.TaskStatusView">
+          <Name>Estado da Tarefa</Name>
+          <Description>Mostra o estado da tarefa e respetivo resultado</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.ViewFolder.Root">
+          <Name>Vistas Globais</Name>
+        </DisplayString>
+      </DisplayStrings>
+      <KnowledgeArticles>
+        <KnowledgeArticle ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser" Visible="true">
+          <MamlContent>
+            <maml:section xmlns:maml="http://schemas.microsoft.com/maml/2004/10">
+              <maml:title>Resumo</maml:title>
+              <maml:para>Este pacote de gestão é a localização predefinida para armazenar todos os objetos do pacote de gestão personalizado, tais como regras, tarefas e monitores.  Também é utilizado para arquivar todas as substituições e notificações definidas.</maml:para>
+            </maml:section>
+          </MamlContent>
+        </KnowledgeArticle>
+      </KnowledgeArticles>
+    </LanguagePack>
+    <LanguagePack ID="RUS" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser">
+          <Name>Языковой пакет для пакета управления по умолчанию</Name>
+          <Description>Этот пакет управления представляет собой местоположение по умолчанию для хранения всех настраиваемых объектов пакета управления, таких как правила, задачи и мониторы.  Кроме того, он используется для хранения всех настроенных переопределений и уведомлений. </Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.AlertView">
+          <Name>Активные предупреждения</Name>
+          <Description>Отображает все активные предупреждения</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.InventoryView">
+          <Name>Обнаруженное оборудование</Name>
+          <Description>Отображает обнаруженное оборудование</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllComputers">
+          <Name>Компьютеры Windows</Name>
+          <Description>Отображает состояния всех управляемых компьютеров Windows</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllServices">
+          <Name>Распределенные приложения</Name>
+          <Description>Отображает состояние для всех распределенных приложений</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.TaskStatusView">
+          <Name>Состояние задачи</Name>
+          <Description>Отображает состояние задачи и ее результаты</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.ViewFolder.Root">
+          <Name>Глобальные представления</Name>
+        </DisplayString>
+      </DisplayStrings>
+      <KnowledgeArticles>
+        <KnowledgeArticle ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser" Visible="true">
+          <MamlContent>
+            <maml:section xmlns:maml="http://schemas.microsoft.com/maml/2004/10">
+              <maml:title>Сводка</maml:title>
+              <maml:para>Этот пакет управления представляет собой местоположение по умолчанию для хранения всех настраиваемых объектов пакета управления, таких как правила, задачи и мониторы.  Кроме того, он используется для хранения всех настроенных переопределений и уведомлений.</maml:para>
+            </maml:section>
+          </MamlContent>
+        </KnowledgeArticle>
+      </KnowledgeArticles>
+    </LanguagePack>
+    <LanguagePack ID="SVE" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser">
+          <Name>Språkpaket för standardhanteringspaket</Name>
+          <Description>Det här hanteringspaketet är standardplatsen där alla kundhanteringspaketobjekt, t.ex. regler, uppgifter och övervakningar, sparas.  Där sparas även alla åsidosättningar och aviseringar som definieras. </Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.AlertView">
+          <Name>Aktiva aviseringar</Name>
+          <Description>Visar alla aktiva varningar</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.InventoryView">
+          <Name>Identifierad inventering</Name>
+          <Description>Visar dina identifierade inventeringar</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllComputers">
+          <Name>Windows-datorer</Name>
+          <Description>Visar tillståndet för alla hanterade Windows-datorer</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllServices">
+          <Name>Distribuerade program</Name>
+          <Description>Visar tillståndet för alla distribuerade program</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.TaskStatusView">
+          <Name>Uppgiftsstatus</Name>
+          <Description>Visar status och utdata för en uppgift</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.ViewFolder.Root">
+          <Name>Globala vyer</Name>
+        </DisplayString>
+      </DisplayStrings>
+      <KnowledgeArticles>
+        <KnowledgeArticle ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser" Visible="true">
+          <MamlContent>
+            <maml:section xmlns:maml="http://schemas.microsoft.com/maml/2004/10">
+              <maml:title>Sammanfattning</maml:title>
+              <maml:para>Det här hanteringspaketet är standardplatsen där alla kundhanteringspaketobjekt, t.ex. regler, uppgifter och övervakningar, sparas.  Där sparas även alla åsidosättningar och aviseringar som definieras.</maml:para>
+            </maml:section>
+          </MamlContent>
+        </KnowledgeArticle>
+      </KnowledgeArticles>
+    </LanguagePack>
+    <LanguagePack ID="TRK" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser">
+          <Name>Varsayılan Yönetim Paketi Dil Paketi</Name>
+          <Description>Bu yönetim paketi kurallar, görevler ve izleyiciler gibi tüm özel yönetim paketi nesneleri için varsayılan saklama konumdur.  Ayrıca tanımlanan tün geçersiz kılmaları ve uyarıları saklamak için de kullanır. </Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.AlertView">
+          <Name>Etkin Uyarılar</Name>
+          <Description>Etkin tüm uyarıları görüntüler</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.InventoryView">
+          <Name>Bulunan Envanterler</Name>
+          <Description>Bulunan envanterlerinizi gösterir</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllComputers">
+          <Name>Windows Bilgisayarları</Name>
+          <Description>Yönetilen tüm Windows bilgisayarlarının durumunu gösterir</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllServices">
+          <Name>Dağıtılmış Uygulamalar</Name>
+          <Description>Dağıtılmış tüm uygulamaların durumunu gösterir</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.TaskStatusView">
+          <Name>Görev Durumu</Name>
+          <Description>Görev durumunu ve çıktısını gösterir</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.ViewFolder.Root">
+          <Name>Genel Görünümler</Name>
+        </DisplayString>
+      </DisplayStrings>
+      <KnowledgeArticles>
+        <KnowledgeArticle ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser" Visible="true">
+          <MamlContent>
+            <maml:section xmlns:maml="http://schemas.microsoft.com/maml/2004/10">
+              <maml:title>Özet</maml:title>
+              <maml:para>Bu yönetim paketi kurallar, görevler ve izleyiciler gibi tüm özel yönetim paketi nesneleri için varsayılan saklama konumdur.  Ayrıca tanımlanan tün geçersiz kılmaları ve uyarıları saklamak için de kullanır.</maml:para>
+            </maml:section>
+          </MamlContent>
+        </KnowledgeArticle>
+      </KnowledgeArticles>
+    </LanguagePack>
+    <LanguagePack ID="CHS" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser">
+          <Name>默认管理包语言包</Name>
+          <Description>此管理包是存储所有自定义管理包对象（例如规则、任务和监视器）的默认位置。它也可以用于存储已定义的所有替代和通知。 </Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.AlertView">
+          <Name>活动警报</Name>
+          <Description>显示所有活动警报</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.InventoryView">
+          <Name>发现清单</Name>
+          <Description>显示发现清单</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllComputers">
+          <Name>Windows 计算机</Name>
+          <Description>显示所有托管 Windows 计算机的状态</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllServices">
+          <Name>分布式应用程序</Name>
+          <Description>显示所有分布式应用程序的状态</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.TaskStatusView">
+          <Name>任务状态</Name>
+          <Description>显示任务状态及其输出</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.ViewFolder.Root">
+          <Name>全局视图</Name>
+        </DisplayString>
+      </DisplayStrings>
+      <KnowledgeArticles>
+        <KnowledgeArticle ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser" Visible="true">
+          <MamlContent>
+            <maml:section xmlns:maml="http://schemas.microsoft.com/maml/2004/10">
+              <maml:title>摘要</maml:title>
+              <maml:para>此管理包是存储所有自定义管理包对象（例如规则、任务和监视器）的默认位置。它也可以用于存储已定义的所有替代和通知。</maml:para>
+            </maml:section>
+          </MamlContent>
+        </KnowledgeArticle>
+      </KnowledgeArticles>
+    </LanguagePack>
+    <LanguagePack ID="CHT" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser">
+          <Name>預設管理組件語言套件</Name>
+          <Description>此管理組件是儲存所有自訂管理組件物件 (例如，規則、工作及監視) 的預設位置，也用來儲存所有已定義的覆寫和通知。 </Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.AlertView">
+          <Name>作用中警示</Name>
+          <Description>顯示所有作用中的警示</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.InventoryView">
+          <Name>已探索的清查</Name>
+          <Description>顯示您已探索到的清查</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllComputers">
+          <Name>Windows 電腦</Name>
+          <Description>顯示所有受管理 Windows 電腦的狀態</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.StateView.AllServices">
+          <Name>分散式應用程式</Name>
+          <Description>顯示所有分散式應用程式的狀態</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.TaskStatusView">
+          <Name>工作狀態</Name>
+          <Description>顯示工作狀態及其輸出</Description>
+        </DisplayString>
+        <DisplayString ElementID="System.Views.ViewFolder.Root">
+          <Name>全域檢視</Name>
+        </DisplayString>
+      </DisplayStrings>
+      <KnowledgeArticles>
+        <KnowledgeArticle ElementID="Microsoft.SystemCenter.OperationsManager.DefaultUser" Visible="true">
+          <MamlContent>
+            <maml:section xmlns:maml="http://schemas.microsoft.com/maml/2004/10">
+              <maml:title>摘要</maml:title>
+              <maml:para>此管理組件是儲存所有自訂管理組件物件 (例如，規則、工作及監視) 的預設位置，也用來儲存所有已定義的覆寫和通知。</maml:para>
+            </maml:section>
+          </MamlContent>
+        </KnowledgeArticle>
+      </KnowledgeArticles>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPack>
