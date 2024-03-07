@@ -20,14 +20,16 @@
         Where to Output the File (txt, log, etc) for Script Execution.
     .EXAMPLE
         Check All Certificates on 4 Servers and outputting the results to C:\Temp\Output.txt:
-        PS C:\> .\Invoke-CheckSCOMCertificates.ps1 -Servers ManagementServer1, ManagementServer2.contoso.com, Gateway.contoso.com, Agent1.contoso.com -All -OutputFile C:\Temp\Output.txt
+        PS C:\> .\Test-SCOMCertificate.ps1 -Servers ManagementServer1, ManagementServer2.contoso.com, Gateway.contoso.com, Agent1.contoso.com -All -OutputFile C:\Temp\Output.txt
     .EXAMPLE
         Check for a specific Certificate serialnumber in the Local Machine Personal Certificate store:
-        PS C:\> .\Invoke-CheckSCOMCertificates.ps1 -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
+        PS C:\> .\Test-SCOMCertificate.ps1 -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
     .EXAMPLE
         Check all certificates on the local machine:
-        PS C:\> .\Invoke-CheckSCOMCertificates.ps1 -All
+        PS C:\> .\Test-SCOMCertificate.ps1 -All
     .NOTES
+		Update 03/2024 (Blake Drumm, https://blakedrumm.com/)
+			Changed the name from Start-SCOMCertificateChecker to Test-SCOMCertificate.
         Update 05/2023 (Blake Drumm, https://blakedrumm.com/)
         	Added ability to check certificates missing a common name.
         Update 02/2023 (Blake Drumm, https://github.com/blakedrumm/)
@@ -64,8 +66,8 @@
         	Modification for CA chain validation
         	Adds needed check for MachineKeyStore property on the private key
         Original Publish Date 1/2009 (Lincoln Atkinson?, https://blogs.technet.microsoft.com/momteam/author/latkin/)
-        
-#>[CmdletBinding()]
+#>
+[CmdletBinding()]
 [OutputType([string])]
 param
 (
@@ -679,7 +681,7 @@ $(Invoke-TimeStamp) : Script Completed
 PROCESS
 {
 	#region Function
-	function Invoke-CheckSCOMCertificate
+	function Test-SCOMCertificate
 	{
 		[OutputType([string])]
 		[CmdletBinding()]
@@ -756,18 +758,18 @@ Certificate Checker
 	#region DefaultActions
 	if ($Servers -or $OutputFile -or $All -or $SerialNumber)
 	{
-		Invoke-CheckSCOMCertificate -Servers $Servers -OutputFile $OutputFile -All:$All -SerialNumber:$SerialNumber
+		Test-SCOMCertificate -Servers $Servers -OutputFile $OutputFile -All:$All -SerialNumber:$SerialNumber
 	}
 	else
 	{
-		# Modify line 770 if you want to change the default behavior when running this script through Powershell ISE
+		# Modify line 772 if you want to change the default behavior when running this script through Powershell ISE
 		#
 		# Examples: 
-		# Invoke-CheckSCOMCertificate -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
-		# Invoke-CheckSCOMCertificate -All
-		# Invoke-CheckSCOMCertificate -All -OutputFile C:\Temp\Certs-Output.txt
-		# Invoke-CheckSCOMCertificate -Servers MS01, MS02
-		Invoke-CheckSCOMCertificate
+		# Test-SCOMCertificate -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
+		# Test-SCOMCertificate -All
+		# Test-SCOMCertificate -All -OutputFile C:\Temp\Certs-Output.txt
+		# Test-SCOMCertificate -Servers MS01, MS02
+		Test-SCOMCertificate
 	}
 	#endregion DefaultActions
 }
