@@ -2,7 +2,7 @@
 # Original Blog Post: https://udishtech.com/associate-scom-data-warehouse-profile-using-powershell/
 # =========================================================================================================================
 # Modified by: Blake Drumm (blakedrumm@microsoft.com)
-# Last Modified: September 28th, 2022
+# Last Modified: March 8th, 2024
 # Blog Post: https://blakedrumm.com/blog/data-reader-account-provided-is-not-same-as-that-in-the-management-group/
 
 function Invoke-TimeStamp
@@ -35,7 +35,14 @@ Write-Output "$(Invoke-TimeStamp)Setting the Run As Account Association for Data
 $error.Clear()
 try
 {
-	Set-SCOMRunAsProfile -ErrorAction Stop -Action "Add" -Profile $DWActionAccountProfile -Account $DWActionAccount -Class $CollectionServerClass, $DataSetClass, $APMClass, $DWSyncClass
+	if ($APMClass)
+	{
+		Set-SCOMRunAsProfile -ErrorAction Stop -Action "Add" -Profile $DWActionAccountProfile -Account $DWActionAccount -Class $CollectionServerClass, $DataSetClass, $APMClass, $DWSyncClass
+	}
+	else
+	{
+		Set-SCOMRunAsProfile -ErrorAction Stop -Action "Add" -Profile $DWActionAccountProfile -Account $DWActionAccount -Class $CollectionServerClass, $DataSetClass, $DWSyncClass
+	}
 	Write-Output "$(Invoke-TimeStamp)Completed Successfully!"
 }
 catch
