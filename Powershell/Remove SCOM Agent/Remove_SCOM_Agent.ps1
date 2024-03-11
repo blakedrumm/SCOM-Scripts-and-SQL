@@ -125,15 +125,16 @@ Function Remove-SCOMAgent {
 
     # Check Installed Agent Version if available (GUIDs obtained from the 'ProductCode' property of the MSI installer)
     $productGUIDs = @(
-        [pscustomobject]@{Version='SCOM 2007';      GUID='{E7600A9C-6782-4221-984E-AB89C780DC2D}'},
-        [pscustomobject]@{Version='SCOM 2007R2';    GUID='{25097770-2B1F-49F6-AB9D-1C708B96262A}'},
-        [pscustomobject]@{Version='SCOM 2012';      GUID='{5155DCF6-A1B5-4882-A670-60BF9FCFD688}'},
-        [pscustomobject]@{Version='SCOM 2012R2';    GUID='{786970C5-E6F6-4A41-B238-AE25D4B91EEA}'},
-        [pscustomobject]@{Version='SCOM 2016';      GUID='{742D699D-56EB-49CC-A04A-317DE01F31CD}'}, 
-        [pscustomobject]@{Version='SCOM 1801/1807'; GUID='{EE0183F4-3BF8-4EC8-8F7C-44D3BBE6FDF0}'},
-        [pscustomobject]@{Version='SCOM 2019';      GUID='{CEB9E45B-2152-4C10-A022-0825B53B632F}'},
-        [pscustomobject]@{Version='SCOM 2022';      GUID='{382C3EC9-20AD-4E09-A6D6-8E34CF3E0586}'}
-        #[pscustomobject]@{Version='Azure';         GUID=''} # This product code changes every time they release an update, which is often. So we'll try to remove a different way
+        [pscustomobject]@{Version='SCOM 2007';      GUID='{E7600A9C-6782-4221-984E-AB89C780DC2D}'}, # Version 6.0.x.x
+        [pscustomobject]@{Version='SCOM 2007R2';    GUID='{25097770-2B1F-49F6-AB9D-1C708B96262A}'}, # Version 6.1.x.x
+        [pscustomobject]@{Version='SCOM 2012';      GUID='{5155DCF6-A1B5-4882-A670-60BF9FCFD688}'}, # Version 7.0.x.x
+        [pscustomobject]@{Version='SCOM 2012R2';    GUID='{786970C5-E6F6-4A41-B238-AE25D4B91EEA}'}, # Version 7.1.x.x
+        [pscustomobject]@{Version='SCOM 2016';      GUID='{742D699D-56EB-49CC-A04A-317DE01F31CD}'}, # Version 8.0.x.x
+        [pscustomobject]@{Version='SCOM 1801/1807'; GUID='{EE0183F4-3BF8-4EC8-8F7C-44D3BBE6FDF0}'}, # Version 8.0.13053.0/8.0.13067.0
+        [pscustomobject]@{Version='SCOM 2019';      GUID='{CEB9E45B-2152-4C10-A022-0825B53B632F}'}, # Version 10.19.x.x
+        [pscustomobject]@{Version='SCOM 2022';      GUID='{382C3EC9-20AD-4E09-A6D6-8E34CF3E0586}'}, # Version 10.22.x.x
+        # The Azure MMA product code changes every time they release an update, which is often, so we can't have a static GUID here, is released as version 10.20.x.x
+        [pscustomobject]@{Version='Azure LA';       GUID=(Get-ChildItem -Path "Registry::HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\" -Recurse -ErrorAction SilentlyContinue | Get-ItemProperty | Where-Object {($_.DisplayName -like "*Microsoft Monitoring Agent*") -and ($_.DisplayVersion -like "10.20*")}).PSChildName} 
     )
 
     # Set installed agent version defaults
@@ -253,8 +254,7 @@ InstalledOn: $installDateTime
     Write-Output "`nCleaning up registry entries"
 
     # Remove DLL registrations and additional registry keys
-    # $addtionalRegistryKeys = Get-Content $PSScriptRoot\RegistryKeys.txt
-    # $addtionalRegistryKeys | ForEach-Object { Remove-Item -Path Registry::$_ -Force -Verbose -Recurse -ErrorAction SilentlyContinue }
+    ## Comment this line out if you don't want to do this
     $RegistryKeys | ForEach-Object { Remove-Item -Path Registry::$_ -Force -Verbose -Recurse -ErrorAction SilentlyContinue }
 
     # Remove Control Panel Options
