@@ -1,6 +1,6 @@
 <#
 .AUTHOR
-	Blake Drumm (v-bldrum@microsoft.com)
+	Blake Drumm (blakedrumm@microsoft.com)
 .MODIFIED
 	June 16th, 2021
 #>
