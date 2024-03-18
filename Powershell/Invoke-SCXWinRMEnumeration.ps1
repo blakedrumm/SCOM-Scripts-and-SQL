@@ -26,11 +26,14 @@
 	.PARAMETER Credential
 		You can provide the credentials to utilize for the WinRM commands.
 	
-	.PARAMETER OutputType
-		Output type for the results. Valid values are CSV and Text.
+	.PARAMETER OriginServer
+		The origin server for where you want the queries to originate from.
 	
 	.PARAMETER OutputFile
 		Output file path for the results.
+	
+	.PARAMETER OutputType
+		Output type for the results. Valid values are CSV and Text.
 	
 	.PARAMETER PassThru
 		Do not Write-Host and pass through the Object data.
@@ -45,15 +48,15 @@
 	
 	.NOTES
 		Author: Blake Drumm
-		Version: 1.2
+		Version: 1.3
 		Created: November 17th, 2023
-		Modified: November 26th, 2023
+		Modified: March 18th, 2024
 #>
 [CmdletBinding(HelpUri = 'https://blakedrumm.com/')]
 param
 (
 	[ValidateSet('Basic', 'Kerberos')]
-	[string]$AuthenticationMethod = 'Basic',
+	[string]$AuthenticationMethod,
 	[Parameter(HelpMessage = 'Server names or IP addresses for SCX class enumeration.')]
 	[Alias('Servers')]
 	[string[]]$ComputerName,
@@ -63,11 +66,13 @@ param
 	[System.Security.SecureString]$Password,
 	[Parameter(HelpMessage = 'You can provide the credentials to utilize for the WinRM commands.')]
 	[PSCredential]$Credential,
+	[Parameter(HelpMessage = 'The origin server for where you want the queries to originate from.')]
+	[string[]]$OriginServer,
+	[Parameter(HelpMessage = 'Output file path for the results.')]
+	[string]$OutputFile,
 	[Parameter(HelpMessage = 'Output type for the results. Valid values are CSV and Text.')]
 	[ValidateSet('CSV', 'Text', 'None')]
 	[string[]]$OutputType = 'None',
-	[Parameter(HelpMessage = 'Output file path for the results.')]
-	[string]$OutputFile,
 	[Parameter(HelpMessage = 'Do not Write-Host and pass through the Object data.')]
 	[switch]$PassThru
 )
@@ -78,7 +83,7 @@ function Invoke-SCXWinRMEnumeration
 	param
 	(
 		[ValidateSet('Basic', 'Kerberos')]
-		[string]$AuthenticationMethod = 'Basic',
+		[string]$AuthenticationMethod,
 		[Parameter(Mandatory = $true,
 				   HelpMessage = 'Server names or IP addresses for SCX class enumeration.')]
 		[Alias('Servers')]
@@ -89,14 +94,24 @@ function Invoke-SCXWinRMEnumeration
 		[System.Security.SecureString]$Password,
 		[Parameter(HelpMessage = 'You can provide the credentials to utilize for the WinRM commands.')]
 		[PSCredential]$Credential,
+		[Parameter(HelpMessage = 'The origin server for where you want the queries to originate from.')]
+		[string[]]$OriginServer,
+		[Parameter(HelpMessage = 'Output file path for the results.')]
+		[string]$OutputFile,
 		[Parameter(HelpMessage = 'Output type for the results. Valid values are CSV and Text.')]
 		[ValidateSet('CSV', 'Text', 'None')]
 		[string[]]$OutputType = 'None',
-		[Parameter(HelpMessage = 'Output file path for the results.')]
-		[string]$OutputFile,
 		[Parameter(HelpMessage = 'Do not Write-Host and pass through the Object data.')]
 		[switch]$PassThru
 	)
+	
+	trap
+	{
+		Write-Warning "Error encountered: $error"
+		break
+	}
+	
+	$locallyResolvedName = (Resolve-DnsName $env:COMPUTERNAME).Name | Select-Object -Unique -Index 0
 	
 	if ($AuthenticationMethod -eq '' -or -NOT $AuthenticationMethod)
 	{
@@ -172,11 +187,153 @@ function Invoke-SCXWinRMEnumeration
 					}
 					$result = if ($Credential)
 					{
-						Get-WSManInstance -ComputerName $ServerName -Authentication $AuthenticationMethod -Credential:$Credential -Port 1270 -UseSSL -Enumerate "http://schemas.microsoft.com/wbem/wscim/1/cim-schema/2/$class`?__cimnamespace=root/scx"
+						foreach ($origin in $OriginServer)
+						{
+							$resolvedName = (Resolve-DnsName $origin).Name | Select-Object -Unique -Index 0
+							if ($resolvedName -eq "$locallyResolvedName")
+							{
+								$out = Get-WSManInstance -ComputerName $ServerName -Authentication $AuthenticationMethod -Credential:$Credential -Port 1270 -UseSSL -Enumerate "http://schemas.microsoft.com/wbem/wscim/1/cim-schema/2/$class`?__cimnamespace=root/scx" -ErrorAction Stop
+								# Define properties to exclude
+								$propertiesToExclude = @('ChildNodes', 'LastChild', 'OuterXml', 'IsReadOnly', 'SchemaInfo', 'NodeType', 'ParentNode', 'OwnerDocument', 'IsEmpty', 'Attributes', 'HasAttributes', 'InnerText', 'InnerXml', 'BaseURI', 'PreviousText', 'FirstChild', 'Value', 'NextSibling', 'PreviousSibling', 'HasChildNodes', 'RunspaceId', 'xsi')
+								
+								# Get all properties excluding the ones specified
+								$propertyInfos = $out | Get-Member -MemberType Property | Where-Object { $_.Name -notin $propertiesToExclude }
+								
+								# Create a custom PSObject with only the desired properties
+								$customObject = New-Object PSObject
+								foreach ($propInfo in $propertyInfos)
+								{
+									$propName = $propInfo.Name
+									# Use dot notation to access property values directly
+									$propValue = $out.$propName
+									# Check if the custom object already has this property to avoid duplicates
+									if (-not $customObject.PSObject.Properties.Match($propName).Count)
+									{
+										
+										if ($propValue.ChildNodes)
+										{
+											$customObject | Add-Member -MemberType NoteProperty -Name $propName -Value $propValue.InnerText
+										}
+										else
+										{
+											$customObject | Add-Member -MemberType NoteProperty -Name $propName -Value $propValue
+										}
+									}
+								}
+								
+								return $customObject
+							}
+							else
+							{
+								Invoke-Command -ComputerName $resolvedName -ScriptBlock {
+									$out = Get-WSManInstance -ComputerName $using:ServerName -Authentication $using:AuthenticationMethod -Credential:$using:Credential -Port 1270 -UseSSL -Enumerate "http://schemas.microsoft.com/wbem/wscim/1/cim-schema/2/$using:class`?__cimnamespace=root/scx" -ErrorAction Stop
+									# Define properties to exclude
+									$propertiesToExclude = @('ChildNodes', 'LastChild', 'OuterXml', 'IsReadOnly', 'SchemaInfo', 'NodeType', 'ParentNode', 'OwnerDocument', 'IsEmpty', 'Attributes', 'HasAttributes', 'InnerText', 'InnerXml', 'BaseURI', 'PreviousText', 'FirstChild', 'Value', 'NextSibling', 'PreviousSibling', 'HasChildNodes', 'RunspaceId', 'xsi')
+									
+									# Get all properties excluding the ones specified
+									$propertyInfos = $out | Get-Member -MemberType Property | Where-Object { $_.Name -notin $propertiesToExclude }
+									
+									# Create a custom PSObject with only the desired properties
+									$customObject = New-Object PSObject
+									foreach ($propInfo in $propertyInfos)
+									{
+										$propName = $propInfo.Name
+										# Use dot notation to access property values directly
+										$propValue = $out.$propName
+										# Check if the custom object already has this property to avoid duplicates
+										if (-not $customObject.PSObject.Properties.Match($propName).Count)
+										{
+											
+											if ($propValue.ChildNodes)
+											{
+												$customObject | Add-Member -MemberType NoteProperty -Name $propName -Value $propValue.InnerText
+											}
+											else
+											{
+												$customObject | Add-Member -MemberType NoteProperty -Name $propName -Value $propValue
+											}
+										}
+									}
+									
+									return $customObject
+								}
+							}
+						}
 					}
 					else
 					{
-						Get-WSManInstance -ComputerName $ServerName -Authentication $AuthenticationMethod -Port 1270 -UseSSL -Enumerate "http://schemas.microsoft.com/wbem/wscim/1/cim-schema/2/$class`?__cimnamespace=root/scx"
+						foreach ($origin in $OriginServer)
+						{
+							$resolvedName = (Resolve-DnsName $origin).Name | Select-Object -Unique -Index 0
+							if ($resolvedName -eq "$locallyResolvedName")
+							{
+								$out = Get-WSManInstance -ComputerName $ServerName -Authentication $AuthenticationMethod -Port 1270 -UseSSL -Enumerate "http://schemas.microsoft.com/wbem/wscim/1/cim-schema/2/$class`?__cimnamespace=root/scx" -ErrorAction Stop
+								# Define properties to exclude
+								$propertiesToExclude = @('ChildNodes', 'LastChild', 'OuterXml', 'IsReadOnly', 'SchemaInfo', 'NodeType', 'ParentNode', 'OwnerDocument', 'IsEmpty', 'Attributes', 'HasAttributes', 'InnerText', 'InnerXml', 'BaseURI', 'PreviousText', 'FirstChild', 'Value', 'NextSibling', 'PreviousSibling', 'HasChildNodes', 'RunspaceId', 'xsi')
+								
+								# Get all properties excluding the ones specified
+								$propertyInfos = $out | Get-Member -MemberType Property | Where-Object { $_.Name -notin $propertiesToExclude }
+								
+								# Create a custom PSObject with only the desired properties
+								$customObject = New-Object PSObject
+								foreach ($propInfo in $propertyInfos)
+								{
+									$propName = $propInfo.Name
+									# Use dot notation to access property values directly
+									$propValue = $out.$propName
+									# Check if the custom object already has this property to avoid duplicates
+									if (-not $customObject.PSObject.Properties.Match($propName).Count)
+									{
+										
+										if ($propValue.ChildNodes)
+										{
+											$customObject | Add-Member -MemberType NoteProperty -Name $propName -Value $propValue.InnerText
+										}
+										else
+										{
+											$customObject | Add-Member -MemberType NoteProperty -Name $propName -Value $propValue
+										}
+									}
+								}
+								
+								return $customObject
+							}
+							else
+							{
+								Invoke-Command -ComputerName $resolvedName -ScriptBlock {
+									$out = Get-WSManInstance -ComputerName $using:ServerName -Authentication $using:AuthenticationMethod -Port 1270 -UseSSL -Enumerate "http://schemas.microsoft.com/wbem/wscim/1/cim-schema/2/$using:class`?__cimnamespace=root/scx" -ErrorAction Stop
+									# Define properties to exclude
+									$propertiesToExclude = @('ChildNodes', 'LastChild', 'OuterXml', 'IsReadOnly', 'SchemaInfo', 'NodeType', 'ParentNode', 'OwnerDocument', 'IsEmpty', 'Attributes', 'HasAttributes', 'InnerText', 'InnerXml', 'BaseURI', 'PreviousText', 'FirstChild', 'Value', 'NextSibling', 'PreviousSibling', 'HasChildNodes', 'RunspaceId', 'xsi')
+									
+									# Get all properties excluding the ones specified
+									$propertyInfos = $out | Get-Member -MemberType Property | Where-Object { $_.Name -notin $propertiesToExclude }
+									
+									# Create a custom PSObject with only the desired properties
+									$customObject = New-Object PSObject
+									foreach ($propInfo in $propertyInfos)
+									{
+										$propName = $propInfo.Name
+										# Use dot notation to access property values directly
+										$propValue = $out.$propName
+										# Check if the custom object already has this property to avoid duplicates
+										if (-not $customObject.PSObject.Properties.Match($propName).Count)
+										{
+											
+											if ($propValue.ChildNodes)
+											{
+												$customObject | Add-Member -MemberType NoteProperty -Name $propName -Value $propValue.InnerText
+											}
+											else
+											{
+												$customObject | Add-Member -MemberType NoteProperty -Name $propName -Value $propValue
+											}
+										}
+									}
+									
+									return $customObject
+								}
+							}
+						}
 					}
 					
 					$results += $result
@@ -194,11 +351,155 @@ function Invoke-SCXWinRMEnumeration
 						}
 						$result = if ($Credential)
 						{
-							Get-WSManInstance -ComputerName $ServerName -Authentication $AuthenticationMethod -Credential:$Credential -Port 1270 -UseSSL -Enumerate "http://schemas.microsoft.com/wbem/wscim/1/cim-schema/2/$c`?__cimnamespace=root/scx"
+							foreach ($origin in $OriginServer)
+							{
+								$resolvedName = (Resolve-DnsName $origin).Name | Select-Object -Unique -Index 0
+								if ($resolvedName -eq "$locallyResolvedName")
+								{
+									$out = Get-WSManInstance -ComputerName $ServerName -Authentication $AuthenticationMethod -Credential:$Credential -Port 1270 -UseSSL -Enumerate "http://schemas.microsoft.com/wbem/wscim/1/cim-schema/2/$c`?__cimnamespace=root/scx" -ErrorAction Stop
+									# Define properties to exclude
+									$propertiesToExclude = @('ChildNodes', 'LastChild', 'OuterXml', 'IsReadOnly', 'SchemaInfo', 'NodeType', 'ParentNode', 'OwnerDocument', 'IsEmpty', 'Attributes', 'HasAttributes', 'InnerText', 'InnerXml', 'BaseURI', 'PreviousText', 'FirstChild', 'Value', 'NextSibling', 'PreviousSibling', 'HasChildNodes', 'RunspaceId', 'xsi')
+									
+									# Get all properties excluding the ones specified
+									$propertyInfos = $out | Get-Member -MemberType Property | Where-Object { $_.Name -notin $propertiesToExclude }
+									
+									# Create a custom PSObject with only the desired properties
+									$customObject = New-Object PSObject
+									foreach ($propInfo in $propertyInfos)
+									{
+										$propName = $propInfo.Name
+										# Use dot notation to access property values directly
+										$propValue = $out.$propName
+										# Check if the custom object already has this property to avoid duplicates
+										if (-not $customObject.PSObject.Properties.Match($propName).Count)
+										{
+											
+											if ($propValue.ChildNodes)
+											{
+												$customObject | Add-Member -MemberType NoteProperty -Name $propName -Value $propValue.InnerText
+											}
+											else
+											{
+												$customObject | Add-Member -MemberType NoteProperty -Name $propName -Value $propValue
+											}
+										}
+									}
+									
+									return $customObject
+								}
+								else
+								{
+									Invoke-Command -ComputerName $resolvedName -ScriptBlock {
+										Write-Host "Origin Server = $env:COMPUTERNAME`nServerName = $using:ServerName`nAuthenticationMethod = $using:AuthenticationMethod`nCredential = $using:Credential`nClass = $using:class"
+										$out = Get-WSManInstance -ComputerName $using:ServerName -Authentication $using:AuthenticationMethod -Credential:$using:Credential -Port 1270 -UseSSL -Enumerate "http://schemas.microsoft.com/wbem/wscim/1/cim-schema/2/$using:c`?__cimnamespace=root/scx" -ErrorAction Stop
+										# Define properties to exclude
+										$propertiesToExclude = @('ChildNodes', 'LastChild', 'OuterXml', 'IsReadOnly', 'SchemaInfo', 'NodeType', 'ParentNode', 'OwnerDocument', 'IsEmpty', 'Attributes', 'HasAttributes', 'InnerText', 'InnerXml', 'BaseURI', 'PreviousText', 'FirstChild', 'Value', 'NextSibling', 'PreviousSibling', 'HasChildNodes', 'RunspaceId', 'xsi')
+										
+										# Get all properties excluding the ones specified
+										$propertyInfos = $out | Get-Member -MemberType Property | Where-Object { $_.Name -notin $propertiesToExclude }
+										
+										# Create a custom PSObject with only the desired properties
+										$customObject = New-Object PSObject
+										foreach ($propInfo in $propertyInfos)
+										{
+											$propName = $propInfo.Name
+											# Use dot notation to access property values directly
+											$propValue = $out.$propName
+											# Check if the custom object already has this property to avoid duplicates
+											if (-not $customObject.PSObject.Properties.Match($propName).Count)
+											{
+												
+												if ($propValue.ChildNodes)
+												{
+													$customObject | Add-Member -MemberType NoteProperty -Name $propName -Value $propValue.InnerText
+												}
+												else
+												{
+													$customObject | Add-Member -MemberType NoteProperty -Name $propName -Value $propValue
+												}
+											}
+										}
+										
+										return $customObject
+									}
+								}
+							}
 						}
 						else
 						{
-							Get-WSManInstance -ComputerName $ServerName -Authentication $AuthenticationMethod -Port 1270 -UseSSL -Enumerate "http://schemas.microsoft.com/wbem/wscim/1/cim-schema/2/$c`?__cimnamespace=root/scx"
+							foreach ($origin in $OriginServer)
+							{
+								$resolvedName = (Resolve-DnsName $origin).Name | Select-Object -Unique -Index 0
+								if ($resolvedName -eq "$locallyResolvedName")
+								{
+									$out = Get-WSManInstance -ComputerName $ServerName -Authentication $AuthenticationMethod -Port 1270 -UseSSL -Enumerate "http://schemas.microsoft.com/wbem/wscim/1/cim-schema/2/$c`?__cimnamespace=root/scx" -ErrorAction Stop
+									# Define properties to exclude
+									$propertiesToExclude = @('ChildNodes', 'LastChild', 'OuterXml', 'IsReadOnly', 'SchemaInfo', 'NodeType', 'ParentNode', 'OwnerDocument', 'IsEmpty', 'Attributes', 'HasAttributes', 'InnerText', 'InnerXml', 'BaseURI', 'PreviousText', 'FirstChild', 'Value', 'NextSibling', 'PreviousSibling', 'HasChildNodes', 'RunspaceId', 'xsi')
+									
+									# Get all properties excluding the ones specified
+									$propertyInfos = $out | Get-Member -MemberType Property | Where-Object { $_.Name -notin $propertiesToExclude }
+									
+									# Create a custom PSObject with only the desired properties
+									$customObject = New-Object PSObject
+									foreach ($propInfo in $propertyInfos)
+									{
+										$propName = $propInfo.Name
+										# Use dot notation to access property values directly
+										$propValue = $out.$propName
+										# Check if the custom object already has this property to avoid duplicates
+										if (-not $customObject.PSObject.Properties.Match($propName).Count)
+										{
+											
+											if ($propValue.ChildNodes)
+											{
+												$customObject | Add-Member -MemberType NoteProperty -Name $propName -Value $propValue.InnerText
+											}
+											else
+											{
+												$customObject | Add-Member -MemberType NoteProperty -Name $propName -Value $propValue
+											}
+										}
+									}
+									
+									return $customObject
+								}
+								else
+								{
+									Invoke-Command -ComputerName $resolvedName -ScriptBlock {
+										Write-Host "Origin Server = $env:COMPUTERNAME`nServerName = $using:ServerName`nAuthenticationMethod = $using:AuthenticationMethod`nCredential = $using:Credential`nClass = $using:class"
+										$out = Get-WSManInstance -ComputerName $using:ServerName -Authentication $using:AuthenticationMethod -Port 1270 -UseSSL -Enumerate "http://schemas.microsoft.com/wbem/wscim/1/cim-schema/2/$using:c`?__cimnamespace=root/scx" -ErrorAction Stop
+										# Define properties to exclude
+										$propertiesToExclude = @('ChildNodes', 'LastChild', 'OuterXml', 'IsReadOnly', 'SchemaInfo', 'NodeType', 'ParentNode', 'OwnerDocument', 'IsEmpty', 'Attributes', 'HasAttributes', 'InnerText', 'InnerXml', 'BaseURI', 'PreviousText', 'FirstChild', 'Value', 'NextSibling', 'PreviousSibling', 'HasChildNodes', 'RunspaceId', 'xsi')
+										
+										# Get all properties excluding the ones specified
+										$propertyInfos = $out | Get-Member -MemberType Property | Where-Object { $_.Name -notin $propertiesToExclude }
+										
+										# Create a custom PSObject with only the desired properties
+										$customObject = New-Object PSObject
+										foreach ($propInfo in $propertyInfos)
+										{
+											$propName = $propInfo.Name
+											# Use dot notation to access property values directly
+											$propValue = $out.$propName
+											# Check if the custom object already has this property to avoid duplicates
+											if (-not $customObject.PSObject.Properties.Match($propName).Count)
+											{
+												
+												if ($propValue.ChildNodes)
+												{
+													$customObject | Add-Member -MemberType NoteProperty -Name $propName -Value $propValue.InnerText
+												}
+												else
+												{
+													$customObject | Add-Member -MemberType NoteProperty -Name $propName -Value $propValue
+												}
+											}
+										}
+										
+										return $customObject
+									}
+								}
+							}
 						}
 						
 						$results += $result
@@ -213,47 +514,64 @@ function Invoke-SCXWinRMEnumeration
 		}
 		catch
 		{
-			Write-Warning "An error occurred on $ServerName - $error"
-			$results += "Error on $ServerName`: $_"
+			$errorText = "Error for $ServerName`: $error (Authentication Username: $($Credential.UserName))"
+			if (-NOT $PassThru)
+			{
+				Write-Warning $errorText
+			}
+			$results += $errorText
 		}
 	}
-	
-	# Output handling
-	if ($OutputType -eq 'CSV')
+	try
 	{
-		if ($OutputType -match 'Text')
+		# Output handling
+		if ($OutputType -eq 'CSV')
 		{
-			$ParentDirectory = Split-Path $OutputFile
-			$OutputPath = "$ParentDirectory\$([System.IO.Path]::GetFileNameWithoutExtension($OutputFile)).csv"
+			if ($OutputType -match 'Text')
+			{
+				$ParentDirectory = Split-Path $OutputFile
+				$OutputPath = "$ParentDirectory\$([System.IO.Path]::GetFileNameWithoutExtension($OutputFile)).csv"
+			}
+			else
+			{
+				$OutputPath = $OutputFile
+			}
+			if ($results -match "Error for")
+			{
+				$results | Out-File -FilePath $OutputPath -ErrorAction Stop
+			}
+			else
+			{
+				$results | Export-Csv -Path $OutputPath -NoTypeInformation -ErrorAction Stop
+			}
+			if (-NOT $PassThru)
+			{
+				Write-Host "CSV file output located here: " -ForegroundColor Green -NoNewline
+				Write-Host "$OutputPath" -ForegroundColor Yellow
+			}
 		}
-		else
+		if ($OutputType -eq 'Text')
 		{
-			$OutputPath = $OutputFile
-		}
-		$results | Export-Csv -Path $OutputPath -NoTypeInformation
-		if (-NOT $PassThru)
-		{
-			Write-Host "CSV file output located here: " -ForegroundColor Green -NoNewline
-			Write-Host "$OutputPath" -ForegroundColor Yellow
+			if ($OutputType -match 'CSV')
+			{
+				$ParentDirectory = Split-Path $OutputFile
+				$OutputPath = "$ParentDirectory\$([System.IO.Path]::GetFileNameWithoutExtension($OutputFile)).txt"
+			}
+			else
+			{
+				$OutputPath = $OutputFile
+			}
+			$results | Out-File -FilePath $OutputPath -ErrorAction Stop
+			if (-NOT $PassThru)
+			{
+				Write-Host "Text file output located here: " -ForegroundColor Green -NoNewline
+				Write-Host "$OutputPath" -ForegroundColor Yellow
+			}
 		}
 	}
-	if ($OutputType -eq 'Text')
+	catch
 	{
-		if ($OutputType -match 'CSV')
-		{
-			$ParentDirectory = Split-Path $OutputFile
-			$OutputPath = "$ParentDirectory\$([System.IO.Path]::GetFileNameWithoutExtension($OutputFile)).txt"
-		}
-		else
-		{
-			$OutputPath = $OutputFile
-		}
-		$results | Out-File -FilePath $OutputPath
-		if (-NOT $PassThru)
-		{
-			Write-Host "Text file output located here: " -ForegroundColor Green -NoNewline
-			Write-Host "$OutputPath" -ForegroundColor Yellow
-		}
+		Write-Error "Error encountered: $error"
 	}
 	if ($OutputType -ne 'Text' -and $OutputType -ne 'CSV')
 	{
@@ -261,9 +579,9 @@ function Invoke-SCXWinRMEnumeration
 	}
 	return
 }
-if ($Servers -or $ComputerName -or $Password)
+if ($Servers -or $ComputerName -or $Password -or $OriginServer)
 {
-	Invoke-SCXWinRMEnumeration -ComputerName $ComputerName -Credential:$Credential -UserName $UserName -Password $Password -AuthenticationMethod $AuthenticationMethod -Classes $Classes -EnumerateAllClasses:$EnumerateAllClasses -OutputType:$OutputType -OutputFile $OutputFile -PassThru:$PassThru
+	Invoke-SCXWinRMEnumeration -ComputerName $ComputerName -Credential:$Credential -UserName $UserName -Password $Password -AuthenticationMethod $AuthenticationMethod -Classes $Classes -EnumerateAllClasses:$EnumerateAllClasses -OutputType:$OutputType -OutputFile $OutputFile -OriginServer $OriginServer -PassThru:$PassThru
 }
 else
 {
