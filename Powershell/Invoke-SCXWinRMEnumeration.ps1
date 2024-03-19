@@ -48,7 +48,7 @@
 	
 	.NOTES
 		Author: Blake Drumm
-		Version: 1.4
+		Version: 1.5
 		Created: November 17th, 2023
 		Modified: March 18th, 2024
 #>
@@ -540,15 +540,9 @@ function Invoke-SCXWinRMEnumeration
 		# Output handling
 		if ($OutputType -eq 'CSV')
 		{
-			if ($OutputType -match 'Text')
-			{
-				$ParentDirectory = Split-Path $OutputFile
-				$OutputPath = "$ParentDirectory\$([System.IO.Path]::GetFileNameWithoutExtension($OutputFile)).csv"
-			}
-			else
-			{
-				$OutputPath = $OutputFile
-			}
+			$ParentDirectory = Split-Path $OutputFile
+			$OutputPath = "$ParentDirectory\$([System.IO.Path]::GetFileNameWithoutExtension($OutputFile)).csv"
+			
 			if ($results -match "Error for")
 			{
 				$results | Out-File -FilePath $OutputPath -ErrorAction Stop
@@ -565,15 +559,9 @@ function Invoke-SCXWinRMEnumeration
 		}
 		if ($OutputType -eq 'Text')
 		{
-			if ($OutputType -match 'CSV')
-			{
-				$ParentDirectory = Split-Path $OutputFile
-				$OutputPath = "$ParentDirectory\$([System.IO.Path]::GetFileNameWithoutExtension($OutputFile)).txt"
-			}
-			else
-			{
-				$OutputPath = $OutputFile
-			}
+			$ParentDirectory = Split-Path $OutputFile
+			$OutputPath = "$ParentDirectory\$([System.IO.Path]::GetFileNameWithoutExtension($OutputFile)).txt"
+			
 			$results | Out-File -FilePath $OutputPath -ErrorAction Stop
 			if (-NOT $PassThru)
 			{
