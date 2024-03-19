@@ -48,7 +48,7 @@
 	
 	.NOTES
 		Author: Blake Drumm
-		Version: 1.3
+		Version: 1.4
 		Created: November 17th, 2023
 		Modified: March 18th, 2024
 #>
@@ -157,6 +157,11 @@ function Invoke-SCXWinRMEnumeration
 		$EnumerateAllClasses = $true
 	}
 	
+	if (-NOT $OriginServer)
+	{
+		$OriginServer = $locallyResolvedName
+	}
+	
 	$results = @()
 	
 	foreach ($ServerName in $ComputerName)
@@ -181,14 +186,17 @@ function Invoke-SCXWinRMEnumeration
 			{
 				foreach ($class in $scxClasses)
 				{
-					if (-NOT $PassThru)
-					{
-						Write-Host "   Enumerating: $class" -ForegroundColor Cyan
-					}
 					$result = if ($Credential)
 					{
 						foreach ($origin in $OriginServer)
 						{
+							if (-NOT $PassThru)
+							{
+								Write-Host "   Enumerating: $class" -ForegroundColor Cyan -NoNewline
+								Write-Host " (Origin server: " -NoNewline
+								Write-Host "$origin" -ForegroundColor DarkYellow -NoNewline
+								Write-Host ")"
+							}
 							$resolvedName = (Resolve-DnsName $origin).Name | Select-Object -Unique -Index 0
 							if ($resolvedName -eq "$locallyResolvedName")
 							{
@@ -221,7 +229,9 @@ function Invoke-SCXWinRMEnumeration
 									}
 								}
 								
-								return $customObject
+								$customObject | Add-Member -MemberType NoteProperty -Name PSComputerName -Value $locallyResolvedName
+								
+								$customObject
 							}
 							else
 							{
@@ -295,8 +305,9 @@ function Invoke-SCXWinRMEnumeration
 										}
 									}
 								}
+								$customObject | Add-Member -MemberType NoteProperty -Name PSComputerName -Value $locallyResolvedName
 								
-								return $customObject
+								$customObject
 							}
 							else
 							{
@@ -384,8 +395,9 @@ function Invoke-SCXWinRMEnumeration
 											}
 										}
 									}
+									$customObject | Add-Member -MemberType NoteProperty -Name PSComputerName -Value $locallyResolvedName
 									
-									return $customObject
+									$customObject
 								}
 								else
 								{
@@ -460,13 +472,14 @@ function Invoke-SCXWinRMEnumeration
 											}
 										}
 									}
+									$customObject | Add-Member -MemberType NoteProperty -Name PSComputerName -Value $locallyResolvedName
 									
-									return $customObject
+									$customObject
 								}
 								else
 								{
 									Invoke-Command -ComputerName $resolvedName -ScriptBlock {
-										Write-Host "Origin Server = $env:COMPUTERNAME`nServerName = $using:ServerName`nAuthenticationMethod = $using:AuthenticationMethod`nCredential = $using:Credential`nClass = $using:class"
+										#Write-Host "Origin Server = $env:COMPUTERNAME`nServerName = $using:ServerName`nAuthenticationMethod = $using:AuthenticationMethod`nCredential = $using:Credential`nClass = $using:class"
 										$out = Get-WSManInstance -ComputerName $using:ServerName -Authentication $using:AuthenticationMethod -Port 1270 -UseSSL -Enumerate "http://schemas.microsoft.com/wbem/wscim/1/cim-schema/2/$using:c`?__cimnamespace=root/scx" -ErrorAction Stop
 										# Define properties to exclude
 										$propertiesToExclude = @('ChildNodes', 'LastChild', 'OuterXml', 'IsReadOnly', 'SchemaInfo', 'NodeType', 'ParentNode', 'OwnerDocument', 'IsEmpty', 'Attributes', 'HasAttributes', 'InnerText', 'InnerXml', 'BaseURI', 'PreviousText', 'FirstChild', 'Value', 'NextSibling', 'PreviousSibling', 'HasChildNodes', 'RunspaceId', 'xsi')
