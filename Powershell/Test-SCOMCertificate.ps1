@@ -28,8 +28,8 @@
         Check all certificates on the local machine:
         PS C:\> .\Test-SCOMCertificate.ps1 -All
     .NOTES
-		Update 03/2024 (Blake Drumm, https://blakedrumm.com/)
-			Changed the name from Start-SCOMCertificateChecker to Test-SCOMCertificate.
+        Update 03/2024 (Blake Drumm, https://blakedrumm.com/)
+        	Changed the name from Start-SCOMCertificateChecker to Test-SCOMCertificate.
         Update 05/2023 (Blake Drumm, https://blakedrumm.com/)
         	Added ability to check certificates missing a common name.
         Update 02/2023 (Blake Drumm, https://github.com/blakedrumm/)
