@@ -1,5 +1,6 @@
 # Author: Blake Drumm (blakedrumm@microsoft.com)
 # Date created: February 29th, 2024
+# Date modified: March 20th, 2024
 # Description: This script will allow you to make the System Center Operations Manager PowerShell module portable. 
 #              Run this on a server that is a SCOM Management Server or has the Console installed on it. The script will 
 #              zip up the output folder and all you have to do is copy the zip to a remote machine (where you want to install
@@ -15,9 +16,13 @@ $zipFilePath = "C:\Temp\SCOM-PowerShellModule.zip"
 
 # The path to the Powershell folder in the SCOM installation folder
 $powerShellFolder = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\System Center Operations Manager\12\Setup\Powershell\V2" -Name InstallDirectory
+$serverFolder = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\System Center Operations Manager\12\Setup\Server" -Name InstallDirectory
+$consoleFolder = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\System Center Operations Manager\12\Setup\Console" -Name InstallDirectory
 # Uncomment the below to force the path to a specific directory, instead of detecting automatically from the registry.
 #$powerShellFolder = "C:\Program Files\Microsoft System Center\Operations Manager\Powershell"
 Write-Output "PowerShell folder path: $powerShellFolder"
+Write-Output "Server folder path: $serverFolder"
+Write-Output "Console folder path: $consoleFolder"
 
 # Check if the folder exists
 if (-Not (Test-Path -Path $folderPath))
@@ -32,12 +37,61 @@ else
 	Write-Output "Output folder '$folderPath' already exists."
 }
 
+if (-Not (Test-Path -Path $folderPath\Server))
+{
+	# Folder does not exist, so create it
+	New-Item -ItemType Directory -Path $folderPath\Server -Force | Out-Null
+	Write-Output "Output folder '$folderPath\Server' has been created."
+	
+	$langCodes = @(
+		'cs',
+		'de',
+		'en',
+		'es',
+		'FR',
+		'HU',
+		'IT',
+		'JA',
+		'KO',
+		'NL',
+		'PL',
+		'pt-BR',
+		'pt-PT',
+		'RU',
+		'SV',
+		'TR',
+		'zh-CHS',
+		'zh-CHT',
+		'zh-HK'
+	)
+	
+	$langCodes | ForEach-Object { New-Item -ItemType Directory -Path $folderPath\Server\$_ -Force | Out-Null }
+}
+else
+{
+	# Folder already exists
+	Write-Output "Output folder '$folderPath\Server' already exists."
+}
+
+if (-Not (Test-Path -Path $folderPath\Console))
+{
+	# Folder does not exist, so create it
+	New-Item -ItemType Directory -Path $folderPath\Console -Force | Out-Null
+	Write-Output "Output folder '$folderPath\Console' has been created."
+}
+else
+{
+	# Folder already exists
+	Write-Output "Output folder '$folderPath\Console' already exists."
+}
+
 Get-ChildItem 'C:\Windows\Microsoft.NET\assembly\GAC_MSIL\Microsoft.EnterpriseManagement*' | ForEach-Object {
 	Copy-Item -Path $_.FullName -Destination $folderPath -Force -Recurse
 }
 
 Write-Output "  - Copied the required GAC_MSIL files."
 
+# PowerShell Folder Path
 try
 {
 	$resolvedPath = (Resolve-Path -Path $powerShellFolder -ErrorAction Stop).Path
@@ -49,8 +103,42 @@ catch
 	break
 }
 
+# Server Folder Path
+try
+{
+	$resolvedPath = (Resolve-Path -Path $serverFolder -ErrorAction Stop).Path
+	Copy-Item -Path "$resolvedPath\Microsoft.Mom.Common.dll" -Destination $folderPath\Server -Force
+	Copy-Item -Path "$resolvedPath\Microsoft.EnterpriseManagement.DataAccessLayer.dll" -Destination $folderPath\Server -Force
+	Copy-Item -Path "$resolvedPath\Microsoft.EnterpriseManagement.DataAccessService.Core.dll" -Destination $folderPath\Server -Force
+	Copy-Item -Path "$resolvedPath\Microsoft.Mom.Sdk.Authorization.dll" -Destination $folderPath\Server -Force
+	$langCodes | ForEach-Object { Copy-Item -Path "$resolvedPath\$_" -Destination $folderPath\Server -Force }
+	Write-Output "  - Copied the required Management Server DLL files."
+}
+catch
+{
+	Write-Warning "Unable to locate the path '$serverFolder'!"
+	break
+}
+
+# Console Folder Path
+try
+{
+	$resolvedPath = (Resolve-Path -Path $consoleFolder -ErrorAction Stop).Path
+	Copy-Item -Path $resolvedPath\Microsoft.Mom.Common.dll -Destination $folderPath\Console -Recurse -Force
+	Write-Output "  - Copied the required Operations Manager Console DLL files."
+}
+catch
+{
+	Write-Warning "Unable to locate the path '$consoleFolder'!"
+	break
+}
+
 # Create a text file with the $powerShellFolder path inside the $folderPath
 Set-Content -Path "$folderPath\PowerShellFolderInfo.txt" -Value "$powerShellFolder"
+
+Set-Content -Path "$folderPath\ServerFolderInfo.txt" -Value "$serverFolder"
+
+Set-Content -Path "$folderPath\ConsoleFolderInfo.txt" -Value "$consoleFolder"
 
 Set-Content -Path "$folderPath\Install-SCOMModule.ps1" -Value @"
 [CmdletBinding()]
@@ -101,6 +189,9 @@ else
 
 
 `$powerShellFolder = Get-Content .\PowerShellFolderInfo.txt
+`$serverFolder = Get-Content .\ServerFolderInfo.txt
+`$consoleFolder = Get-Content .\ConsoleFolderInfo.txt
+
 try
 {
 	`$gacPath = (Resolve-Path "C:\Windows\Microsoft.NET\assembly\GAC_MSIL" -ErrorAction Stop).Path
@@ -111,7 +202,7 @@ catch
 	return
 }
 Get-ChildItem ".\Microsoft.EnterpriseManagement*" | % {
-	`$resolvePath = Resolve-Path `$gacPath\`$(`$_.Name)
+	`$resolvePath = Resolve-Path `$gacPath\`$(`$_.Name) -ErrorAction SilentlyContinue
 	if (-NOT `$resolvePath)
 	{
 		Copy-Item -Path `$_.FullName -Destination `$gacPath -Force -Recurse
@@ -119,17 +210,22 @@ Get-ChildItem ".\Microsoft.EnterpriseManagement*" | % {
 }
 Copy-Item -Path .\Powershell\ -Destination `$powerShellFolder -Force -Recurse
 
+Copy-Item -Path .\Server\ -Destination `$serverFolder -Force -Recurse
+
+Copy-Item -Path .\Console\ -Destination `$consoleFolder -Force -Recurse
+
 `$p = [Environment]::GetEnvironmentVariable("PSModulePath")
-if (-NOT `$p -contains `$powerShellFolder)
+if (`$p -notcontains `$powerShellFolder)
 {
-	`$p += ";`$powerShellFolder"
-	[Environment]::SetEnvironmentVariable("PSModulePath", `$p, 'Machine')
+	`$envVariable += "`$p;`$powerShellFolder"
+	[Environment]::SetEnvironmentVariable("PSModulePath", `$envVariable, 'Machine')
 	Write-Output "  - Added module to the machine level environmental variable (PSModulePath)"
 }
 else
 {
 	Write-Output "  - Module is already in the machine level environmental variable (PSModulePath)"
 }
+<#
 try
 {
 	Import-Module OperationsManager -Verbose -ErrorAction Stop
@@ -139,7 +235,9 @@ catch
 	Write-Warning "Unable to import the SCOM PowerShell Module!`n`$_"
 	return
 }
-Write-Output "Completed importing the SCOM PowerShell Module!
+Write-Output "Completed importing the SCOM PowerShell Module!"
+#>
+Write-Output "Close this window and reopen a new PowerShell window. Run the following command to import the Operations Manager PowerShell module: Import-Module OperationsManager"
 "@
 
 Set-Content -Path "$folderPath\Readme.txt" -Value @"
