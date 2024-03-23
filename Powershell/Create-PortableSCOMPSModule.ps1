@@ -1,6 +1,6 @@
 # Author: Blake Drumm (blakedrumm@microsoft.com)
 # Date created: February 29th, 2024
-# Date modified: March 20th, 2024
+# Date modified: March 23rd, 2024
 # Description: This script will allow you to make the System Center Operations Manager PowerShell module portable. 
 #              Run this on a server that is a SCOM Management Server or has the Console installed on it. The script will 
 #              zip up the output folder and all you have to do is copy the zip to a remote machine (where you want to install
@@ -142,14 +142,36 @@ Set-Content -Path "$folderPath\ConsoleFolderInfo.txt" -Value "$consoleFolder"
 
 Set-Content -Path "$folderPath\Install-SCOMModule.ps1" -Value @"
 [CmdletBinding()]
-param ()
-
+param
+(
+	[Parameter(Mandatory = `$false)]
+	[ValidateSet('Install', 'Uninstall')]
+	`$Action = 'Install'
+)
+function Time-Stamp
+{
+	`$todaysDate = (Get-Date)
+	return "`$(`$todaysDate.ToLocalTime().ToShortDateString()) @ `$(`$todaysDate.ToLocalTime().ToLongTimeString()) - "
+}
 if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))
 {
-	Write-Warning "This script must be run as an administrator!"
+	Write-Warning "`$(Time-Stamp)This script must be run as an administrator!"
 	return
 }
 
+if (-NOT `$PSScriptRoot)
+{
+	`$Path = `$PWD.Path
+}
+else
+{
+	`$Path = `$PSScriptRoot
+}
+
+[System.Reflection.Assembly]::Load("System.EnterpriseServices, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")
+`$publish = New-Object System.EnterpriseServices.Internal.Publish
+
+<#
 # Define the registry path where .NET Framework versions are stored
 `$regPath = "HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\"
 
@@ -164,33 +186,33 @@ if (Test-Path `$regPath)
 	# .NET Framework 4.8 release key: 528040
 	if (`$versionValue -ge 461808 -and `$versionValue -lt 528040)
 	{
-		Write-Output "  - .NET Framework 4.7.2 is installed."
+		Write-Output "`$(Time-Stamp)  - .NET Framework 4.7.2 is installed."
 	}
 	elseif (`$versionValue -eq 528040)
 	{
-		Write-Output "  - .NET Framework 4.8 is installed."
+		Write-Output "`$(Time-Stamp)  - .NET Framework 4.8 is installed."
 	}
 	elseif (`$versionValue -gt 528040)
 	{
-		Write-Output "  - Higher than .NET Framework 4.8 is installed. Unable to proceed."
+		Write-Output "`$(Time-Stamp)  - Higher than .NET Framework 4.8 is installed. Unable to proceed."
 		return
 	}
 	else
 	{
-		Write-Warning "Neither .NET Framework 4.7.2 nor 4.8 is installed. Unable to proceed."
+		Write-Warning "`$(Time-Stamp)Neither .NET Framework 4.7.2 nor 4.8 is installed. Unable to proceed."
 		return
 	}
 }
 else
 {
-	Write-Warning "Unable to find .NET Framework 4.x installation. Unable to proceed."
+	Write-Warning "`$(Time-Stamp)Unable to find .NET Framework 4.x installation. Unable to proceed."
 	return
 }
+#>
 
-
-`$powerShellFolder = Get-Content .\PowerShellFolderInfo.txt
-`$serverFolder = Get-Content .\ServerFolderInfo.txt
-`$consoleFolder = Get-Content .\ConsoleFolderInfo.txt
+`$powerShellFolder = Get-Content `$Path\PowerShellFolderInfo.txt
+`$serverFolder = Get-Content `$Path\ServerFolderInfo.txt
+`$consoleFolder = Get-Content `$Path\ConsoleFolderInfo.txt
 
 try
 {
@@ -198,33 +220,47 @@ try
 }
 catch
 {
-	Write-Warning "Unable to locate the path: 'C:\Windows\Microsoft.NET\assembly\GAC_MSIL'. Unable to proceed."
+	Write-Warning "`$(Time-Stamp)Unable to locate the path: 'C:\Windows\Microsoft.NET\assembly\GAC_MSIL'. Unable to proceed."
 	return
 }
-Get-ChildItem ".\Microsoft.EnterpriseManagement*" | % {
-	`$resolvePath = Resolve-Path `$gacPath\`$(`$_.Name) -ErrorAction SilentlyContinue
-	if (-NOT `$resolvePath)
-	{
-		Copy-Item -Path `$_.FullName -Destination `$gacPath -Force -Recurse
+if (`$Action -eq 'Install')
+{
+	Get-ChildItem "`$Path\Microsoft.EnterpriseManagement*" | % {
+		`$resolvePath = Resolve-Path `$gacPath\`$(`$_.Name) -ErrorAction SilentlyContinue
+		if (-NOT `$resolvePath)
+		{
+			`$publish.GacInstall("`$(`$_.FullName)")
+			#Copy-Item -Path `$_.FullName -Destination `$gacPath -Force -Recurse
+		}
 	}
-}
-Copy-Item -Path .\Powershell\ -Destination `$powerShellFolder -Force -Recurse
-
-Copy-Item -Path .\Server\ -Destination `$serverFolder -Force -Recurse
-
-Copy-Item -Path .\Console\ -Destination `$consoleFolder -Force -Recurse
-
-`$p = [Environment]::GetEnvironmentVariable("PSModulePath")
-if (`$p -notcontains `$powerShellFolder)
-{
-	`$envVariable += "`$p;`$powerShellFolder"
-	[Environment]::SetEnvironmentVariable("PSModulePath", `$envVariable, 'Machine')
-	Write-Output "  - Added module to the machine level environmental variable (PSModulePath)"
-}
-else
-{
-	Write-Output "  - Module is already in the machine level environmental variable (PSModulePath)"
-}
+	New-Item -Path `$powerShellFolder -ItemType Directory -Force | Out-Null
+	Copy-Item -Path "`$Path\Powershell\*" -Destination `$powerShellFolder -Force -Recurse
+	
+	New-Item -Path `$serverFolder -ItemType Directory -Force | Out-Null
+	Copy-Item -Path "`$Path\Server\*" -Destination `$serverFolder -Force -Recurse
+	
+	New-Item -Path `$consoleFolder -ItemType Directory -Force | Out-Null
+	Copy-Item -Path "`$Path\Console\*" -Destination `$consoleFolder -Force -Recurse
+	
+	# Get current PSModulePath and split into an array
+	`$envVariableArray = [Environment]::GetEnvironmentVariable("PSModulePath", "Machine") -split ';'
+	
+	# Check if `$powerShellFolder is already in the array
+	if (`$envVariableArray -notcontains `$powerShellFolder)
+	{
+		# If not, add it to the array
+		`$envVariableArray += `$powerShellFolder
+		
+		# Rejoin the array into a string with ";" and set the environment variable
+		`$newEnvVariable = `$envVariableArray -join ';'
+		[Environment]::SetEnvironmentVariable("PSModulePath", `$newEnvVariable, "Machine")
+		
+		Write-Output "`$(Time-Stamp) - Added module to the machine level environmental variable (PSModulePath)"
+	}
+	else
+	{
+		Write-Output "`$(Time-Stamp) - Module is already in the machine level environmental variable (PSModulePath)"
+	}
 <#
 try
 {
@@ -232,12 +268,43 @@ try
 }
 catch
 {
-	Write-Warning "Unable to import the SCOM PowerShell Module!`n`$_"
+	Write-Warning "`$(Time-Stamp)Unable to import the SCOM PowerShell Module!`n`$_"
 	return
 }
-Write-Output "Completed importing the SCOM PowerShell Module!"
+Write-Output "`$(Time-Stamp)Completed importing the SCOM PowerShell Module!"
 #>
-Write-Output "Close this window and reopen a new PowerShell window. Run the following command to import the Operations Manager PowerShell module: Import-Module OperationsManager"
+	Write-Output "`$(Time-Stamp)Close this window and reopen a new PowerShell window. Run the following command to import the Operations Manager PowerShell module: Import-Module OperationsManager"
+}
+elseif (`$Action -eq 'Uninstall')
+{
+	Get-ChildItem "`$Path\Microsoft.EnterpriseManagement*" | % {
+		`$resolvedPath = (Resolve-Path `$gacPath\`$(`$_.Name) -ErrorAction SilentlyContinue)
+		if (`$resolvedPath)
+		{
+			`$publish.GacRemove("`$resolvedPath")
+			`$publish.UnRegisterAssembly()
+		}
+	}
+	
+	`$resolvedPath = Resolve-Path `$serverFolder -ErrorAction SilentlyContinue
+	if (`$resolvedPath)
+	{
+		Remove-Item -Path `$resolvedPath -Force -Recurse
+	}
+	
+	`$resolvedPath = Resolve-Path `$consoleFolder -ErrorAction SilentlyContinue
+	if (`$resolvedPath)
+	{
+		Remove-Item -Path `$resolvedPath -Force -Recurse
+	}
+	
+	`$resolvedPath = Resolve-Path `$powerShellFolder -ErrorAction SilentlyContinue
+	if (`$resolvedPath)
+	{
+		Remove-Item -Path `$resolvedPath -Force -Recurse
+	}
+	Write-Output "`$(Time-Stamp)Completed removing the SCOM PowerShell Module!"
+}
 "@
 
 Set-Content -Path "$folderPath\Readme.txt" -Value @"
