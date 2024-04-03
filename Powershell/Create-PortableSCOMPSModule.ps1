@@ -4,7 +4,7 @@
 # Description: This script will allow you to make the System Center Operations Manager PowerShell module portable. 
 #              Run this on a server that is a SCOM Management Server or has the Console installed on it. The script will 
 #              zip up the output folder and all you have to do is copy the zip to a remote machine (where you want to install
-#              the SCOM PowerShell Module), extract it, and run the Install-SCOMModule.ps1 file. (The Install-SCOMModule.ps1 file is located in the output folder / zip.)
+#              the SCOM PowerShell Module), extract it, and run the Install-SCOMModule.ps1 file (as Administrator). (The Install-SCOMModule.ps1 file is located in the output folder / zip.)
 
 #---------------------------------------------
 # Variables to edit
