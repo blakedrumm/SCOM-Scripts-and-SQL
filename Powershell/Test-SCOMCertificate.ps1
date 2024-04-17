@@ -20,13 +20,13 @@
         Where to Output the File (txt, log, etc) for Script Execution.
     .EXAMPLE
         Check All Certificates on 4 Servers and outputting the results to C:\Temp\Output.txt:
-        PS C:\> .\Test-SCOMCertificate.ps1 -Servers ManagementServer1, ManagementServer2.contoso.com, Gateway.contoso.com, Agent1.contoso.com -All -OutputFile C:\Temp\Output.txt
+        PS C:\> .\Test-SCOMCertificates.ps1 -Servers ManagementServer1, ManagementServer2.contoso.com, Gateway.contoso.com, Agent1.contoso.com -All -OutputFile C:\Temp\Output.txt
     .EXAMPLE
         Check for a specific Certificate serialnumber in the Local Machine Personal Certificate store:
-        PS C:\> .\Test-SCOMCertificate.ps1 -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
+        PS C:\> .\Test-SCOMCertificates.ps1 -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
     .EXAMPLE
         Check all certificates on the local machine:
-        PS C:\> .\Test-SCOMCertificate.ps1 -All
+        PS C:\> .\Test-SCOMCertificates.ps1 -All
     .NOTES
         Update 03/2024 (Blake Drumm, https://blakedrumm.com/)
         	Changed the name from Start-SCOMCertificateChecker to Test-SCOMCertificate.
