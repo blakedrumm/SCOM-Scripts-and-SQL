@@ -13,7 +13,8 @@
     .NOTES
         Original Author: Mike Kallhoff
         Author: Blake Drumm (blakedrumm@microsoft.com)
-        Modified: November 8th, 2023
+	Website: https://blakedrumm.com/
+        Modified: April 18th, 2024
         Hosted here: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Get-TLSRegistryKeys.ps1
 #>
 [CmdletBinding()]
@@ -84,7 +85,7 @@ Function Get-TLSRegistryKeys
 			}
 		}
 		$finalData = @()
-		$ProtocolList = "TLS 1.0", "TLS 1.1", "TLS 1.2"
+		$ProtocolList = "TLS 1.0", "TLS 1.1", "TLS 1.2", "TLS 1.3"
 		$ProtocolSubKeyList = "Client", "Server"
 		$DisabledByDefault = "DisabledByDefault"
 		$Enabled = "Enabled"
@@ -103,8 +104,8 @@ Function Get-TLSRegistryKeys
 				$localresults = @()
 				if (!(Test-Path $currentRegPath))
 				{
-					$IsDisabledByDefault = "Null"
-					$IsEnabled = "Null"
+					$IsDisabledByDefault = "DoesntExist"
+					$IsEnabled = "DoesntExist"
 				}
 				else
 				{
@@ -129,38 +130,42 @@ Function Get-TLSRegistryKeys
 				}
 				$localresults = "PipeLineKickStart" | Select-Object @{ n = 'Protocol'; e = { $Protocol } },
 																	@{ n = 'Type'; e = { $key } },
-																	@{ n = 'DisabledByDefault'; e = { 
-																		$output = ($IsDisabledByDefault).ToString()
-																		if ($output -eq '0')
-																		{
-																			$output.Replace('0', 'False').Replace('1', 'True') 
-																		}
-																		elseif ($output -eq '$0xffffffff')
-																		{
-																			"$output (True)"
-																		}
-																		else
-																		{
-																			$output
-																		}
-																		
-																		} },
-																	@{ n = 'IsEnabled'; e = { 
-																		$output = ($IsEnabled).ToString()
-																		if ($output -eq '0')
-																		{
-																			$output.Replace('0', 'False').Replace('1', 'True') 
-																		}
-																		elseif ($output -eq '$0xffffffff')
-																		{
-																			"$output (True)"
-																		}
-																		else
-																		{
-																			$output
-																		}
-
-																		} }
+																	@{
+					n = 'DisabledByDefault'; e = {
+						$output = ($IsDisabledByDefault).ToString()
+						if ($output -eq '0')
+						{
+							$output.Replace('0', 'False').Replace('1', 'True')
+						}
+						elseif ($output -eq '$0xffffffff')
+						{
+							"$output (True)"
+						}
+						else
+						{
+							$output
+						}
+						
+					}
+				},
+																	@{
+					n = 'IsEnabled'; e = {
+						$output = ($IsEnabled).ToString()
+						if ($output -eq '0')
+						{
+							$output.Replace('0', 'False').Replace('1', 'True')
+						}
+						elseif ($output -eq '$0xffffffff')
+						{
+							"$output (True)"
+						}
+						else
+						{
+							$output
+						}
+						
+					}
+				}
 				$finalData += $localresults
 			}
 		}
@@ -265,8 +270,8 @@ Function Get-TLSRegistryKeys
 				$localresults = @()
 				if (!(Test-Path $currentRegPath))
 				{
-					$IsDisabledByDefault = "Null"
-					$IsEnabled = "Null"
+					$IsDisabledByDefault = "Not Present"
+					$IsEnabled = "Not Present"
 				}
 				else
 				{
