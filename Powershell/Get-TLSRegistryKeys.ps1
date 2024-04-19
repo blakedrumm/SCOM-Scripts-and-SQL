@@ -13,7 +13,7 @@
     .NOTES
         Original Author: Mike Kallhoff
         Author: Blake Drumm (blakedrumm@microsoft.com)
-	Website: https://blakedrumm.com/
+        Website: https://blakedrumm.com/
         Modified: April 18th, 2024
         Hosted here: https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/Get-TLSRegistryKeys.ps1
 #>
