@@ -15,7 +15,7 @@
         The password for the SMTP server, should be passed as a secure string.
 
     .PARAMETER Credential
-        An optional PSCredential object that contains the user's credentials.
+        An optional PSCredential object that contains the user's credentials to authenticate to the SMTP server.
 
     .PARAMETER From
         The email address of the sender.
