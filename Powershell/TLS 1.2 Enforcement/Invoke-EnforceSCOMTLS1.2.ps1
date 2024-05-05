@@ -1,6 +1,6 @@
 <#
 	.SYNOPSIS
-		This script allows you to enforce TLS 1.2 on System Center Operation Manager environments.
+		This script allows you to enforce TLS 1.2 / 1.3 on System Center Operation Manager environments.
 	
 	.DESCRIPTION
 		Use this script when you need to want to automate the steps listed here:
@@ -51,7 +51,7 @@
 	.NOTES
 		=================================================================================
 		
-				 SCOM TLS 1.2 Configuration Script
+				 SCOM TLS 1.2 / 1.3 Configuration Script
 					     v 2.3
 	  
 		 This script supports: SCOM 2012R2, 2016, 1801, 1807, 2019, and 2022
@@ -61,7 +61,7 @@
 		 Original Author: Kevin Holman (https://kevinholman.com/)
 		 Author: Blake Drumm (https://blakedrumm.com/)
 		
-		 Last Updated: October 23rd, 2023
+		 Last Updated: May 5th, 2024
 	
 	  	 Blog Post: https://blakedrumm.com/blog/enforce-tls-1-2-scom/
 		
