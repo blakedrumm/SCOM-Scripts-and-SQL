@@ -28,6 +28,8 @@
         Check all certificates on the local machine:
         PS C:\> .\Test-SCOMCertificates.ps1 -All
     .NOTES
+        Update 05/2024 (Blake Drumm, https://blakedrumm.com/)
+        	Updated the way the subject name is parsed against the DNS resolved name of the machine.
         Update 03/2024 (Blake Drumm, https://blakedrumm.com/)
         	Changed the name from Start-SCOMCertificateChecker to Test-SCOMCertificate.
         Update 05/2023 (Blake Drumm, https://blakedrumm.com/)
@@ -286,15 +288,14 @@ $($ChainCertsOutput)
 			$out += "`n" + "`n" + $text4
 			$pass = $true
 			# Check subjectname
-			$fqdn = $env:ComputerName
-			$fqdn += "." + [DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name
+			$fqdn = (Resolve-DnsName $env:COMPUTERNAME -Type A | Select-Object -ExpandProperty Name -Unique) -join " "
 			trap [DirectoryServices.ActiveDirectory.ActiveDirectoryObjectNotFoundException]
 			{
 				# Not part of a domain
 				continue;
 			}
 			$subjectProblem = $false
-			$fqdnRegexPattern = "CN=" + $fqdn.Replace(".", "\.") + '(,.*)?$'
+			$fqdnRegexPattern = "CN=" + ($fqdn.Replace(".", "\.")).Replace(" ", "|CN=")
 			try { $CheckForDuplicateSubjectCNs = ((($cert).Subject).Split(",") | %{ $_.Trim() } | Where { $_ -match "CN=" }).Trim("CN=") | % { $_.Split(".") | Select-Object -First 1 } | Group-Object | Where-Object { $_.Count -gt 1 } | Select -ExpandProperty Name }
 			catch { $CheckForDuplicateSubjectCNs = $null }
 			
@@ -755,6 +756,7 @@ Certificate Checker
 		continue
 	}
 	#endregion Function
+ 
 	#region DefaultActions
 	if ($Servers -or $OutputFile -or $All -or $SerialNumber)
 	{
