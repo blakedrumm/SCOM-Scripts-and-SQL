@@ -294,6 +294,7 @@ $($ChainCertsOutput)
 				# Not part of a domain
 				continue;
 			}
+			
 			$subjectProblem = $false
 			$fqdnRegexPattern = "CN=" + ($fqdn.Replace(".", "\.")).Replace(" ", "|CN=")
 			try { $CheckForDuplicateSubjectCNs = ((($cert).Subject).Split(",") | %{ $_.Trim() } | Where { $_ -match "CN=" }).Trim("CN=") | % { $_.Split(".") | Select-Object -First 1 } | Group-Object | Where-Object { $_.Count -gt 1 } | Select -ExpandProperty Name }
@@ -597,11 +598,8 @@ Enhanced Key Usage Extension is Good
 					else { $text42 = "Serial Number is written to the registry"; $out += "`n" + $text42; Write-Host $text42 -BackgroundColor Green -ForegroundColor Black }
 				}
 			}
-<#
-    Check that the cert's issuing CA is trusted (This is not technically required
-                as it is the remote machine cert's CA that must be trusted.  Most users leverage
-    the same CA for all machines, though, so it's worth checking
-                #>			$chain = new-object Security.Cryptography.X509Certificates.X509Chain
+			#Check that the cert's issuing CA is trusted (This is not technically required as it is the remote machine cert's CA that must be trusted. Most users leverage the same CA for all machines, though, so it's worth checking
+			$chain = new-object Security.Cryptography.X509Certificates.X509Chain
 			$chain.ChainPolicy.RevocationMode = 0
 			if ($chain.Build($cert) -eq $false)
 			{
@@ -756,7 +754,7 @@ Certificate Checker
 		continue
 	}
 	#endregion Function
- 
+	
 	#region DefaultActions
 	if ($Servers -or $OutputFile -or $All -or $SerialNumber)
 	{
