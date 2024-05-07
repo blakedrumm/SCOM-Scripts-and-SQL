@@ -1,3 +1,18 @@
+----------------------------------------------------------------------------------------------------------------
+-- Name: DW_Events_ByTotalEvents.sql
+--
+-- Description: 
+-- This SQL script retrieves the top 100 most common events from the event logging system, providing 
+-- insights into the events that occur most frequently. The query returns the event display number, raw description 
+-- of the event, the computer name where the event was logged, and the total number of occurrences of each event. 
+-- Additionally, it calculates the span of days over which each event has been logged, helping identify long-running 
+-- or persistent issues. This query is designed to assist in identifying patterns or anomalies in event logs, particularly 
+-- useful in large-scale environments where understanding event noise and distribution can aid in proactive management and troubleshooting.
+--
+-- Author: Blake Drumm (blakedrumm@microsoft.com)
+-- Date Created: May 7th, 2024
+-- Original query: https://kevinholman.com/2016/11/11/scom-sql-queries/#:~:text=Events%20Section%20(Warehouse)
+----------------------------------------------------------------------------------------------------------------
 -- Selects the top 100 records from the result set
 SELECT TOP 100
     evt.EventDisplayNumber,            -- Display number of the event
