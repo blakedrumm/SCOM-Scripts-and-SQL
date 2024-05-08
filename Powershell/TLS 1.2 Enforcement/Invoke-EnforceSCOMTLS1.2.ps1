@@ -52,7 +52,7 @@
 		=================================================================================
 		
 				 SCOM TLS 1.2 / 1.3 Configuration Script
-					     v 2.3
+					     v 2.4
 	  
 		 This script supports: SCOM 2012R2, 2016, 1801, 1807, 2019, and 2022
 		                       SQL 2008R2 through 2022
@@ -61,7 +61,7 @@
 		 Original Author: Kevin Holman (https://kevinholman.com/)
 		 Author: Blake Drumm (https://blakedrumm.com/)
 		
-		 Last Updated: May 5th, 2024
+		 Last Updated: May 7th, 2024
 	
 	  	 Blog Post: https://blakedrumm.com/blog/enforce-tls-1-2-scom/
 		
@@ -361,12 +361,7 @@ function Start-SCOMTLSEnforcement
 			try
 			{
 				# Microsoft SQL Server 2012 Native Client - QFE (As of writing: 11.0.7001.0)
-				$releasePage = ((Invoke-WebRequest -UseBasicParsing -Uri 'https://www.microsoft.com/download/details.aspx?id=50402&751be11f-ede8-5a0c-058c-2ee190a24fa6').RawContent).Split("`r`n").Trim()
-				$releaseDate = ((($releasePage | Select-String -Pattern "^Date Published:\s").ToString()).Split("p>") | Select-Object -Index 3).Replace("</", '').Replace(",", "").Replace("/", "-")
-				$releaseVersion = ((($releasePage | Select-String -Pattern "^Version:\s").ToString()).Split("p>") | Select-Object -Index 3).Replace("</", '')
-				$releaseConfirmationLink = ((($releasePage | Where { $_ -match "download-button.*href=(.*)" }).Split(" ") | Select-String "href=`"(.*)`"") | Select-Object -Index 0 | Out-String).Split("`"") | Select-Object -Index 1
-				$releaseConfirmationPage = "https://www.microsoft.com/download/$releaseConfirmationLink"
-				$releaseDownloadLink = (((Invoke-WebRequest -UseBasicParsing -Uri $releaseConfirmationPage).RawContent).Split("`r`n").Trim().Split("<") | Where { $_ -match "sqlncli.msi" }).Split("`"") | Where { $_ -match "\/x64\/sqlncli.msi" } | Select-Object -Index 0
+				$releaseDownloadLink = "https://download.microsoft.com/download/B/E/D/BED73AAC-3C8A-43F5-AF4F-EB4FEA6C8F3A/ENU/x64/sqlncli.msi"
 				Write-ScriptLog -Step Prerequisites -LogString "Downloading SQL Server 2012 Native Client automatically from: '$releaseDownloadLink'" -ForegroundColor Cyan
 				Start-BitsTransfer -Source $releaseDownloadLink -Destination "$DirectoryForPrerequisites\sqlncli_$releaseVersion.msi"
 				Out-File -FilePath "$DirectoryForPrerequisites\sqlncli_$releaseVersion-Released-$releaseDate"
@@ -1906,6 +1901,7 @@ if ($AssumeYes -or $SkipDotNetCheck -or $SkipModifyRegistry -or $SkipRoleCheck -
 }
 else
 {
+	# Modify the line below to change what happens when you run from PowerShell ISE.
 	Start-SCOMTLSEnforcement
 }
 <#
