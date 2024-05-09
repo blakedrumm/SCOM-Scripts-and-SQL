@@ -10,9 +10,9 @@ function Get-ProductVersion
 	)
 	#Author: Blake Drumm (blakedrumm@microsoft.com)
 	#Website: https://blakedrumm.com/
- 
+	
 	#Last Updated SQL Server List on: March 22nd, 2024
-	#Last Updated SCOM Version List on: March 22nd, 2024
+	#Last Updated SCOM Version List on: May 9th, 2024
 	#Last Updated SSRS Version List on: March 22nd, 2024
 	$matched = $false
 	if ($Product -eq 'SCOM')
@@ -45,15 +45,18 @@ function Get-ProductVersion
     <# 
        System Center Operations Manager 2022 Versions
     #>
-			'10.22.1070.0'  { "Update Rollup 2 - Hotfix - 1.8.1-0 / 2024 March"; $matched = $true } #SCX Agent
+			'10.22.10684.0' { "SCOM 2022 Update Rollup 2 Hotfix - Introduces support for crypto policies in FIPS mode, specifically tailored for users monitoring Linux workloads / 2024 April"; $matched = $true }
+			'10.22.1072.0'  { "SCOM 2022 FIPS Crypto Policy Support - 1.9.0-0 / 2024 April"; $matched = $true } #SCX Agent
+			'10.22.1070.0'  { "SCOM 2022 Update Rollup 2 - Hotfix - 1.8.1-0 / 2024 March"; $matched = $true } #SCX Agent
+			'10.22.10618.0' { "SCOM 2022 Update Rollup 2 Hotfix - Addresses Linux monitoring issues / 2023 December"; $matched = $true }
 			'10.22.10208.0' { "SCOM 2022 Update Rollup 2 / 2023 November"; $matched = $true } #Agent
-			'10.22.10610.0' { "Update Rollup 2 / 2023 November "; $matched = $true }
-			'10.22.1055.0'  { "OMI Vulnerability Fix - 1.7.3-0 / 2023 November"; $matched = $true } #SCX Agent
-			'10.22.1052.0'  { "Update Rollup 1 - Hotfix - 1.7.1-0 / 2023 August"; $matched = $true } #SCX Agent
-			'10.22.10560.0' { "SCX Compiler Mitigated Packages / 2023 August"; $matched = $true } #SCX Agent
-			'10.22.10565.0' { "Discover Azure Migrate in Operations Manager / 2023 July"; $matched = $true }
-			'10.22.10575.0' { "GB compliance / 2023 July"; $matched = $true }
-			'10.22.1044.0'  { "Update Rollup 1 - OpenSSL 3.0 - 1.7.0-0 / 2023 March"; $matched = $true } #SCX Agent
+			'10.22.10610.0' { "SCOM 2022 Update Rollup 2 / 2023 November "; $matched = $true }
+			'10.22.1055.0'  { "SCOM 2022 OMI Vulnerability Fix - 1.7.3-0 / 2023 November"; $matched = $true } #SCX Agent
+			'10.22.1052.0'  { "SCOM 2022 Update Rollup 1 - Hotfix - 1.7.1-0 / 2023 August"; $matched = $true } #SCX Agent
+			'10.22.10560.0' { "SCOM 2022 SCX Compiler Mitigated Packages / 2023 August"; $matched = $true } #SCX Agent
+			'10.22.10565.0' { "SCOM 2022 Discover Azure Migrate in Operations Manager / 2023 July"; $matched = $true }
+			'10.22.10575.0' { "SCOM 2022 GB compliance / 2023 July"; $matched = $true }
+			'10.22.1044.0'  { "SCOM 2022 Update Rollup 1 - OpenSSL 3.0 - 1.7.0-0 / 2023 March"; $matched = $true } #SCX Agent
 			'10.22.1042.0'  { "SCOM 2022 Update Rollup 1 - Hotfix - 1.6.12-1 / 2023 February"; $matched = $true } #SCX Agent
 			'10.22.1039.0'  { "SCOM 2022 Update Rollup 1 - 1.6.11-0	/ 2022 December"; $matched = $true } #SCX Agent
 			'10.22.10337.0' { "SCOM 2022 Update Rollup 1 - Console Hotfix / 2022 December"; $matched = $true }
@@ -67,19 +70,23 @@ function Get-ProductVersion
     <# 
        System Center Operations Manager 2019 Versions
     #>
-			'10.19.1253.0'  { "Update Rollup 6 - 1.8.1-0 / 2024 March"; $matched = $true } #SCX Agent
-			'10.19.1234.0'  { "OMI Vulnerability Fix - 1.7.3-0 / 2023 November"; $matched = $true } #SCX Agent
-			'10.19.1226.0'  { "Update Rollup 5 - Hotfix - 1.7.1-0 / 2023 August"; $matched = $true } #SCX Agent
-			'10.19.10618.0' { "SCX Compiler Mitigated Packages / 2023 August"; $matched = $true }
-			'10.19.10616.0' { "Discover Azure Migrate in Operations Manager / 2023 July"; $matched = $true }
-			'10.19.10615.0' { "GB compliance / 2023 July"; $matched = $true }
-			'10.19.10211.0' { "Update Rollup 5 / 2023 April"; $matched = $true } #Agent
-			'10.19.10606.0' { "Update Rollup 5 / 2023 April"; $matched = $true }
-			'10.19.1214.0'  { "Update Rollup 4 - OpenSSL 3.0 - 1.7.0-0 / 2023 March"; $matched = $true } #SCX Agent
-			'10.19.1195.0'  { "Update Rollup 4 - Hotfix - 1.6.12-1 / 2023 February"; $matched = $true } #SCX Agent
-			'10.19.1167.0'  { "Update Rollup 4 - Hotfix - 1.6.11-0 / 2022 December"; $matched = $true } #SCX Agent
-			'10.19.10576.0' { "Update Rollup 4 - Hotfix for Operations Console Performance issue / 2022 July"; $matched = $true }
-			'10.19.1158.0'  { "Update Rollup 4 - OMI Vulnerability Fix - 1.6.10-2 / 2022 August"; $matched = $true } #SCX Agent
+			'10.19.10652.0' { "SCOM 2019 Update Rollup 6 Hotfix - Introduces support for crypto policies in FIPS mode, specifically tailored for users monitoring Linux workloads / 2024 April"; $matched = $true }
+			'10.19.1254.0'  { "SCOM 2019 FIPS Crypto Policy Support - 1.9.0-0 / 2024 April"; $matched = $true } #SCX Agent
+			'10.19.1253.0'  { "SCOM 2019 Update Rollup 6 - 1.8.1-0 / 2024 March"; $matched = $true } #SCX Agent
+			'10.19.10253.0' { "SCOM 2019 Update Rollup 6 / 2024 March"; $matched = $true } #Agent
+			'10.19.10649.0' { "SCOM 2019 Update Rollup 6 / 2024 March"; $matched = $true }
+			'10.19.1234.0'  { "SCOM 2019 OMI Vulnerability Fix - 1.7.3-0 / 2023 November"; $matched = $true } #SCX Agent
+			'10.19.1226.0'  { "SCOM 2019 Update Rollup 5 - Hotfix - 1.7.1-0 / 2023 August"; $matched = $true } #SCX Agent
+			'10.19.10618.0' { "SCOM 2019 SCX Compiler Mitigated Packages / 2023 August"; $matched = $true }
+			'10.19.10616.0' { "SCOM 2019 Discover Azure Migrate in Operations Manager / 2023 July"; $matched = $true }
+			'10.19.10615.0' { "SCOM 2019 GB compliance / 2023 July"; $matched = $true }
+			'10.19.10211.0' { "SCOM 2019 Update Rollup 5 / 2023 April"; $matched = $true } #Agent
+			'10.19.10606.0' { "SCOM 2019 Update Rollup 5 / 2023 April"; $matched = $true }
+			'10.19.1214.0'  { "SCOM 2019 Update Rollup 4 - OpenSSL 3.0 - 1.7.0-0 / 2023 March"; $matched = $true } #SCX Agent
+			'10.19.1195.0'  { "SCOM 2019 Update Rollup 4 - Hotfix - 1.6.12-1 / 2023 February"; $matched = $true } #SCX Agent
+			'10.19.1167.0'  { "SCOM 2019 Update Rollup 4 - Hotfix - 1.6.11-0 / 2022 December"; $matched = $true } #SCX Agent
+			'10.19.10576.0' { "SCOM 2019 Update Rollup 4 - Hotfix for Operations Console Performance issue / 2022 July"; $matched = $true }
+			'10.19.1158.0'  { "SCOM 2019 Update Rollup 4 - OMI Vulnerability Fix - 1.6.10-2 / 2022 August"; $matched = $true } #SCX Agent
 			'10.19.1150.0'  { "SCOM 2019 Update Rollup 4 - 1.6.10-1 / 2022 June"; $matched = $true } #SCX Agent
 			'10.19.10200.0' { "SCOM 2019 Update Rollup 4 / 2022 June"; $matched = $true } #Agent
 			'10.19.10569.0' { "SCOM 2019 Update Rollup 4 / 2022 June"; $matched = $true }
@@ -104,20 +111,21 @@ function Get-ProductVersion
     <# 
        System Center Operations Manager 2016 Versions
     #>
-			'7.6.1197.0'  { "Update Rollup 10 - Hotfix - 1.8.1-0 / 2024 March"; $matched = $true } #SCX Agent
-			'7.6.1189.0'  { "OMI Vulnerability Fix - 1.7.3-0 / 2023 November"; $matched = $true } #SCX Agent
-			'7.6.1185.0'    { "Update Rollup 10 - Hotfix - 1.7.1-0 / 2023 August"; $matched = $true } #SCX Agent
-			'7.6.1164.0'    { "Update Rollup 10 - Hotfix - 1.6.12-1 / 2023 February"; $matched = $true } #SCX Agent
-			'7.6.1113.0'    { "Update Rollup 10 - OMI Vulnerability Fix - 1.6.10-2 / 2022 August"; $matched = $true } #SCX Agent
-			'7.6.1108.0'    { "Update Rollup 10 - OMI Vulnerability Fix - 1.6.9-2 / 2022 May"; $matched = $true } #SCX Agent
-			'7.6.1105.0'    { "Update Rollup 10 - 1.6.8-1 / 2021 September"; $matched = $true } #SCX Agent
-			'7.6.1092.0'    { "Update Rollup 9 - 1.6.2-343 / 2020 March"; $matched = $true } #SCX Agent
-			'7.6.1076.0'    { "Update Rollup 3 - 1.6.2-339 / 2017 May"; $matched = $true } #SCX Agent
-			'7.6.1072.0'    { "Update Rollup 2 - 1.6.2-338 / 2017 February"; $matched = $true } #SCX Agent
-			'7.6.1067.0'    { "Update Rollup 1 - 1.6.2-337 / 2016 October"; $matched = $true } #SCX Agent
-			'7.6.1064.0'    { "General Availability release - 1.6.2-336 / 2016 September"; $matched = $true } #SCX Agent
-			'7.2.12345.0'   { "SCX Compiler Mitigated Packages / 2023 August"; $matched = $true }
-			'7.2.12335.0' { "Update Rollup 10 - Web Console IDOR Vulnerability Fix / 2021 October"; $matched = $true }
+			'7.6.1201.0'  { "SCOM 2016 FIPS Crypto Policy Support - 1.9.0-0 / 2024 April"; $matched = $true } #SCX Agent
+			'7.6.1197.0'  { "SCOM 2016 Update Rollup 10 - Hotfix - 1.8.1-0 / 2024 March"; $matched = $true } #SCX Agent
+			'7.6.1189.0'  { "SCOM 2016 OMI Vulnerability Fix - 1.7.3-0 / 2023 November"; $matched = $true } #SCX Agent
+			'7.6.1185.0'    { "SCOM 2016 Update Rollup 10 - Hotfix - 1.7.1-0 / 2023 August"; $matched = $true } #SCX Agent
+			'7.6.1164.0'    { "SCOM 2016 Update Rollup 10 - Hotfix - 1.6.12-1 / 2023 February"; $matched = $true } #SCX Agent
+			'7.6.1113.0'    { "SCOM 2016 Update Rollup 10 - OMI Vulnerability Fix - 1.6.10-2 / 2022 August"; $matched = $true } #SCX Agent
+			'7.6.1108.0'    { "SCOM 2016 Update Rollup 10 - OMI Vulnerability Fix - 1.6.9-2 / 2022 May"; $matched = $true } #SCX Agent
+			'7.6.1105.0'    { "SCOM 2016 Update Rollup 10 - 1.6.8-1 / 2021 September"; $matched = $true } #SCX Agent
+			'7.6.1092.0'    { "SCOM 2016 Update Rollup 9 - 1.6.2-343 / 2020 March"; $matched = $true } #SCX Agent
+			'7.6.1076.0'    { "SCOM 2016 Update Rollup 3 - 1.6.2-339 / 2017 May"; $matched = $true } #SCX Agent
+			'7.6.1072.0'    { "SCOM 2016 Update Rollup 2 - 1.6.2-338 / 2017 February"; $matched = $true } #SCX Agent
+			'7.6.1067.0'    { "SCOM 2016 Update Rollup 1 - 1.6.2-337 / 2016 October"; $matched = $true } #SCX Agent
+			'7.6.1064.0'    { "SCOM 2016 General Availability release - 1.6.2-336 / 2016 September"; $matched = $true } #SCX Agent
+			'7.2.12345.0'   { "SCOM 2016 SCX Compiler Mitigated Packages / 2023 August"; $matched = $true }
+			'7.2.12335.0' { "SCOM 2016 Update Rollup 10 - Web Console IDOR Vulnerability Fix / 2021 October"; $matched = $true }
 			'8.0.11057.0' { "SCOM 2016 Update Rollup 10 / 2020 November 19"; $matched = $true } #Agent
 			'7.2.12324.0' { "SCOM 2016 Update Rollup 10 / 2020 November 19"; $matched = $true }
 			'8.0.11049.0' { "SCOM 2016 Update Rollup 9 / 2020 March 24"; $matched = $true } #Agent
@@ -218,7 +226,7 @@ function Get-ProductVersion
     <# 
        Azure Log Analytics
     #>
-				"10.20.*"  		 { "Azure Log Analytics Agent / Unknown Release Date" } #Agent
+				"10.20.*" { "Azure Log Analytics Agent / Unknown Release Date" } #Agent
 				default { "Unknown Version" }
 			}
 			return $Output
