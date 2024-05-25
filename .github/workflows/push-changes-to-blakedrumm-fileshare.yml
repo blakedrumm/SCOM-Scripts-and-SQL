@@ -24,11 +24,11 @@ jobs:
       name: Copy Files to Blake Drumm - File Repository
       runs-on: ubuntu-latest
       steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout
       - name: Copy Operations Manager Powershell to Blake Drumm - File Repository
         # You may pin to the exact commit or the version.
         # uses: AbleLincoln/push-to-sftp@a6c117bb60fdc94ab8e5b139cdb0b19bea582c81
-        uses: AbleLincoln/push-to-sftp@v1.2
+        uses: AbleLincoln/push-to-sftp
         with:
           # SFTP server
           host: ${{ secrets.HOST }}
@@ -46,7 +46,7 @@ jobs:
       - name: Copy AutomatedLab Powershell to Blake Drumm - File Repository
         # You may pin to the exact commit or the version.
         # uses: AbleLincoln/push-to-sftp@a6c117bb60fdc94ab8e5b139cdb0b19bea582c81
-        uses: AbleLincoln/push-to-sftp@v1.2
+        uses: AbleLincoln/push-to-sftp
         with:
           # SFTP server
           host: ${{ secrets.HOST }}
@@ -65,7 +65,7 @@ jobs:
       - name: Copy Operations Manager SQL Queries to Blake Drumm - File Repository
         # You may pin to the exact commit or the version.
         # uses: AbleLincoln/push-to-sftp@a6c117bb60fdc94ab8e5b139cdb0b19bea582c81
-        uses: AbleLincoln/push-to-sftp@v1.2
+        uses: AbleLincoln/push-to-sftp
         with:
           # SFTP server
           host: ${{ secrets.HOST }}
