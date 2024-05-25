@@ -4,11 +4,11 @@ name: Copy Files to microsoft/CSS-SystemCenter-OperationsManager
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "master" branch
+  # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+    branches: [ master ]
+  #pull_request:
+    #branches: [ master ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -25,12 +25,12 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout
+      - uses: actions/checkout@main
 
       - name: Push Powershell directory to microsoft/CSS-SystemCenter-OperationsManager
         # You may pin to the exact commit or the version.
         # uses: datalbry/copy_folder_to_another_repo_action@f4ceec0eb4df6da5e4fe043dbc38c698a8ff4401
-        uses: datalbry/copy_folder_to_another_repo_action
+        uses: datalbry/copy_folder_to_another_repo_action@master
         with:
           # Source folder from the origin directory
           source_folder: Powershell
@@ -52,7 +52,7 @@ jobs:
       - name: Push SQL directory to microsoft/CSS-SystemCenter-OperationsManager
         # You may pin to the exact commit or the version.
         # uses: datalbry/copy_folder_to_another_repo_action@f4ceec0eb4df6da5e4fe043dbc38c698a8ff4401
-        uses: datalbry/copy_folder_to_another_repo_action
+        uses: datalbry/copy_folder_to_another_repo_action@master
         with:
           # Source folder from the origin directory
           source_folder: 'SQL Queries'
@@ -74,7 +74,7 @@ jobs:
       - name: Push ManagementPacks directory to microsoft/CSS-SystemCenter-OperationsManager
         # You may pin to the exact commit or the version.
         # uses: datalbry/copy_folder_to_another_repo_action@f4ceec0eb4df6da5e4fe043dbc38c698a8ff4401
-        uses: datalbry/copy_folder_to_another_repo_action
+        uses: datalbry/copy_folder_to_another_repo_action@master
         with:
           # Source folder from the origin directory
           source_folder: 'ManagementPacks'
