@@ -277,6 +277,7 @@ Write-Output "`$(Time-Stamp)Completed importing the SCOM PowerShell Module!"
 }
 elseif (`$Action -eq 'Uninstall')
 {
+    # Remove GAC assemblies
 	Get-ChildItem "`$Path\Microsoft.EnterpriseManagement*" | % {
 		`$resolvedPath = (Resolve-Path `$gacPath\`$(`$_.Name) -ErrorAction SilentlyContinue)
 		if (`$resolvedPath)
@@ -286,23 +287,41 @@ elseif (`$Action -eq 'Uninstall')
 		}
 	}
 	
+	# Remove Server folder
 	`$resolvedPath = Resolve-Path `$serverFolder -ErrorAction SilentlyContinue
 	if (`$resolvedPath)
 	{
 		Remove-Item -Path `$resolvedPath -Force -Recurse
 	}
 	
+	# Remove Console folder
 	`$resolvedPath = Resolve-Path `$consoleFolder -ErrorAction SilentlyContinue
 	if (`$resolvedPath)
 	{
 		Remove-Item -Path `$resolvedPath -Force -Recurse
 	}
 	
+	# Remove PowerShell folder
 	`$resolvedPath = Resolve-Path `$powerShellFolder -ErrorAction SilentlyContinue
 	if (`$resolvedPath)
 	{
 		Remove-Item -Path `$resolvedPath -Force -Recurse
 	}
+	
+    # Remove the module path from PSModulePath environment variable
+    `$envVariableArray = [Environment]::GetEnvironmentVariable("PSModulePath", "Machine") -split ';'
+    if (`$envVariableArray -contains `$powerShellFolder)
+    {
+        `$envVariableArray = `$envVariableArray -ne `$powerShellFolder
+        `$newEnvVariable = `$envVariableArray -join ';'
+        [Environment]::SetEnvironmentVariable("PSModulePath", `$newEnvVariable, "Machine")
+        Write-Output "`$(Time-Stamp) - Removed module from the machine level environmental variable (PSModulePath)"
+    }
+    else
+    {
+        Write-Output "`$(Time-Stamp) - PowerShell module folder was not found in PSModulePath"
+    }
+
 	Write-Output "`$(Time-Stamp)Completed removing the SCOM PowerShell Module!"
 }
 "@
