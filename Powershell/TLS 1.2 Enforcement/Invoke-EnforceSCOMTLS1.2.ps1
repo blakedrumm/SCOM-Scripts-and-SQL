@@ -40,19 +40,18 @@
 		Skip SCOM Version Check step.
 	
 	.EXAMPLE
-          Example 1
-            Normal run:
 	    PS C:\> .\Invoke-EnforceSCOMTLS1.2.ps1
+     	    Normal run
 
-          Example 2:
-            Set the prerequisites folder:
-            PS C:\> .\Invoke-EnforceSCOMTLS1.2.ps1 -DirectoryForPrerequisites "C:\Temp"
+	.EXAMPLE
+     	    PS C:\> .\Invoke-EnforceSCOMTLS1.2.ps1 -DirectoryForPrerequisites "C:\Temp"
+     	    Set the prerequisites folder:
 	
 	.NOTES
 		=================================================================================
 		
 				 SCOM TLS 1.2 / 1.3 Configuration Script
-					     v 2.4
+					     v 2.5
 	  
 		 This script supports: SCOM 2012R2, 2016, 1801, 1807, 2019, and 2022
 		                       SQL 2008R2 through 2022
@@ -61,7 +60,7 @@
 		 Original Author: Kevin Holman (https://kevinholman.com/)
 		 Author: Blake Drumm (https://blakedrumm.com/)
 		
-		 Last Updated: May 7th, 2024
+		 Last Updated: October 9th, 2024
 	
 	  	 Blog Post: https://blakedrumm.com/blog/enforce-tls-1-2-scom/
 		
