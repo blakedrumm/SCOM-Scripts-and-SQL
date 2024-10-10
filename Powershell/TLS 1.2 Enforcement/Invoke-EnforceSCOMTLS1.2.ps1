@@ -40,12 +40,12 @@
 		Skip SCOM Version Check step.
 	
 	.EXAMPLE
-	    PS C:\> .\Invoke-EnforceSCOMTLS1.2.ps1
-     	    Normal run
+		.\Invoke-EnforceSCOMTLS1.2.ps1
+		Normal run
 
 	.EXAMPLE
-     	    PS C:\> .\Invoke-EnforceSCOMTLS1.2.ps1 -DirectoryForPrerequisites "C:\Temp"
-     	    Set the prerequisites folder:
+		.\Invoke-EnforceSCOMTLS1.2.ps1 -DirectoryForPrerequisites "C:\Temp"
+		Set the prerequisites folder:
 	
 	.NOTES
 		=================================================================================
