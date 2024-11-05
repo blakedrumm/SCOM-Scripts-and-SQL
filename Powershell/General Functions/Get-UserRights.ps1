@@ -497,6 +497,7 @@ PROCESS
 END
 {
 	Write-Verbose "$(Time-Stamp)Script Completed!"
+}
 
 # SIG # Begin signature block
 # MIIoSAYJKoZIhvcNAQcCoIIoOTCCKDUCAQExDzANBglghkgBZQMEAgEFADB5Bgor
