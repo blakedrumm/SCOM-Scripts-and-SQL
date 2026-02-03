@@ -28,6 +28,10 @@
         Check all certificates on the local machine:
         PS C:\> .\Test-SCOMCertificates.ps1 -All
     .NOTES
+        Update 02/2026 (Blake Drumm, https://blakedrumm.com/)
+            Added SAN-first-entry validation: if the certificate contains DNS Subject Alternative Names,
+            the FIRST DNS SAN entry must match the machine FQDN. This prevents cert auth failures where
+            SAN[0] does not match the expected FQDN.
         Update 05/2024 (Blake Drumm, https://blakedrumm.com/)
         	Updated the way the subject name is parsed against the DNS resolved name of the machine.
         Update 03/2024 (Blake Drumm, https://blakedrumm.com/)
@@ -147,6 +151,51 @@ begin
 			$TimeStamp = Get-Date -Format "MM/dd/yyyy hh:mm:ss tt"
 			return $TimeStamp
 		}
+
+		# Helper: Extract DNS SANs in order, then return the first DNS entry (if any)
+		function Get-FirstDnsSanEntry
+		{
+			param(
+				[Parameter(Mandatory = $true)]
+				[System.Security.Cryptography.X509Certificates.X509Certificate2]$Certificate
+			)
+
+			try
+			{
+				$sanExt = $Certificate.Extensions | Where-Object { $_.Oid -and $_.Oid.Value -eq '2.5.29.17' } | Select-Object -First 1
+				if ($null -eq $sanExt) { return $null }
+
+				# .Format($false) preserves the extension display order from the certificate
+				$sanText = $sanExt.Format($false)
+				if ([string]::IsNullOrWhiteSpace($sanText)) { return $null }
+
+				# Split on commas and newlines while maintaining order
+				$parts = $sanText -split "(\r\n|\n|,)"
+				foreach ($p in $parts)
+				{
+					$t = ($p -as [string]).Trim()
+					if ([string]::IsNullOrWhiteSpace($t)) { continue }
+
+					# Common formats: "DNS Name=host.contoso.com" or sometimes "DNS=host.contoso.com"
+					if ($t -match '^(DNS Name|DNS)\s*=\s*(.+)$')
+					{
+						$dns = $Matches[2].Trim()
+						if ($dns.EndsWith('.')) { $dns = $dns.TrimEnd('.') }
+						if (-not [string]::IsNullOrWhiteSpace($dns))
+						{
+							return $dns
+						}
+					}
+				}
+
+				return $null
+			}
+			catch
+			{
+				return $null
+			}
+		}
+
 		$out = @()
 		$out += "`n" + @"
 $(Invoke-TimeStamp) : Starting Script
@@ -256,11 +305,8 @@ $(Invoke-TimeStamp) : Starting Script
 			$Subject = $Certificate.Subject
 			#Build chain
 			$chain.Build($Certificate)
-			# List the chain elements
-			# Write-Host $chain.ChainElements.Certificate.IssuerName.Name
 			# List the chain elements verbose
 			$ChainCerts = ($chain.ChainElements).certificate | select Subject, SerialNumber
-			#$ChainCerts
 			$chainCertFormatter = New-Object System.Text.StringBuilder
 			foreach ($C1 IN $ChainCerts)
 			{
@@ -270,9 +316,7 @@ $(Invoke-TimeStamp) : Starting Script
 				$chainCertFormatter.AppendLine("($($C1.serialnumber))") | Out-Null
 			}
 			$ChainCertsOutput = $chainCertFormatter.ToString()
-			#write-host $ChainCertsOutput
-			#   ^^ needs to be justified. I suspect creating an object array and then exporting that to a string may 
-			#   keep the justification and still allow it to be displayed.
+
 			$text4 = @"
 =====================================================================================================================
 $(if (!$SerialNumber -and $All) { "($x`/$($certs.Count)) " })Examining Certificate
@@ -287,19 +331,25 @@ $($ChainCertsOutput)
 			Write-Host $text4
 			$out += "`n" + "`n" + $text4
 			$pass = $true
+
 			# Check subjectname
-			$fqdn = (Resolve-DnsName $env:COMPUTERNAME -Type A | Select-Object -ExpandProperty Name -Unique) -join " "
+			$fqdnList = @((Resolve-DnsName $env:COMPUTERNAME -Type A | Select-Object -ExpandProperty Name -Unique))
+			$fqdn = ($fqdnList) -join " "
+			$fqdnPrimary = $null
+			if ($fqdnList -and $fqdnList.Count -gt 0) { $fqdnPrimary = ($fqdnList | Select-Object -First 1) }
+			if ([string]::IsNullOrWhiteSpace($fqdnPrimary)) { $fqdnPrimary = $fqdn }
+
 			trap [DirectoryServices.ActiveDirectory.ActiveDirectoryObjectNotFoundException]
 			{
 				# Not part of a domain
 				continue;
 			}
-			
+
 			$subjectProblem = $false
 			$fqdnRegexPattern = "CN=" + ($fqdn.Replace(".", "\.")).Replace(" ", "|CN=")
 			try { $CheckForDuplicateSubjectCNs = ((($cert).Subject).Split(",") | %{ $_.Trim() } | Where { $_ -match "CN=" }).Trim("CN=") | % { $_.Split(".") | Select-Object -First 1 } | Group-Object | Where-Object { $_.Count -gt 1 } | Select -ExpandProperty Name }
 			catch { $CheckForDuplicateSubjectCNs = $null }
-			
+
 			if (-NOT $cert.Subject)
 			{
 				$text5 = "Certificate Subject Common Name Missing"
@@ -350,6 +400,39 @@ $($ChainCertsOutput)
 				$pass = $true;
 				$text7 = "Certificate Subjectname is Good"; $out += "`n" + $text7; Write-Host $text7 -BackgroundColor Green -ForegroundColor Black
 			}
+
+			# NEW: Validate first DNS SAN entry matches the machine FQDN
+			# If the certificate has DNS SANs, SCOM/cert auth can fail when the first SAN does not match the expected FQDN.
+			$sanProblem = $false
+			$firstDnsSan = Get-FirstDnsSanEntry -Certificate $cert
+			if ($firstDnsSan)
+			{
+				if ($firstDnsSan.ToUpper() -ne $fqdnPrimary.ToUpper())
+				{
+					$textSAN1 = "Certificate SAN First DNS Entry Mismatch"
+					$out += "`n" + $textSAN1
+					Write-Host $textSAN1 -BackgroundColor Red -ForegroundColor Black
+
+					$textSAN2 = @"
+    The first DNS Subject Alternative Name (SAN) entry does not match the expected FQDN.
+    This can cause certificate authentication failures if SCOM uses SAN[0] during validation.
+        First DNS SAN entry: $firstDnsSan
+        Expected FQDN:       $fqdnPrimary
+"@
+					$out += "`n" + $textSAN2
+					Write-Host $textSAN2
+					$pass = $false
+					$sanProblem = $true
+				}
+				else
+				{
+					$textSAN3 = "Certificate SAN first DNS entry is Good"
+					$out += "`n" + $textSAN3
+					Write-Host $textSAN3 -BackgroundColor Green -ForegroundColor Black
+				}
+			}
+			# If no DNS SAN is present, do not fail (existing CN validation remains the primary check).
+
 			# Verify private key
 			if (!($cert.HasPrivateKey))
 			{
@@ -382,6 +465,7 @@ $($ChainCertsOutput)
 				$pass = $false
 			}
 			else { $text12 = "Private Key is Good"; $out += "`n" + $text12; Write-Host $text12 -BackgroundColor Green -ForegroundColor Black }
+
 			# Check expiration dates
 			if (($cert.NotBefore -gt [DateTime]::Now) -or ($cert.NotAfter -lt [DateTime]::Now))
 			{
@@ -405,6 +489,7 @@ Expiration
 				$out += "`n" + $text15
 				Write-Host $text15 -BackgroundColor Green -ForegroundColor Black
 			}
+
 			# Enhanced key usage extension
 			$enhancedKeyUsageExtension = $cert.Extensions | Where-Object { $_.ToString() -match "X509EnhancedKeyUsageExtension" }
 			if ($null -eq $enhancedKeyUsageExtension)
@@ -462,6 +547,7 @@ Enhanced Key Usage Extension is Good
 					}
 				}
 			}
+
 			# KeyUsage extension
 			$keyUsageExtension = $cert.Extensions | Where-Object { $_.ToString() -match "X509KeyUsageExtension" }
 			if ($null -eq $keyUsageExtension)
@@ -516,6 +602,7 @@ Enhanced Key Usage Extension is Good
 					else { $text30 = "Key Usage Extensions are Good"; $out += "`n" + $text30; Write-Host $text30 -BackgroundColor Green -ForegroundColor Black }
 				}
 			}
+
 			# KeySpec
 			$keySpec = $cert.PrivateKey.CspKeyContainerInfo.KeyNumber
 			if ($null -eq $keySpec)
@@ -543,6 +630,7 @@ Enhanced Key Usage Extension is Good
 				$pass = $false
 			}
 			else { $text35 = "KeySpec is Good"; $out += "`n" + $text35; Write-Host $text35 -BackgroundColor Green -ForegroundColor Black }
+
 			# Check that serial is written to proper reg
 			$certSerial = $cert.SerialNumber
 			$certSerialReversed = [System.String]("")
@@ -598,7 +686,8 @@ Enhanced Key Usage Extension is Good
 					else { $text42 = "Serial Number is written to the registry"; $out += "`n" + $text42; Write-Host $text42 -BackgroundColor Green -ForegroundColor Black }
 				}
 			}
-			#Check that the cert's issuing CA is trusted (This is not technically required as it is the remote machine cert's CA that must be trusted. Most users leverage the same CA for all machines, though, so it's worth checking
+
+			#Check that the cert's issuing CA is trusted
 			$chain = new-object Security.Cryptography.X509Certificates.X509Chain
 			$chain.ChainPolicy.RevocationMode = 0
 			if ($chain.Build($cert) -eq $false)
@@ -654,6 +743,7 @@ Enhanced Key Usage Extension is Good
 					Write-Host $text48
 				}
 			}
+
 			if ($pass)
 			{
 				$text49 = "`n*** This certificate is properly configured and imported for System Center Operations Manager ***"; $out += "`n" + $text49; Write-Host $text49 -ForegroundColor Green
@@ -664,6 +754,7 @@ Enhanced Key Usage Extension is Good
 			}
 			$out += "`n" + " " # This is so there is white space between each Cert. Makes it less of a jumbled mess.
 		}
+
 		if ($certs.Count -eq $NotPresentCount)
 		{
 			$text49 = "    Unable to locate any certificates on this server that match the criteria specified OR the serial number in the registry does not match any certificates present."; $out += "`n" + $text49; Write-Host $text49 -ForegroundColor Red
@@ -754,7 +845,7 @@ Certificate Checker
 		continue
 	}
 	#endregion Function
-	
+
 	#region DefaultActions
 	if ($Servers -or $OutputFile -or $All -or $SerialNumber)
 	{
@@ -762,7 +853,7 @@ Certificate Checker
 	}
 	else
 	{
-		# Modify line 772 if you want to change the default behavior when running this script through Powershell ISE
+		# Modify line 863 if you want to change the default behavior when running this script through Powershell ISE
 		#
 		# Examples: 
 		# Test-SCOMCertificate -SerialNumber 1f00000008c694dac94bcfdc4a000000000008
